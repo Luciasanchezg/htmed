@@ -1,4 +1,9 @@
 
+#' @importFrom stats setNames as.formula
+#' @importFrom tibble column_to_rownames
+#' @importFrom parallel mclapply
+NULL
+
 #' Merging the fitted models for mediator and outcome
 #'
 #' @description `providing_models()` generates a single dataframe with as many
@@ -40,53 +45,48 @@ providing_models <- function(model.m, model.y) {
   return(results.models)
 }
 
+
 ################################################################################
 #' Generating the fitted models for mediator OR outcome
 #'
 #' @description `generating_models()` generates a single dataframe with as many
-#'   rows as different models to perform mediation and a column (with the
-#'   fitted models for mediator OR the fitted models for outcome)
-#'
-#' @param column.models a character indicating the name of the column containing the fitted models for mediator
-#' @param model.type a function indicating the kind of analysis that will be performed, taking into account the ones allowed by mediate()
+#'   rows as different models to perform mediation and a column (with the fitted
+#'   models for mediator OR the fitted models for outcome)
+#' @param column.models a character indicating the name of the column containing
+#'   the fitted models for mediator
+#' @param model.type a function indicating the kind of analysis that will be
+#'   performed, taking into account the ones allowed by mediate()
 #' @param data a dataframe with the information to perform the models
 #' @param data.models a dataframe with the column indicated in column.models
-#' @param ncores number of ncores to use
-#' @param model.m Default: TRUE. A boolean for choosing if we are going to perform the fitted models for mediator (TRUE) or outcome (FALSE)
+#' @param model.m Default: TRUE. A boolean for choosing if we are going to
+#'   perform the fitted models for mediator (TRUE) or outcome (FALSE)
+#' @param ... other arguments that the models performed will need
 #'
-#' @return returns a dataframe with a column, named model.M or model.Y, depending on the fitted models performed
-#'
+#' @return returns a dataframe with a column, named model.M or model.Y,
+#'   depending on the fitted models performed
 #' @export
 #'
-generating_models <- function(column.models, model.type, data, data.models, ncores, model.m = TRUE, ...) {
+generating_models <- function(column.models, model.type, data, data.models, model.m = TRUE, ...) {
 
-  if (!column.models %in% colnames(data.models)) {
+  # getting the number of cores available
+  ncores <- .ncores()
+
+  if (!as.character(column.models) %in% colnames(data.models)) {
     stop("Incorrect column name for the models")
   }
+
+  if (!is.data.frame(data)) {
+    stop("Your data is not stored in a dataframe")
+  }
+
   # checking if the models can be converted in a formula
-  models <- c()
-  for (model in data.models[[column.models]]) {
+  models <- .check_formula(column.models=column.models, data.models=data.models)
 
-    tryCatch(
-      {
-        m <- as.formula(model)
-        models <- c(m, models)
-      },
-      warning=function(w) {
-        #print(w)
-        return(paste("Warning message:", w, sep=' '))
-      },
-      error=function(e) {
-        #print(e)
-        return(paste("Error message:", e, sep=' '))
-        }
-    )
+  if (is.null(models)) {
+    stop("There are no right formulas in the columns selected")
   }
+
   data.models <- data.models[data.models[[column.models]] %in% as.character(models),]
-
-  if (dim(data.models)[1] == 0) {
-    stop("None of the rows presented a valid formula")
-  }
 
   if (model.m == TRUE) {
     model_name <- 'model.M'
@@ -98,7 +98,13 @@ generating_models <- function(column.models, model.type, data, data.models, ncor
     }
 
   # generating the models
+
   models <- .model_MY(list.models=data.models[[column.models]], model.type=model.type, data=data, ncores=ncores, ...)
+  models[grep(x = names(models), pattern = 'Error') ] <- NULL
+
+  if (length(models) == 0) {
+    stop("All analysis performed gave an error")
+  }
 
   results.models <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(data.models[[column.models]]))), c(model_name))
   results.models[[model_name]] <- models
@@ -109,34 +115,52 @@ generating_models <- function(column.models, model.type, data, data.models, ncor
   return(results)
 
 }
-# results <- generating_models(column.models='model.m.formula', model.type=lm,
-#                   data=df, data.models=models, ncores=5, model.m = TRUE)
-#
-# results <- generating_models(column.models='model.y.formula', model.type=survreg,
-#                              data=df, data.models=results, ncores=5, model.m = FALSE)
 
+
+# results <- generating_models(column.models='model.m.formula', model.type=lm,
+#                   data=df, data.models=models, model.m = TRUE)
+# library(survival)
+# results <- generating_models(column.models='model.y.formula', model.type=survreg,
+#                              data=df, data.models=results, model.m = FALSE)
 
 ################################################################################
+.check_formula <- function(column.models, data.models) {
+  models <- c()
+  for (model in data.models[[column.models]]) {
+
+    tryCatch(
+      {
+        m <- stats::as.formula(model)
+        models <- c(m, models)
+      }
+      , warning=function(w) {
+        return(w)
+      },
+      error=function(e) {
+        return(e)
+      }
+    )
+  }
+  return(models)
+}
+
+
 .model_MY <- function(list.models, model.type, data, ncores, ...) {
-  # if (!model.type %in% c('lm', 'polr', 'bayespolr', 'glm', 'bayesglm', 'gam', 'rq', 'survreg',
-  #                         'merMod', 'vglm'))
-  #   stop("You have asked for odels not supported by mediate package.
-  #        Causal mediation analysis will not be performed.")
 
   # parallelizing model generation
   models <- parallel::mclapply(list.models, function(formula) {
     tryCatch(
       {
         model <-  model.type(as.formula(formula), data=data, ...)
-      },
-      warning=function(w) {
-        #print(w)
-        return(paste("Warning message:", w, sep=' '))
-      },
-      error=function(e) {
-        #print(e)
-        return(paste("Error message:", e, sep=' '))
       }
+      # , warning=function(w) {
+      #   #print(w)
+      #   return(paste("Warning message:", w, sep=' '))
+      # },
+      # error=function(e) {
+      #   #print(e)
+      #   return(paste("Error message:", e, sep=' '))
+      # }
     )
 
   }, mc.cores = ncores)
@@ -148,11 +172,12 @@ generating_models <- function(column.models, model.type, data, data.models, ncor
   return(models)
 }
 
+
 .extracting_terms <- function(models) {
   sapply(models, function(x) {
     if ( any(grepl('Error', x)) ){
-      stop("The model introduced has given an error")
-      #mod_name <- 'Error'
+      message("The model introduced has given an error")
+      mod_name <- 'Error'
     }
     else {
       terms_model <- as.character(x[['terms']])

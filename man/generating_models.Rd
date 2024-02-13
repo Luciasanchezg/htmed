@@ -9,29 +9,32 @@ generating_models(
   model.type,
   data,
   data.models,
-  ncores,
   model.m = TRUE,
   ...
 )
 }
 \arguments{
-\item{column.models}{a character indicating the name of the column containing the fitted models for mediator}
+\item{column.models}{a character indicating the name of the column containing
+the fitted models for mediator}
 
-\item{model.type}{a function indicating the kind of analysis that will be performed, taking into account the ones allowed by mediate()}
+\item{model.type}{a function indicating the kind of analysis that will be
+performed, taking into account the ones allowed by mediate()}
 
 \item{data}{a dataframe with the information to perform the models}
 
 \item{data.models}{a dataframe with the column indicated in column.models}
 
-\item{ncores}{number of ncores to use}
+\item{model.m}{Default: TRUE. A boolean for choosing if we are going to
+perform the fitted models for mediator (TRUE) or outcome (FALSE)}
 
-\item{model.m}{Default: TRUE. A boolean for choosing if we are going to perform the fitted models for mediator (TRUE) or outcome (FALSE)}
+\item{...}{other arguments that the models performed will need}
 }
 \value{
-returns a dataframe with a column, named model.M or model.Y, depending on the fitted models performed
+returns a dataframe with a column, named model.M or model.Y,
+depending on the fitted models performed
 }
 \description{
 \code{generating_models()} generates a single dataframe with as many
-rows as different models to perform mediation and a column (with the
-fitted models for mediator OR the fitted models for outcome)
+rows as different models to perform mediation and a column (with the fitted
+models for mediator OR the fitted models for outcome)
 }

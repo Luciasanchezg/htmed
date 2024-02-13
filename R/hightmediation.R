@@ -1,4 +1,8 @@
 
+#' @import dplyr
+#' @import mediation
+#' @importFrom parallel mcmapply  detectCores
+NULL
 
 #' High-throughput causal mediation analysis
 #'
@@ -12,34 +16,27 @@
 #'   * Performing the fitted models for mediator and outcome. After that,
 #'   mediation analysis will be also performed.
 #'
-#' @param model.generator Default: FALSE. Boolean indicating if models for
-#'   mediator and outcome need to be performed (TRUE) or they will be provided
-#'   by the user (FALSE)
 #' @param sims number of Monte Carlo draws for nonparametric bootstrap or
 #'   quasi-Bayesian approximation. Default: 1000
-#' @param model.m.type a character indicating the fitted models for mediator
-#'   that are needed to be done in case model.m argument is not provided. Only
-#'   lm and survreg models are implemented.
-#' @param model.y.type a character indicating the fitted models for outcome that
-#'   are needed to be done in case model.y argument is not provided. Only lm and
-#'   survreg models are implemented.
-#' @param data a dataframe with the values of the outcome (dependent), the
-#'   mediator and the mediator and the treatment (independent) variable
 #' @param data.models a dataframe with, at least, three columns: treatment,
 #'   mediator and outcome. If model.generator=FALSE. This dataframe needs to
 #'   have two aditional columns, with the models for the mediator (model.M) and
 #'   the models for the outcome (model.Y)
+#' @param column.modelm name of the column with the fitted models for mediator
+#'   to perform
+#' @param column.modely name of the column with the fitted models for outcome to
+#'   perform
 #' @param treat a list indicating the name of the treatment variables used in
 #'   the models. The treatment can be either binary (integer or a two-valued
 #'   factor) or continuous (numeric).
 #' @param mediator a list indicating the name of the mediator variables used in
 #'   the models.
-#' @param dependent a list indicating the name of the outcome variables used in
-#'   the models.
+#' @param outcome a lists indicating the name of the outcome variables used in
+#'   the models
 #' @param ... other arguments passed to mediate package.
 #'
-#' @return returns a list of lists with the results of mediation for each combination of
-#'   outcome, mediator and treatment variables
+#' @return returns a list of lists with the results of mediation for each
+#'   combination of outcome, mediator and treatment variables
 #' @export
 #'
 hightmed <- function(sims = 1000
@@ -54,21 +51,11 @@ hightmed <- function(sims = 1000
 
   ## TODO:
   ## controlar que los modelos que meto en model.m o model.y sean los soportados por mediate (esto lo hace el paquete mediate?)
-  ## Introducir posibilidad de que no realice los modelos de mediación, sino que formatee los modelos (para la visualización posterior)
   ## Posibilidad de ajuste (multiple linear regression: GENDER)
   ## Posibilidad de generar subgrupos (CIH, Ctl, ...)
-  ## hacer export/library/require de mediate ¿dónde?
 
   # getting the number of cores available
-  if(.Platform$OS.type == "windows")
-    {
-    print("Windows does not support mcl parallelisation. Setting conversion on a single CPU. This will take much more time")
-    ncores <- 1
-    } else
-      {
-    ncores <- min(c(1000,parallel::detectCores()-1))
-      }
-  print(paste0("Number of cores that will be used: ", ncores))
+  ncores <- .ncores()
 
   if (!all(c(treat, mediator, outcome) %in% colnames(data.models))) {
     stop("Wrong column names for treat, mediator or outcome")
@@ -98,9 +85,10 @@ hightmed <- function(sims = 1000
   return(results.med)
 }
 
-# q <- hightmed(data.models=results,
-#               column.modelm='model.M', column.modely='model.Y',
-#               treat = "independent.var", mediator = "mediator.var", outcome = "dependent.var")
+# library(dplyr)
+# results.mediation <- hightmed(data.models=results,
+#                               column.modelm='model.M', column.modely='model.Y',
+#                               treat = "independent.var", mediator = "mediator.var", outcome = "dependent.var")
 
 
 
@@ -125,3 +113,15 @@ hightmed <- function(sims = 1000
   return(results.med)
 }
 
+.ncores <- function(...) {
+  if(.Platform$OS.type == "windows")
+  {
+    print("Windows does not support mcl parallelisation. Setting conversion on a single CPU. This will take much more time")
+    ncores <- 1
+  } else
+  {
+    ncores <- min(c(1000,parallel::detectCores()-1))
+  }
+  message(paste0("Number of cores that will be used: ", ncores))
+  return(ncores)
+}

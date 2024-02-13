@@ -24,6 +24,12 @@ mediator and outcome. If model.generator=FALSE. This dataframe needs to
 have two aditional columns, with the models for the mediator (model.M) and
 the models for the outcome (model.Y)}
 
+\item{column.modelm}{name of the column with the fitted models for mediator
+to perform}
+
+\item{column.modely}{name of the column with the fitted models for outcome to
+perform}
+
 \item{treat}{a list indicating the name of the treatment variables used in
 the models. The treatment can be either binary (integer or a two-valued
 factor) or continuous (numeric).}
@@ -31,29 +37,14 @@ factor) or continuous (numeric).}
 \item{mediator}{a list indicating the name of the mediator variables used in
 the models.}
 
+\item{outcome}{a lists indicating the name of the outcome variables used in
+the models}
+
 \item{...}{other arguments passed to mediate package.}
-
-\item{model.generator}{Default: FALSE. Boolean indicating if models for
-mediator and outcome need to be performed (TRUE) or they will be provided
-by the user (FALSE)}
-
-\item{model.m.type}{a character indicating the fitted models for mediator
-that are needed to be done in case model.m argument is not provided. Only
-lm and survreg models are implemented.}
-
-\item{model.y.type}{a character indicating the fitted models for outcome that
-are needed to be done in case model.y argument is not provided. Only lm and
-survreg models are implemented.}
-
-\item{data}{a dataframe with the values of the outcome (dependent), the
-mediator and the mediator and the treatment (independent) variable}
-
-\item{dependent}{a list indicating the name of the outcome variables used in
-the models.}
 }
 \value{
-returns a list of lists with the results of mediation for each combination of
-outcome, mediator and treatment variables
+returns a list of lists with the results of mediation for each
+combination of outcome, mediator and treatment variables
 }
 \description{
 \code{hightmed()} allows to perform high-throughput causal mediation
