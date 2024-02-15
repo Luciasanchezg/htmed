@@ -53,6 +53,7 @@ hightmed <- function(sims = 1000
   ## controlar que los modelos que meto en model.m o model.y sean los soportados por mediate (esto lo hace el paquete mediate?)
   ## Posibilidad de ajuste (multiple linear regression: GENDER)
   ## Posibilidad de generar subgrupos (CIH, Ctl, ...)
+  ## añadir en DESCRIPTION las librerías que utiliza mediate??
 
   # getting the number of cores available
   ncores <- .ncores()
@@ -85,12 +86,18 @@ hightmed <- function(sims = 1000
   return(results.med)
 }
 
-# library(dplyr)
+# set.seed(2024)
 # results.mediation <- hightmed(data.models=results,
 #                               column.modelm='model.M', column.modely='model.Y',
 #                               treat = "independent.var", mediator = "mediator.var", outcome = "dependent.var")
-
-
+#
+# model.y <- survival::survreg(tsurvHF ~ IVRT_age_max + LVAWs_age_max, data=df)
+# model.m <- lm(LVAWs_age_max ~ IVRT_age_max, data=df)
+#
+# set.seed(2024)
+# p <- mediation::mediate(model.m = model.m, model.y = model.y, treat='LVAWs_age_max', mediator='IVRT_age_max')
+# set.seed(2024)
+# q <- mediation::mediate(model.m = model.m, model.y = model.y, treat='LVAWs_age_max', mediator='IVRT_age_max')
 
 ################################################################################
 
