@@ -4,7 +4,7 @@
 ## CV example
 ## ----------------------------------------------------------------------------
 
-set.seed(2024)
+# set.seed(2024)
 data("df", package = "hightmed")
 data("models", package = "hightmed")
 
@@ -112,6 +112,7 @@ test_that(
   }
 )
 
+
 ## ----------------------------------------------------------------------------
 ## Tests for providing the fitted models for the mediator and the outcome
 ## ----------------------------------------------------------------------------
@@ -122,25 +123,50 @@ test_that(
 
     # reading results
     file.tests <- "tests/testdata"
+    load(file.path(file.tests, 'medANDtreat.RData'))
+
     load(file.path(file.tests, 'med_models.RData'))
     load(file.path(file.tests, 'out_models.RData'))
 
-    # generating results
-    med <- generating_models(
-      column.models='model.m.formula',
-      model.type=lm,
-      data=df,
-      data.models=models,
-      model.m = TRUE
+    names(med_models$model.M) <- rownames(med_models)
+    names(out_models$model.Y) <- rownames(out_models)
+    prov_mod <- providing_models(model.m=med_models$model.M, model.y=out_models$model.Y)
+
+    expect_equal(prov_mod, medANDtreat)
+  }
+)
+
+
+test_that(
+  desc = "Catch errors related to wrong arguments passed to providing_models()",
+  code = {
+    withr::local_package("survival")
+
+    file.tests <- "tests/testdata"
+
+    load(file.path(file.tests, 'med_models.RData'))
+    load(file.path(file.tests, 'out_models.RData'))
+
+    expect_error(
+      providing_models(
+        model.m=med_models$model.M,
+        model.y=out_models$model.Y
+      ),
+      regexp = "Provide the same names in both lists"
     )
 
-    out <- generating_models(
-      column.models='model.y.formula',
-      model.type=survreg,
-      data=df,
-      data.models=models,
-      model.m = FALSE)
+    names(med_models$model.M) <- rownames(med_models)
+    names(out_models$model.Y) <- rownames(out_models)
 
-    expect_equal(med$model.M, med_models$model.M)
-  })
+    expect_error(
+      providing_models(
+        model.m=med_models$model.M[1:5],
+        model.y=out_models$model.Y
+        ),
+      regexp = "The fitted models for mediator and treatment does not have the same length"
+    )
+  }
+)
+
+
 

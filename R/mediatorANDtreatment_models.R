@@ -26,9 +26,10 @@ providing_models <- function(model.m, model.y) {
     stop("The fitted models for mediator and treatment does not have the same length")
   }
 
-  if (any(names(model.m) != names(model.y))) {
-    stop("Names provided by both arguments differ")
+  if (!setequal(names(model.m),names(model.y))) {
+    stop("Provide the same names in both lists")
   }
+
   # model.m
   #model_names.m <- .extracting_terms(model.m)
 
@@ -48,9 +49,15 @@ providing_models <- function(model.m, model.y) {
   return(results.models)
 }
 
-p <- providing_models(model.m, model.y)
-
-
+# model.m <- med_models$model.M
+# names(model.m) <- rownames(med_models)
+#
+# model.y <- out_models$model.Y
+# names(model.y) <- rownames(out_models)
+#
+# medANDtreat <- providing_models(model.m=model.m, model.y=model.y)
+#
+# save(medANDtreat, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/medANDtreat.RData")
 
 
 ################################################################################
@@ -128,14 +135,20 @@ generating_models <- function(column.models, model.type, data, data.models, mode
 # data("df", package = "hightmed")
 # med_models <- generating_models(column.models='model.m.formula', model.type=lm,
 #                                  data=df, data.models=models, model.m = TRUE) %>%
-#   dplyr::select(-c(model.y.formula))
+#   dplyr::select(-c(model.y.formula)) %>%
+#   mutate(names = paste(paste0('outcome:', dependent.var), paste0('treat:', independent.var), paste0('med:', mediator.var), sep='|')) %>%
+#   tibble::column_to_rownames(var='names')
+#
 # save(med_models, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/med_models.RData")
 #
 #
 # library(survival)
 # out_models <- generating_models(column.models='model.y.formula', model.type=survreg,
 #                                 data=df, data.models=models, model.m = FALSE) %>%
-#   dplyr::select(-c(model.m.formula))
+#   dplyr::select(-c(model.m.formula)) %>%
+#   mutate(names = paste(paste0('outcome:', dependent.var), paste0('treat:', independent.var), paste0('med:', mediator.var), sep='|')) %>%
+#   tibble::column_to_rownames(var='names')
+#
 # save(out_models, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/out_models.RData")
 
 # ################################################################################
@@ -143,7 +156,7 @@ generating_models <- function(column.models, model.type, data, data.models, mode
 #                                 data=df, data.models=models, model.m = TRUE)
 # medANDtreat <- generating_models(column.models='model.y.formula', model.type=survreg,
 #                              data=df, data.models=medANDtreat, model.m = FALSE)
-
+# save(medANDtreat, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/medANDtreat.RData")
 
 ################################################################################
 .check_formula <- function(column.models, data.models) {
