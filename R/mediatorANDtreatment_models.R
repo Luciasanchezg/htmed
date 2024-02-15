@@ -26,24 +26,31 @@ providing_models <- function(model.m, model.y) {
     stop("The fitted models for mediator and treatment does not have the same length")
   }
 
+  if (any(names(model.m) != names(model.y))) {
+    stop("Names provided by both arguments differ")
+  }
   # model.m
-  model_names.m <- .extracting_terms(model.m)
+  #model_names.m <- .extracting_terms(model.m)
 
   model.m.df <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(model.m))), c('model.M'))
   model.m.df$model.M <- model.m
-  rownames(model.m.df) <- model_names.m
+  rownames(model.m.df) <- names(model.m)
 
   # model.y
-  model_names.y <- .extracting_terms(model.y)
+  #model_names.y <- .extracting_terms(model.y)
 
   model.y.df <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(model.y))), c('model.Y'))
   model.y.df$model.Y <- model.y
-  rownames(model.y.df) <- model_names.y
+  rownames(model.y.df) <- names(model.y)
 
   # merging results from fitted models for mediator and outcome in a single dataframe
   results.models <- merge(model.m.df, model.y.df, by=0) %>% tibble::column_to_rownames(var='Row.names')
   return(results.models)
 }
+
+p <- providing_models(model.m, model.y)
+
+
 
 
 ################################################################################
@@ -103,9 +110,9 @@ generating_models <- function(column.models, model.type, data, data.models, mode
   models <- .model_MY(list.models=data.models[[column.models]], model.type=model.type, data=data, ncores=ncores, ...)
   models[grep(x = names(models), pattern = 'Error') ] <- NULL
 
-  # if (length(models) == 0) {
-  #   stop("All analysis performed gave an error")
-  # }
+  if (length(models) == 0) {
+    stop("All analysis performed gave an error")
+  }
 
   results.models <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(data.models[[column.models]]))), c(model_name))
   results.models[[model_name]] <- models
@@ -120,14 +127,16 @@ generating_models <- function(column.models, model.type, data, data.models, mode
 # data("models", package = "hightmed")
 # data("df", package = "hightmed")
 # med_models <- generating_models(column.models='model.m.formula', model.type=lm,
-#                                  data=df, data.models=models, model.m = TRUE)
-# save(med_models, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testthat/med_models.RData")
+#                                  data=df, data.models=models, model.m = TRUE) %>%
+#   dplyr::select(-c(model.y.formula))
+# save(med_models, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/med_models.RData")
 #
 #
 # library(survival)
 # out_models <- generating_models(column.models='model.y.formula', model.type=survreg,
-#                                 data=df, data.models=models, model.m = FALSE)
-# save(out_models, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testthat/out_models.RData")
+#                                 data=df, data.models=models, model.m = FALSE) %>%
+#   dplyr::select(-c(model.m.formula))
+# save(out_models, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/out_models.RData")
 
 # ################################################################################
 # medANDtreat <- generating_models(column.models='model.m.formula', model.type=lm,
@@ -164,40 +173,16 @@ generating_models <- function(column.models, model.type, data, data.models, mode
       model.type(as.formula(formula), data=data, ...)
     },
     warning=function(w) {
-      message('Warning message:')
-      message(w)
-
-      return(NULL)
+      return(paste('Warning message: ', w$message))
     },
     error=function(e) {
-      message("Error message:")
-      message(e)
-
-      return(NULL)
+      return(paste('Error message: ', e$message))
     }
   )
 }
 # .modeling(model.type=glm, formula=models[['model.m.formula']][1], data=df, family=binomial)
 
 
-# .model_MY <- function(list.models, model.type, data, ncores, ...) {
-#
-#   # parallelizing model generation
-#   models <- parallel::mclapply(list.models, function(formula) {
-#
-#     .modeling(model.type=model.type, formula=formula, data=data, ...)
-#
-#   }, mc.cores = ncores)
-#
-#   # extracting the formula performed for each model
-#   model_names <- .extracting_terms(models)
-#   names(models) <- model_names
-#
-#   return(models)
-# }
-# p <- .model_MY(list.models=models[['model.m.formula']], model.type=glm, data=df, ncores=5, family=binomial)
-
-################################################################################
 .model_MY <- function(list.models, model.type, data, ncores, ...) {
 
   # parallelizing model generation
@@ -208,38 +193,20 @@ generating_models <- function(column.models, model.type, data, data.models, mode
         .modeling(model.type=model.type, formula=formula, data=data, ...)
 
       }, mc.cores = ncores)
-    },
-    warning=function(w) {
-      message('Warning message:')
-      message(w)
-
-      if (w$message == 'all scheduled cores encountered errors in user code') {
-        stop("All analysis performed gave an error")
-      }
-      },
-
-    error=function(e) {
-      message("Error message:")
-      message(e)
-
-      return(NULL)
     }
   )
 
-# extracting the formula performed for each model
-model_names <- .extracting_terms(models)
-names(models) <- model_names
+  # extracting the formula performed for each model
+  model_names <- .extracting_terms(models)
+  names(models) <- model_names
 
-return(models)
+  return(models)
 }
-# .model_MY(list.models=models[['model.m.formula']], model.type=glm, data=df, ncores=5, family=binomial)
+# p <- .model_MY(list.models=models[['model.m.formula']], model.type=glm, data=df, ncores=5, family=binomial)
 
 
 
 .extracting_terms <- function(models) {
-  if (is.null(models)) {
-    stop("All analysis performed gave an error")
-  }
   sapply(models, function(x) {
     if ( any(grepl('Error', x)) ){
       message("The model introduced has given an error")

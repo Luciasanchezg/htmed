@@ -1,11 +1,3 @@
-context("Generating fitted models for mediator and outcome")
-
-## ----------------------------------------------------------------------------
-## Parameters
-## ----------------------------------------------------------------------------
-# Load reference objects
-
-load("/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testthat/out_models.RData")
 
 
 ## ----------------------------------------------------------------------------
@@ -18,7 +10,7 @@ data("models", package = "hightmed")
 
 
 ## ----------------------------------------------------------------------------
-## Tests for the mediator and the outcome
+## Tests for generating the fitted models for the mediator and the outcome
 ## ----------------------------------------------------------------------------
 test_that(
   desc = "checking if generating_models() computes models for the mediator",
@@ -74,7 +66,7 @@ test_that(
         data.models=models,
         model.m = TRUE
         ),
-      regexp = "Incorrect column name"
+      regexp = "Incorrect column name for the models"
     )
     expect_error(
       generating_models(
@@ -84,7 +76,7 @@ test_that(
         data.models=models,
         model.m = FALSE
         ),
-      regexp = "Incorrect column name"
+      regexp = "Incorrect column name for the models"
     )
     expect_error(
       generating_models(
@@ -104,7 +96,7 @@ test_that(
         data.models=models,
         model.m = TRUE
       ),
-      regexp = "no right formulas in the columns selected"
+      regexp = "There are no right formulas in the columns selected"
     )
     expect_error(
       generating_models(
@@ -119,3 +111,36 @@ test_that(
     )
   }
 )
+
+## ----------------------------------------------------------------------------
+## Tests for providing the fitted models for the mediator and the outcome
+## ----------------------------------------------------------------------------
+test_that(
+  desc = "checking if providing_models() generates a dataframe with the fitted models for the mediator and the outcome",
+  code = {
+    withr::local_package("survival")
+
+    # reading results
+    file.tests <- "tests/testdata"
+    load(file.path(file.tests, 'med_models.RData'))
+    load(file.path(file.tests, 'out_models.RData'))
+
+    # generating results
+    med <- generating_models(
+      column.models='model.m.formula',
+      model.type=lm,
+      data=df,
+      data.models=models,
+      model.m = TRUE
+    )
+
+    out <- generating_models(
+      column.models='model.y.formula',
+      model.type=survreg,
+      data=df,
+      data.models=models,
+      model.m = FALSE)
+
+    expect_equal(med$model.M, med_models$model.M)
+  })
+
