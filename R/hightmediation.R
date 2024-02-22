@@ -33,6 +33,7 @@ NULL
 #'   the models.
 #' @param outcome a lists indicating the name of the outcome variables used in
 #'   the models
+#' @param seed integer to set a seed
 #' @param ... other arguments passed to mediate package.
 #'
 #' @return returns a list of lists with the results of mediation for each
@@ -46,17 +47,32 @@ hightmed <- function(sims = 1000
                      , treat
                      , mediator
                      , outcome
+                     , seed = NULL
                      # , adjust = NULL
                      , ...) {
 
   ## TODO:
   ## controlar que los modelos que meto en model.m o model.y sean los soportados por mediate (esto lo hace el paquete mediate?)
   ## Posibilidad de ajuste (multiple linear regression: GENDER)
-  ## Posibilidad de generar subgrupos (CIH, Ctl, ...)
-  ## añadir en DESCRIPTION las librerías que utiliza mediate??
 
   # getting the number of cores available
   ncores <- .ncores()
+
+  if (!is.character(c(treat, mediator, outcome, column.modelm, column.modely))) {
+    stop("Please, provide the name of the corresponding columns as characters")
+  }
+
+  if (!"numeric" %in% class(sims)) {
+    stop("Number of simulations must be numeric")
+  }
+
+  if ((!"numeric" %in% class(seed)) & (!is.null(seed))) {
+    stop("Seed must be numeric or not provided")
+  }
+
+  if (!"data.frame" %in% class(data.models)) {
+    stop("data.models must contain a DataFrame")
+  }
 
   if (!all(c(treat, mediator, outcome) %in% colnames(data.models))) {
     stop("Wrong column names for treat, mediator or outcome")
@@ -66,10 +82,23 @@ hightmed <- function(sims = 1000
     stop("Wrong column names for fitted models for mediator or outcome")
   }
 
+  if ( any(grepl(pattern = 'Warning|Error', x = data.models[[column.modelm]])) ) {
+    message("Some models for the mediator contain warnings or errors. These rows will be removed")
+
+    data.models <- data.models[-grepl(pattern = 'Warning', x = data.models[[column.modelm]]),]
+  }
+
+  if ( any(grepl(pattern = 'Warning|Error', x = data.models[[column.modely]])) ) {
+    message("Some models for the outcome contain warnings or errors. These rows will be removed")
+
+    data.models <- data.models[!grepl(pattern = 'Warning', x = data.models[[column.modely]]),]
+  }
+
+  # Applying mediation
   results.med <- list()
   for (i in levels(data.models[[outcome]])) {
 
-    data.models.subset <- data.models %>% filter(get(outcome) == i)
+    data.models.subset <- data.models %>% filter(get('outcome') == i)
 
     treat.subset <- data.models.subset[[treat]]
     mediator.subset <- data.models.subset[[mediator]]
@@ -80,28 +109,16 @@ hightmed <- function(sims = 1000
 
     results.med[[i]] <- .mediationHT(models.m=models.m, models.y=models.y,
                                 treat=treat.subset, mediator=mediator.subset, outcome=outcome.subset,
-                                sims=sims, ncores=ncores)
+                                sims=sims, ncores=ncores, seed=seed)
   }
 
   return(results.med)
 }
 
-# set.seed(2024)
-# results.mediation <- hightmed(data.models=results,
-#                               column.modelm='model.M', column.modely='model.Y',
-#                               treat = "independent.var", mediator = "mediator.var", outcome = "dependent.var")
-#
-# model.y <- survival::survreg(tsurvHF ~ IVRT_age_max + LVAWs_age_max, data=df)
-# model.m <- lm(LVAWs_age_max ~ IVRT_age_max, data=df)
-#
-# set.seed(2024)
-# p <- mediation::mediate(model.m = model.m, model.y = model.y, treat='LVAWs_age_max', mediator='IVRT_age_max')
-# set.seed(2024)
-# q <- mediation::mediate(model.m = model.m, model.y = model.y, treat='LVAWs_age_max', mediator='IVRT_age_max')
 
 ################################################################################
 
-.mediationHT <- function(models.m, models.y, treat, mediator, outcome, ncores, sims) {
+.mediationHT <- function(models.m, models.y, treat, mediator, outcome, ncores, sims, seed) {
 
   results.med <- parallel::mcmapply(models.m, models.y, treat, mediator,
 
@@ -109,7 +126,10 @@ hightmed <- function(sims = 1000
                             # mediation
                             tryCatch(
                               {
-                                model <- mediation::mediate(model.m = m, model.y = y, treat = as.character(tr), mediator = as.character(me), sims = sims)
+                                set.seed(seed)
+                                model <- mediation::mediate(model.m = m, model.y = y,
+                                                            treat = as.character(tr), mediator = as.character(me),
+                                                            sims = sims)
                                 #stats.model <- extract_mediation_summary(summary(model))
                                 return(model)
                               },

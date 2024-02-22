@@ -1,12 +1,36 @@
 
 
+
+skip_if_not("survival" %in% tolower((.packages())))
+
 ## ----------------------------------------------------------------------------
-## CV example
+## Generating data
 ## ----------------------------------------------------------------------------
+#### Data
+data("models", package = "hightmed")
+data("df", package = "hightmed")
 
 # set.seed(2024)
-data("df", package = "hightmed")
-data("models", package = "hightmed")
+# df <- data.frame(
+#   mediator.1 = runif(1:100, min=-1, max=1),
+#   mediator.2 = runif(1:100, min=-1, max=1),
+#   mediator.3 = runif(1:100, min=-1, max=1),
+#   mediator.4 = runif(1:100, min=-1, max=1),
+#   treatment.1 = runif(1:100, min=-1, max=1),
+#   treatment.2 = runif(1:100, min=-1, max=1),
+#   treatment.3 = runif(1:100, min=-1, max=1),
+#   treatment.4 = runif(1:100, min=-1, max=1),
+#   age_death = sample(15:150,100, replace=T),
+#   HFpEF = sample(0:1,100, replace=T)
+#   ) %>%
+#   mutate(tsurvHF = with(., survival:::Surv(age_death, HFpEF == 1)))
+#
+# #### Models
+# models <- expand.grid(mediators = colnames(df[,grepl(pattern = 'mediator', x = colnames(df))]),
+#                       treatments =  colnames(df[,grepl(pattern = 'treatment', x = colnames(df))]),
+#                       outcome = 'tsurvHF') %>%
+#   mutate(model.m.formula = paste(mediators, '~', treatments)) %>%
+#   mutate(model.y.formula = paste(outcome, '~', mediators, '+', treatments))
 
 
 ## ----------------------------------------------------------------------------
@@ -15,11 +39,11 @@ data("models", package = "hightmed")
 test_that(
   desc = "checking if generating_models() computes models for the mediator",
   code = {
+
     # reading expected results
-    file.tests <- "tests/testdata"
+    file.tests <- "../testdata"
     load(file.path(file.tests, 'med_models.RData'))
 
-    # generating results
     med <- generating_models(
       column.models='model.m.formula',
       model.type=lm,
@@ -39,7 +63,7 @@ test_that(
     withr::local_package("survival")
 
     # reading expected results
-    file.tests <- "tests/testdata"
+    file.tests <- "../testdata"
     load(file.path(file.tests, 'out_models.RData'))
 
     # generating results
@@ -53,6 +77,63 @@ test_that(
 
     expect_equal(out$model.Y, out_models$model.Y)
 })
+
+
+test_that(
+  desc = "Introducing arguments with the wrong class to generating_models()",
+  code = {
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=as.matrix(df),
+        data.models=models,
+        model.m = TRUE
+      ),
+      regexp = "Your data or data.models are not stored in a DataFrame"
+    )
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=df,
+        data.models=as.matrix(models),
+        model.m = TRUE
+      ),
+      regexp = "Your data or data.models are not stored in a DataFrame"
+    )
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type='lm',
+        data=df,
+        data.models=models,
+        model.m = TRUE
+      ),
+      regexp = "model.type is not a function"
+    )
+    expect_error(
+      generating_models(
+        column.models=lm,
+        model.type=lm,
+        data=df,
+        data.models=models,
+        model.m = TRUE
+      ),
+      regexp = "Please, provide the name of the corresponding column as character"
+    )
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=df,
+        data.models=models,
+        model.m = 'TRUE'
+      ),
+      regexp = "model.m argument only admits logical"
+    )
+  }
+)
 
 
 test_that(
@@ -80,17 +161,7 @@ test_that(
     )
     expect_error(
       generating_models(
-        column.models='model.m.formula',
-        model.type=lm,
-        data=as.matrix(df),
-        data.models=models,
-        model.m = TRUE
-        ),
-      regexp = "Your data is not stored in a dataframe"
-    )
-    expect_error(
-      generating_models(
-        column.models='dependent.var',
+        column.models='treatments',
         model.type=lm,
         data=df,
         data.models=models,
@@ -98,75 +169,7 @@ test_that(
       ),
       regexp = "There are no right formulas in the columns selected"
     )
-    expect_error(
-      generating_models(
-        column.models='model.m.formula',
-        model.type=glm,
-        data=df,
-        data.models=models,
-        model.m = TRUE,
-        family=binomial
-      ),
-      regexp = "All analysis performed gave an error"
-    )
   }
 )
-
-
-## ----------------------------------------------------------------------------
-## Tests for providing the fitted models for the mediator and the outcome
-## ----------------------------------------------------------------------------
-test_that(
-  desc = "checking if providing_models() generates a dataframe with the fitted models for the mediator and the outcome",
-  code = {
-    withr::local_package("survival")
-
-    # reading results
-    file.tests <- "tests/testdata"
-    load(file.path(file.tests, 'medANDtreat.RData'))
-
-    load(file.path(file.tests, 'med_models.RData'))
-    load(file.path(file.tests, 'out_models.RData'))
-
-    names(med_models$model.M) <- rownames(med_models)
-    names(out_models$model.Y) <- rownames(out_models)
-    prov_mod <- providing_models(model.m=med_models$model.M, model.y=out_models$model.Y)
-
-    expect_equal(prov_mod, medANDtreat)
-  }
-)
-
-
-test_that(
-  desc = "Catch errors related to wrong arguments passed to providing_models()",
-  code = {
-    withr::local_package("survival")
-
-    file.tests <- "tests/testdata"
-
-    load(file.path(file.tests, 'med_models.RData'))
-    load(file.path(file.tests, 'out_models.RData'))
-
-    expect_error(
-      providing_models(
-        model.m=med_models$model.M,
-        model.y=out_models$model.Y
-      ),
-      regexp = "Provide the same names in both lists"
-    )
-
-    names(med_models$model.M) <- rownames(med_models)
-    names(out_models$model.Y) <- rownames(out_models)
-
-    expect_error(
-      providing_models(
-        model.m=med_models$model.M[1:5],
-        model.y=out_models$model.Y
-        ),
-      regexp = "The fitted models for mediator and treatment does not have the same length"
-    )
-  }
-)
-
 
 

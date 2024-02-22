@@ -12,6 +12,7 @@ hightmed(
   treat,
   mediator,
   outcome,
+  seed = NULL,
   ...
 )
 }
@@ -39,6 +40,8 @@ the models.}
 
 \item{outcome}{a lists indicating the name of the outcome variables used in
 the models}
+
+\item{seed}{integer to set a seed}
 
 \item{...}{other arguments passed to mediate package.}
 }

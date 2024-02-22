@@ -52,8 +52,7 @@ formatting_med <- function(mediation.list) {
   }
   return(summary.list)
 }
-# library(reshape2)
-# results.mediation.summary <- .mediation_summary.list(results.mediation)
+
 
 .mediation_summary <- function (x) {
 

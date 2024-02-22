@@ -21,6 +21,7 @@ NULL
 #' @export
 #'
 providing_models <- function(model.m, model.y) {
+  ## TODO: no estoy implementando esta función de momento
 
   if (length(model.m) != length(model.y)) {
     stop("The fitted models for mediator and treatment does not have the same length")
@@ -82,17 +83,31 @@ providing_models <- function(model.m, model.y) {
 #'
 generating_models <- function(column.models, model.type, data, data.models, model.m = TRUE, ...) {
   ## TODO: eval(parse(text="lm(M ~ I + gender, data=df)"))
+  ## controlar cuando un modelo da error
+  ## controlar cuando todos los modelos dan error (porque no converja, no porque los parámetros iniciales estén errados)
   ## ¿Debo controlar si le introduzco los modelos que únicamente mediate permite? ¿Debo tener estos paquetes en DESCRIPTION de hightmed?
 
   # getting the number of cores available
   ncores <- .ncores()
 
-  if (!as.character(column.models) %in% colnames(data.models)) {
-    stop("Incorrect column name for the models")
+  if (!"character" %in% class(column.models)) {
+    stop("Please, provide the name of the corresponding column as character")
   }
 
-  if (!is.data.frame(data)) {
-    stop("Your data is not stored in a dataframe")
+  if (!"function" %in% class(model.type)) {
+    stop("model.type is not a function")
+  }
+
+  if ((!"data.frame" %in% class(data)) | (!"data.frame" %in% class(data.models))) {
+    stop("Your data or data.models are not stored in a DataFrame")
+  }
+
+  if (!"logical" %in% class(model.m)) {
+    stop("model.m argument only admits logical")
+  }
+
+  if (!as.character(column.models) %in% colnames(data.models)) {
+    stop("Incorrect column name for the models")
   }
 
   # checking if the models can be converted in a formula
@@ -115,11 +130,12 @@ generating_models <- function(column.models, model.type, data, data.models, mode
 
   # generating the models
   models <- .model_MY(list.models=data.models[[column.models]], model.type=model.type, data=data, ncores=ncores, ...)
-  models[grep(x = names(models), pattern = 'Error') ] <- NULL
 
-  if (length(models) == 0) {
-    stop("All analysis performed gave an error")
-  }
+  # models[grep(x = names(models), pattern = 'Error') ] <- NULL
+
+  # if (length(models) == 0) {
+  #   stop("All analysis performed gave an error")
+  # }
 
   results.models <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(data.models[[column.models]]))), c(model_name))
   results.models[[model_name]] <- models
@@ -131,32 +147,6 @@ generating_models <- function(column.models, model.type, data, data.models, mode
 
 }
 
-# data("models", package = "hightmed")
-# data("df", package = "hightmed")
-# med_models <- generating_models(column.models='model.m.formula', model.type=lm,
-#                                  data=df, data.models=models, model.m = TRUE) %>%
-#   dplyr::select(-c(model.y.formula)) %>%
-#   mutate(names = paste(paste0('outcome:', dependent.var), paste0('treat:', independent.var), paste0('med:', mediator.var), sep='|')) %>%
-#   tibble::column_to_rownames(var='names')
-#
-# save(med_models, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/med_models.RData")
-#
-#
-# library(survival)
-# out_models <- generating_models(column.models='model.y.formula', model.type=survreg,
-#                                 data=df, data.models=models, model.m = FALSE) %>%
-#   dplyr::select(-c(model.m.formula)) %>%
-#   mutate(names = paste(paste0('outcome:', dependent.var), paste0('treat:', independent.var), paste0('med:', mediator.var), sep='|')) %>%
-#   tibble::column_to_rownames(var='names')
-#
-# save(out_models, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/out_models.RData")
-
-# ################################################################################
-# medANDtreat <- generating_models(column.models='model.m.formula', model.type=lm,
-#                                 data=df, data.models=models, model.m = TRUE)
-# medANDtreat <- generating_models(column.models='model.y.formula', model.type=survreg,
-#                              data=df, data.models=medANDtreat, model.m = FALSE)
-# save(medANDtreat, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/medANDtreat.RData")
 
 ################################################################################
 .check_formula <- function(column.models, data.models) {
@@ -193,7 +183,6 @@ generating_models <- function(column.models, model.type, data, data.models, mode
     }
   )
 }
-# .modeling(model.type=glm, formula=models[['model.m.formula']][1], data=df, family=binomial)
 
 
 .model_MY <- function(list.models, model.type, data, ncores, ...) {
@@ -210,25 +199,29 @@ generating_models <- function(column.models, model.type, data, data.models, mode
   )
 
   # extracting the formula performed for each model
-  model_names <- .extracting_terms(models)
-  names(models) <- model_names
+  # model_names <- .extracting_terms(models)
+  # names(models) <- model_names
+  names(models) <- list.models
 
   return(models)
 }
-# p <- .model_MY(list.models=models[['model.m.formula']], model.type=glm, data=df, ncores=5, family=binomial)
 
 
 
-.extracting_terms <- function(models) {
-  sapply(models, function(x) {
-    if ( any(grepl('Error', x)) ){
-      message("The model introduced has given an error")
-      mod_name <- 'Error'
-    }
-    else {
-      terms_model <- as.character(x[['terms']])
-      mod_name <- paste(terms_model[2], terms_model[1], terms_model[3])
-    }
-  })
-}
+# .extracting_terms <- function(models) {
+#   sapply(models, function(x) {
+#     if ( any(grepl('Error', x)) ){
+#       message("The model introduced has given an error. This row will be removed")
+#       mod_name <- 'Error'
+#     }
+#     else if ( any(grepl('Warning', x)) ){
+#       message("The model introduced has given a warning. This row will be removed")
+#       mod_name <- 'Warning'
+#     }
+#     else {
+#       terms_model <- as.character(x[['terms']])
+#       mod_name <- paste(terms_model[2], terms_model[1], terms_model[3])
+#     }
+#   })
+# }
 
