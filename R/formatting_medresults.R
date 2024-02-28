@@ -15,18 +15,43 @@ NULL
 #' @export
 #'
 formatting_med <- function(mediation.list) {
-  if (any(unlist(lapply(mediation.list, FUN=function(outcome) {lapply(outcome, FUN=function(model) {class(model)})})) != 'mediate')) {
+
+  ## TODO: no está contemplada la posibilidad de covariates
+
+  if (!"list" %in% class(mediation.list)) {
+    stop("mediation.list is not a list")
+  }
+
+  if ( any(unlist(lapply(mediation.list, FUN=function(sublist) {class(sublist)})) != 'list') ) {
+    stop("mediation.list is not a list of lists")
+  }
+
+  # if ( any(unlist(lapply(mediation.list, FUN=function(outcome) {lapply(outcome, FUN=function(model) {class(model)})})) != 'mediate') ) {
+  if ( any(unlist(lapply(mediation.list, FUN=function(outcome) { lapply(outcome, FUN=function(model) { !grepl('med*', class(model)) }) }))) ) {
     stop("Some of the models introduced are not mediation models")
   }
 
-  onerow_summary <- .med_summary.list(mediation.list)
+  for (out in names(mediation.list)) {
+    names_out <- sapply(mediation.list[[out]],
+                        FUN = function(model) {paste(model$mediator, '~', model$treat, sep=' ')})
+    if (length(unique(names_out)) == length(names_out)) {
+      names(mediation.list[[out]]) <- names_out
+    }
+    else {
+      stop("Are you introducing the same model more than one time?")
+    }
+  }
+
+  onerow_summary <- .med_summary_list(mediation.list)
+
   filt_summary <- .filtering_summary.list(onerow_summary)
 
   return(filt_summary)
 }
-# filt_mediation.list <- formatting_med(results.mediation)
+# p <- formatting_med(mediation_surv)
 
-.med_summary.list <- function(mediation.list) {
+################################################################################
+.med_summary_list <- function(mediation.list) {
 
   summary.list <- list()
   for (i in names(mediation.list)) {
@@ -76,7 +101,7 @@ formatting_med <- function(mediation.list) {
 
   return(as.data.frame(stats_model))
 }
-#.mediation_summary(results.mediation$tsurvHF$`LVAWs_age_max ~ IVRT_age_max`)
+# .mediation_summary(mediation_res$tsurvHF$`mediator.1 ~ treatment.1`)
 
 .filtering_summary.list <- function(mediation_sum.list) {
 
@@ -100,9 +125,9 @@ formatting_med <- function(mediation.list) {
              `Estimate_Prop._Mediated_(average)` = case_when(is.na(`p-value_Prop._Mediated_(average)`)~NA, TRUE ~ `Estimate_Prop._Mediated_(average)`)) %>%
 
       mutate(`Estimate_ACME_(average)` = as.numeric(`Estimate_ACME_(average)`),
-             `Estimate_ACME_(average)` = case_when(is.na(`p-value_Prop._Mediated_(average)`)~NA, TRUE ~ `Estimate_ACME_(average)`)) %>%
+             `Estimate_ACME_(average)` = case_when(is.na(`p-value_Prop._Mediated_(average)`)~NA, TRUE ~ `Estimate_ACME_(average)`)) # %>%
 
-      mutate_if(is.numeric, ~ na_if(., 0))
+      # mutate_if(is.numeric, ~ na_if(., 0))
 
     results.list[[out]] <- results
   }

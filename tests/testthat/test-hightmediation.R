@@ -3,16 +3,18 @@
 ## Generating data
 ## ----------------------------------------------------------------------------
 #### Data
-data("models", package = "hightmed")
+data("models_surv", package = "hightmed")
 data("df", package = "hightmed")
 
-medANDtreat <- generating_models(column.models='model.m.formula', model.type=lm,
-                                data=df, data.models=models, model.m = TRUE)
-medANDtreat <- generating_models(column.models='model.y.formula', model.type=survival::survreg,
-                             data=df, data.models=medANDtreat, model.m = FALSE)
+## fitted models for the outcome and mediator
+medANDout_surv <- generating_models(column.models='model.m.formula', model.type=lm,
+                                    data=df, data.models=models_surv, model.m = TRUE)
+medANDout_surv <- generating_models(column.models='model.y.formula', model.type=survival::survreg,
+                                    data=df, data.models=medANDout_surv, model.m = FALSE)
+
 
 ## ----------------------------------------------------------------------------
-## Tests for generating the fitted models for the mediator and the outcome
+## Tests for generating the mediation models
 ## ----------------------------------------------------------------------------
 test_that(
   desc = "checking if hightmed() generates the high-throughput mediation tests",
@@ -20,10 +22,10 @@ test_that(
 
     # reading expected results
     file.tests <- "../testdata"
-    load(file.path(file.tests, 'mediation_res.RData'))
+    load(file.path(file.tests, 'mediation_surv.RData'))
 
     mediation_results <- hightmed(sims=1000,
-                                  data.models=medANDtreat,
+                                  data.models=medANDout_surv,
                                   column.modelm = 'model.M',
                                   column.modely = 'model.Y',
                                   treat='treatments',
@@ -31,7 +33,7 @@ test_that(
                                   outcome='outcome',
                                   seed=1)
 
-    expect_equal(mediation_results, mediation_res)
+    expect_equal(mediation_results, mediation_surv)
   })
 
 
@@ -58,8 +60,8 @@ test_that(
   code = {
     expect_error(
       hightmed(sims=1000,
-               data.models=medANDtreat,
-               column.modelm = medANDtreat,
+               data.models=medANDout_surv,
+               column.modelm = medANDout_surv,
                column.modely = 'model.Y',
                treat='treatments',
                mediator='mediators',
@@ -69,7 +71,7 @@ test_that(
     )
     expect_error(
       hightmed(sims='1000',
-               data.models=medANDtreat,
+               data.models=medANDout_surv,
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',
@@ -80,7 +82,7 @@ test_that(
     )
     expect_error(
       hightmed(sims=1000,
-               data.models=medANDtreat,
+               data.models=medANDout_surv,
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',
@@ -91,7 +93,7 @@ test_that(
     )
     expect_error(
       hightmed(sims=1000,
-               data.models=as.matrix(medANDtreat),
+               data.models=as.matrix(medANDout_surv),
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',
@@ -102,7 +104,7 @@ test_that(
     )
     expect_error(
       hightmed(sims=1000,
-               data.models=medANDtreat,
+               data.models=medANDout_surv,
                column.modelm = 'model.X',
                column.modely = 'model.Y',
                treat='treatments',
@@ -113,7 +115,7 @@ test_that(
     )
     expect_error(
       hightmed(sims=1000,
-               data.models=medANDtreat,
+               data.models=medANDout_surv,
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',

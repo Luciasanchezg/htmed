@@ -7,31 +7,9 @@ skip_if_not("survival" %in% tolower((.packages())))
 ## Generating data
 ## ----------------------------------------------------------------------------
 #### Data
-data("models", package = "hightmed")
+data("models_surv", package = "hightmed")
+data("models_lm", package = "hightmed")
 data("df", package = "hightmed")
-
-# set.seed(2024)
-# df <- data.frame(
-#   mediator.1 = runif(1:100, min=-1, max=1),
-#   mediator.2 = runif(1:100, min=-1, max=1),
-#   mediator.3 = runif(1:100, min=-1, max=1),
-#   mediator.4 = runif(1:100, min=-1, max=1),
-#   treatment.1 = runif(1:100, min=-1, max=1),
-#   treatment.2 = runif(1:100, min=-1, max=1),
-#   treatment.3 = runif(1:100, min=-1, max=1),
-#   treatment.4 = runif(1:100, min=-1, max=1),
-#   age_death = sample(15:150,100, replace=T),
-#   HFpEF = sample(0:1,100, replace=T)
-#   ) %>%
-#   mutate(tsurvHF = with(., survival:::Surv(age_death, HFpEF == 1)))
-#
-# #### Models
-# models <- expand.grid(mediators = colnames(df[,grepl(pattern = 'mediator', x = colnames(df))]),
-#                       treatments =  colnames(df[,grepl(pattern = 'treatment', x = colnames(df))]),
-#                       outcome = 'tsurvHF') %>%
-#   mutate(model.m.formula = paste(mediators, '~', treatments)) %>%
-#   mutate(model.y.formula = paste(outcome, '~', mediators, '+', treatments))
-
 
 ## ----------------------------------------------------------------------------
 ## Tests for generating the fitted models for the mediator and the outcome
@@ -42,18 +20,18 @@ test_that(
 
     # reading expected results
     file.tests <- "../testdata"
-    load(file.path(file.tests, 'med_models.RData'))
+    load(file.path(file.tests, 'med_surv.RData'))
 
     med <- generating_models(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
-      data.models=models,
+      data.models=models_surv,
       model.m = TRUE
       ) %>%
       arrange(model.m.formula)
 
-    expect_equal(med$model.M, med_models$model.M)
+    expect_equal(med$model.M, med_surv$model.M)
   })
 
 
@@ -64,18 +42,18 @@ test_that(
 
     # reading expected results
     file.tests <- "../testdata"
-    load(file.path(file.tests, 'out_models.RData'))
+    load(file.path(file.tests, 'out_surv.RData'))
 
     # generating results
     out <- generating_models(
       column.models='model.y.formula',
       model.type=survreg,
       data=df,
-      data.models=models,
+      data.models=models_surv,
       model.m = FALSE) %>%
       arrange(model.y.formula)
 
-    expect_equal(out$model.Y, out_models$model.Y)
+    expect_equal(out$model.Y, out_surv$model.Y)
 })
 
 
@@ -87,7 +65,7 @@ test_that(
         column.models='model.m.formula',
         model.type=lm,
         data=as.matrix(df),
-        data.models=models,
+        data.models=models_surv,
         model.m = TRUE
       ),
       regexp = "Your data or data.models are not stored in a DataFrame"
@@ -96,8 +74,8 @@ test_that(
       generating_models(
         column.models='model.m.formula',
         model.type=lm,
-        data=df,
-        data.models=as.matrix(models),
+        data=models_surv,
+        data.models=as.matrix(models_surv),
         model.m = TRUE
       ),
       regexp = "Your data or data.models are not stored in a DataFrame"
@@ -106,8 +84,8 @@ test_that(
       generating_models(
         column.models='model.m.formula',
         model.type='lm',
-        data=df,
-        data.models=models,
+        data=models_surv,
+        data.models=models_surv,
         model.m = TRUE
       ),
       regexp = "model.type is not a function"
@@ -116,8 +94,8 @@ test_that(
       generating_models(
         column.models=lm,
         model.type=lm,
-        data=df,
-        data.models=models,
+        data=models_surv,
+        data.models=models_surv,
         model.m = TRUE
       ),
       regexp = "Please, provide the name of the corresponding column as character"
@@ -126,8 +104,8 @@ test_that(
       generating_models(
         column.models='model.m.formula',
         model.type=lm,
-        data=df,
-        data.models=models,
+        data=models_surv,
+        data.models=models_surv,
         model.m = 'TRUE'
       ),
       regexp = "model.m argument only admits logical"
@@ -144,7 +122,7 @@ test_that(
         column.models='model.x.formula',
         model.type=lm,
         data=df,
-        data.models=models,
+        data.models=models_surv,
         model.m = TRUE
         ),
       regexp = "Incorrect column name for the models"
@@ -154,20 +132,31 @@ test_that(
         column.models='model.x.formula',
         model.type=lm,
         data=df,
-        data.models=models,
+        data.models=models_surv,
         model.m = FALSE
         ),
       regexp = "Incorrect column name for the models"
     )
+    models_subset <- models_surv[1:4,]
     expect_error(
       generating_models(
-        column.models='treatments',
+        column.models='mediators',
         model.type=lm,
         data=df,
-        data.models=models,
+        data.models=models_subset,
         model.m = TRUE
       ),
       regexp = "There are no right formulas in the columns selected"
+    )
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=df,
+        data.models=models_lm,
+        model.m = TRUE
+      ),
+      regexp = "Some models are duplicated"
     )
   }
 )

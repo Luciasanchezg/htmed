@@ -50,16 +50,6 @@ providing_models <- function(model.m, model.y) {
   return(results.models)
 }
 
-# model.m <- med_models$model.M
-# names(model.m) <- rownames(med_models)
-#
-# model.y <- out_models$model.Y
-# names(model.y) <- rownames(out_models)
-#
-# medANDtreat <- providing_models(model.m=model.m, model.y=model.y)
-#
-# save(medANDtreat, file = "/data3/lsanchezg/PhD/mediation_package/hightmed/tests/testdata/medANDtreat.RData")
-
 
 ################################################################################
 #' Generating the fitted models for mediator OR outcome
@@ -81,15 +71,23 @@ providing_models <- function(model.m, model.y) {
 #'   depending on the fitted models performed
 #' @export
 #'
-generating_models <- function(column.models, model.type, data, data.models, model.m = TRUE, ...) {
+generating_models <- function(
+    column.models,
+    model.type,
+    data,
+    data.models,
+    model.m = TRUE,
+    outcome = NULL,
+    ...
+    ) {
   ## TODO: eval(parse(text="lm(M ~ I + gender, data=df)"))
-  ## controlar cuando un modelo da error
-  ## controlar cuando todos los modelos dan error (porque no converja, no porque los parámetros iniciales estén errados)
+  ## controlar error todos los modelos (porque no converja, no porque los parámetros iniciales estén errados)
   ## ¿Debo controlar si le introduzco los modelos que únicamente mediate permite? ¿Debo tener estos paquetes en DESCRIPTION de hightmed?
 
   # getting the number of cores available
   ncores <- .ncores()
 
+  # checking input
   if (!"character" %in% class(column.models)) {
     stop("Please, provide the name of the corresponding column as character")
   }
@@ -110,6 +108,31 @@ generating_models <- function(column.models, model.type, data, data.models, mode
     stop("Incorrect column name for the models")
   }
 
+  if (!is.null(outcome)) {
+    if (!"character" %in% class(outcome)) {
+      stop("Please, provide the name of the treatment column as character")
+    }
+    if (!as.character(outcome) %in% colnames(data.models)) {
+      stop("Incorrect column name for the treatment")
+    }
+  }
+
+  if (is.null(outcome)) {
+    dup_mods <- data.models %>%
+      group_by(!!rlang::sym(column.models)) %>%
+      filter(n()>1) %>%
+      pull(!!rlang::sym(column.models)) %>% unique
+
+    if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
+  } else {
+    dup_mods <- data.models %>%
+      #group_by(get('column.models'), get('outcome')) %>%
+      group_by(!!rlang::sym(outcome), !!rlang::sym(column.models)) %>%
+      filter(n()>1) %>%
+      pull(!!rlang::sym(column.models)) %>% unique
+    if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
+  }
+
   # checking if the models can be converted in a formula
   models <- .check_formula(column.models=column.models, data.models=data.models)
 
@@ -122,20 +145,35 @@ generating_models <- function(column.models, model.type, data, data.models, mode
   if (model.m == TRUE) {
     model_name <- 'model.M'
     message("Performing fitted models for mediator")
-    }
+  }
   else {
     model_name <- 'model.Y'
     message("Performing fitted models for outcome")
+  }
+
+  if (!is.null(outcome)) {
+    results <- .more_outcomes(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model_name=model_name, ncores=ncores, outcome=outcome, ...)
+    return(results)
     }
+  else {
+    results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model_name=model_name, ncores=ncores, ...)
+    return(results)
+  }
+}
+
+################################################################################
+.one_outcome <- function(
+    column.models,
+    model.type,
+    data,
+    data.models,
+    model_name,
+    ncores,
+    ...
+    ) {
 
   # generating the models
   models <- .model_MY(list.models=data.models[[column.models]], model.type=model.type, data=data, ncores=ncores, ...)
-
-  # models[grep(x = names(models), pattern = 'Error') ] <- NULL
-
-  # if (length(models) == 0) {
-  #   stop("All analysis performed gave an error")
-  # }
 
   results.models <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(data.models[[column.models]]))), c(model_name))
   results.models[[model_name]] <- models
@@ -144,12 +182,35 @@ generating_models <- function(column.models, model.type, data, data.models, mode
   results <- merge(data.models, results.models, by.x=column.models, by.y ='row.names')
 
   return(results)
-
 }
 
+.more_outcomes <- function(
+    column.models,
+    model.type,
+    data,
+    data.models,
+    model_name,
+    ncores,
+    outcome,
+    ...
+    ) {
+
+  results.list <- list()
+  for (out in levels(data.models[[outcome]])) {
+    subset.models <- data.models %>% dplyr::filter(get('outcome') == out)
+
+    results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=subset.models, model_name=model_name, ncores=ncores, ...)
+
+    results.list[[out]] <- results
+  }
+  return(results.list)
+}
 
 ################################################################################
-.check_formula <- function(column.models, data.models) {
+.check_formula <- function(
+    column.models,
+    data.models
+    ) {
   models <- c()
   for (model in data.models[[column.models]]) {
 
@@ -170,7 +231,12 @@ generating_models <- function(column.models, model.type, data, data.models, mode
 }
 
 
-.modeling <- function(model.type=model.type, formula=formula, data=data, ...) {
+.modeling <- function(
+    model.type=model.type,
+    formula=formula,
+    data=data,
+    ...
+    ) {
   model <- tryCatch(
     {
       model.type(as.formula(formula), data=data, ...)
@@ -185,7 +251,13 @@ generating_models <- function(column.models, model.type, data, data.models, mode
 }
 
 
-.model_MY <- function(list.models, model.type, data, ncores, ...) {
+.model_MY <- function(
+    list.models,
+    model.type,
+    data,
+    ncores,
+    ...
+    ) {
 
   # parallelizing model generation
   models <- tryCatch(

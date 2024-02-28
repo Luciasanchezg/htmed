@@ -17,7 +17,8 @@ Imports:
     reshape2,
     tibble,
     tidyr,
-    mediation
+    mediation,
+    igraph
 Suggests: 
     testthat (>= 3.0.0),
     survival,

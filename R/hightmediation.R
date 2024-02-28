@@ -82,6 +82,10 @@ hightmed <- function(sims = 1000
     stop("Wrong column names for fitted models for mediator or outcome")
   }
 
+  if ( all(grepl(pattern = 'Warning|Error', x = data.models[[column.modely]])) || all(grepl(pattern = 'Warning|Error', x = data.models[[column.modelm]])) ) {
+    stop("All models for the outcome or the mediator contain warnings or errors")
+  }
+
   if ( any(grepl(pattern = 'Warning|Error', x = data.models[[column.modelm]])) ) {
     message("Some models for the mediator contain warnings or errors. These rows will be removed")
 
@@ -109,7 +113,7 @@ hightmed <- function(sims = 1000
 
     results.med[[i]] <- .mediationHT(models.m=models.m, models.y=models.y,
                                 treat=treat.subset, mediator=mediator.subset, outcome=outcome.subset,
-                                sims=sims, ncores=ncores, seed=seed)
+                                sims=sims, ncores=ncores, seed=seed, ...)
   }
 
   return(results.med)
@@ -118,7 +122,7 @@ hightmed <- function(sims = 1000
 
 ################################################################################
 
-.mediationHT <- function(models.m, models.y, treat, mediator, outcome, ncores, sims, seed) {
+.mediationHT <- function(models.m, models.y, treat, mediator, outcome, ncores, sims, seed, ...) {
 
   results.med <- parallel::mcmapply(models.m, models.y, treat, mediator,
 
@@ -129,7 +133,7 @@ hightmed <- function(sims = 1000
                                 set.seed(seed)
                                 model <- mediation::mediate(model.m = m, model.y = y,
                                                             treat = as.character(tr), mediator = as.character(me),
-                                                            sims = sims)
+                                                            sims = sims, ...)
                                 #stats.model <- extract_mediation_summary(summary(model))
                                 return(model)
                               },
