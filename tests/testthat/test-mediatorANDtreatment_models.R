@@ -115,7 +115,7 @@ test_that(
 
 
 test_that(
-  desc = "Catch errors related to wrong arguments passed to generating_models()",
+  desc = "Catch errors related to wrong arguments passed to generating_models() with one outcome",
   code = {
     expect_error(
       generating_models(
@@ -155,6 +155,45 @@ test_that(
         data=df,
         data.models=models_lm,
         model.m = TRUE
+      ),
+      regexp = "Some models are duplicated"
+    )
+  }
+)
+
+test_that(
+  desc = "Catch errors related to wrong arguments passed to generating_models() with more than outcome",
+  code = {
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=df,
+        data.models=models_lm,
+        model.m = TRUE,
+        outcome=1
+      ),
+      regexp = "Please, provide the name of the outcome column as character"
+    )
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=df,
+        data.models=models_lm,
+        model.m = TRUE,
+        outcome='outcomes'
+      ),
+      regexp = "Incorrect column name for the outcome"
+    )
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=df,
+        data.models=rbind(models_lm, models_lm),
+        model.m = TRUE,
+        outcome='outcome'
       ),
       regexp = "Some models are duplicated"
     )

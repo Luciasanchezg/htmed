@@ -13,6 +13,7 @@ hightmed(
   mediator,
   outcome,
   seed = NULL,
+  adjust = NULL,
   ...
 )
 }

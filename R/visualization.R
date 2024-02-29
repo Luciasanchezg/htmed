@@ -1,5 +1,6 @@
 
 #' @import ggplot2
+#' @import igraph
 NULL
 
 #' Visualization of the high-throughput causal mediation analysis
@@ -39,7 +40,6 @@ visual_htmed <- function(mediation.list, outcome, ...) {
 #' @return returns a ggplot object
 #' @export
 #'
-#' @examples
 graph_htmed <- function(
     mediation.list,
     outcome,

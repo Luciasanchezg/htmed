@@ -48,7 +48,8 @@ formatting_med <- function(mediation.list) {
 
   return(filt_summary)
 }
-# p <- formatting_med(mediation_surv)
+
+
 
 ################################################################################
 .med_summary_list <- function(mediation.list) {
@@ -81,7 +82,6 @@ formatting_med <- function(mediation.list) {
 
 .mediation_summary <- function (x) {
 
-  ## TODO: controlar cuando no hay control y treated, sino solo un ACME y un Prop.Mediated
   clp <- 100 * x$conf.level
 
   stats_model <- c(x$d0, x$d0.ci, x$d0.p)
@@ -101,7 +101,7 @@ formatting_med <- function(mediation.list) {
 
   return(as.data.frame(stats_model))
 }
-# .mediation_summary(mediation_res$tsurvHF$`mediator.1 ~ treatment.1`)
+
 
 .filtering_summary.list <- function(mediation_sum.list) {
 
@@ -126,12 +126,10 @@ formatting_med <- function(mediation.list) {
 
       mutate(`Estimate_ACME_(average)` = as.numeric(`Estimate_ACME_(average)`),
              `Estimate_ACME_(average)` = case_when(is.na(`p-value_Prop._Mediated_(average)`)~NA, TRUE ~ `Estimate_ACME_(average)`)) # %>%
-
       # mutate_if(is.numeric, ~ na_if(., 0))
 
     results.list[[out]] <- results
   }
   return(results.list)
 }
-#.filt.mediation.summary <- .filtering_summary.list(results.mediation.summary)
 

@@ -40,16 +40,18 @@ NULL
 #'   combination of outcome, mediator and treatment variables
 #' @export
 #'
-hightmed <- function(sims = 1000
-                     , data.models
-                     , column.modelm
-                     , column.modely
-                     , treat
-                     , mediator
-                     , outcome
-                     , seed = NULL
-                     # , adjust = NULL
-                     , ...) {
+hightmed <- function(
+    sims = 1000,
+    data.models,
+    column.modelm,
+    column.modely,
+    treat,
+    mediator,
+    outcome,
+    seed = NULL,
+    adjust = NULL,
+    ...
+    ) {
 
   ## TODO:
   ## controlar que los modelos que meto en model.m o model.y sean los soportados por mediate (esto lo hace el paquete mediate?)
@@ -102,7 +104,7 @@ hightmed <- function(sims = 1000
   results.med <- list()
   for (i in levels(data.models[[outcome]])) {
 
-    data.models.subset <- data.models %>% filter(get('outcome') == i)
+    data.models.subset <- data.models %>% filter(!!rlang::sym(outcome) == i)
 
     treat.subset <- data.models.subset[[treat]]
     mediator.subset <- data.models.subset[[mediator]]
@@ -121,9 +123,17 @@ hightmed <- function(sims = 1000
 
 
 ################################################################################
-
-.mediationHT <- function(models.m, models.y, treat, mediator, outcome, ncores, sims, seed, ...) {
-
+.mediationHT <- function(
+    models.m,
+    models.y,
+    treat,
+    mediator,
+    outcome,
+    ncores,
+    sims,
+    seed,
+    ...
+    ) {
   results.med <- parallel::mcmapply(models.m, models.y, treat, mediator,
 
                           FUN = function(m, y, tr, me) {
@@ -143,6 +153,7 @@ hightmed <- function(sims = 1000
                             }, mc.cores = ncores, SIMPLIFY = FALSE)
   return(results.med)
 }
+
 
 .ncores <- function(...) {
   if(.Platform$OS.type == "windows")

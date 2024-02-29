@@ -10,6 +10,7 @@ generating_models(
   data,
   data.models,
   model.m = TRUE,
+  outcome = NULL,
   ...
 )
 }

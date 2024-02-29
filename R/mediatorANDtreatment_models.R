@@ -2,6 +2,7 @@
 #' @importFrom stats setNames as.formula
 #' @importFrom tibble column_to_rownames
 #' @importFrom parallel mclapply
+#' @importFrom rlang is_empty sym
 NULL
 
 #' Merging the fitted models for mediator and outcome
@@ -88,6 +89,8 @@ generating_models <- function(
   ncores <- .ncores()
 
   # checking input
+  # checks <- .check_params(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.m=model.m, outcome=outcome)
+  # checking input
   if (!"character" %in% class(column.models)) {
     stop("Please, provide the name of the corresponding column as character")
   }
@@ -110,10 +113,10 @@ generating_models <- function(
 
   if (!is.null(outcome)) {
     if (!"character" %in% class(outcome)) {
-      stop("Please, provide the name of the treatment column as character")
+      stop("Please, provide the name of the outcome column as character")
     }
     if (!as.character(outcome) %in% colnames(data.models)) {
-      stop("Incorrect column name for the treatment")
+      stop("Incorrect column name for the outcome")
     }
   }
 
@@ -197,13 +200,15 @@ generating_models <- function(
 
   results.list <- list()
   for (out in levels(data.models[[outcome]])) {
-    subset.models <- data.models %>% dplyr::filter(get('outcome') == out)
+    subset.models <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == out)
 
     results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=subset.models, model_name=model_name, ncores=ncores, ...)
 
     results.list[[out]] <- results
   }
-  return(results.list)
+  results.df <- do.call(rbind, results.list)
+  rownames(results.df) <- NULL
+  return(results.df)
 }
 
 ################################################################################

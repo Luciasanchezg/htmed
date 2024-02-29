@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{visual_htmed}
 \alias{visual_htmed}
-\title{Visualization of high-throughput causal mediation analysis}
+\title{Visualization of the high-throughput causal mediation analysis}
 \usage{
 visual_htmed(mediation.list, outcome, ...)
 }
