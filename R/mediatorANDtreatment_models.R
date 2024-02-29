@@ -89,8 +89,6 @@ generating_models <- function(
   ncores <- .ncores()
 
   # checking input
-  # checks <- .check_params(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.m=model.m, outcome=outcome)
-  # checking input
   if (!"character" %in% class(column.models)) {
     stop("Please, provide the name of the corresponding column as character")
   }
@@ -274,31 +272,9 @@ generating_models <- function(
       }, mc.cores = ncores)
     }
   )
-
-  # extracting the formula performed for each model
-  # model_names <- .extracting_terms(models)
-  # names(models) <- model_names
   names(models) <- list.models
-
   return(models)
 }
 
 
-
-# .extracting_terms <- function(models) {
-#   sapply(models, function(x) {
-#     if ( any(grepl('Error', x)) ){
-#       message("The model introduced has given an error. This row will be removed")
-#       mod_name <- 'Error'
-#     }
-#     else if ( any(grepl('Warning', x)) ){
-#       message("The model introduced has given a warning. This row will be removed")
-#       mod_name <- 'Warning'
-#     }
-#     else {
-#       terms_model <- as.character(x[['terms']])
-#       mod_name <- paste(terms_model[2], terms_model[1], terms_model[3])
-#     }
-#   })
-# }
 

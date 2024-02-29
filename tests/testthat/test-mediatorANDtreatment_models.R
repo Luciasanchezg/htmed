@@ -1,7 +1,5 @@
 
-
-
-skip_if_not("survival" %in% tolower((.packages())))
+# skip_if_not("survival" %in% tolower((.packages())))
 
 ## ----------------------------------------------------------------------------
 ## Generating data
@@ -12,7 +10,7 @@ data("models_lm", package = "hightmed")
 data("df", package = "hightmed")
 
 ## ----------------------------------------------------------------------------
-## Tests for generating the fitted models for the mediator and the outcome
+## Tests for generating the fitted models for the mediator or the outcome
 ## ----------------------------------------------------------------------------
 test_that(
   desc = "checking if generating_models() computes models for the mediator",
@@ -57,6 +55,76 @@ test_that(
 })
 
 
+## ----------------------------------------------------------------------------
+## Tests for generating the fitted models for the mediator and the outcome iteratively (with one or more outcomes)
+## ----------------------------------------------------------------------------
+test_that(
+  desc = "checking if generating_models() can be called iterativelly to compute fitted models for treatment and mediator (for one outcome)",
+  code = {
+    withr::local_package("survival")
+
+    # reading expected results
+    file.tests <- "../testdata"
+    load(file.path(file.tests, 'medANDout_surv.RData'))
+
+    preprocess <- generating_models(
+      column.models='model.m.formula',
+      model.type=lm,
+      data=df,
+      data.models=models_surv,
+      model.m = TRUE
+    ) %>%
+      arrange(model.m.formula)
+
+    preprocess <- generating_models(
+      column.models='model.y.formula',
+      model.type=survreg,
+      data=df,
+      data.models=preprocess,
+      model.m = FALSE
+    ) %>%
+      arrange(model.y.formula)
+
+    expect_equal(preprocess, medANDout_surv)
+  })
+
+
+test_that(
+  desc = "checking if generating_models() can be called iterativelly to compute fitted models for treatment and mediator (for more than one outcome)",
+  code = {
+
+    # reading expected results
+    file.tests <- "../testdata"
+    load(file.path(file.tests, 'medANDout_lm.RData'))
+
+    preprocess <- generating_models(
+      column.models='model.m.formula',
+      model.type=lm,
+      data=df,
+      data.models=models_lm,
+      model.m = TRUE,
+      outcome='outcome'
+    ) %>%
+      arrange(model.m.formula)
+
+    preprocess <- generating_models(
+      column.models='model.y.formula',
+      model.type=lm,
+      data=df,
+      data.models=preprocess,
+      model.m = FALSE,
+      outcome='outcome'
+    ) %>%
+      arrange(model.y.formula)
+
+    expect_equal(preprocess, medANDout_lm)
+  })
+
+
+
+## ----------------------------------------------------------------------------
+## Checking for errors
+## ----------------------------------------------------------------------------
 test_that(
   desc = "Introducing arguments with the wrong class to generating_models()",
   code = {
@@ -160,6 +228,7 @@ test_that(
     )
   }
 )
+
 
 test_that(
   desc = "Catch errors related to wrong arguments passed to generating_models() with more than outcome",
