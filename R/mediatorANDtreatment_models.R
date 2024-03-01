@@ -101,6 +101,11 @@ generating_models <- function(
     stop("Your data or data.models are not stored in a DataFrame")
   }
 
+  if (any(is.na(data))) {
+    message("Your data contains NA. These rows will not be taken into account for the models")
+    data <- data[rowSums(is.na(data)) == 0, ]
+  }
+
   if (!"logical" %in% class(model.m)) {
     stop("model.m argument only admits logical")
   }

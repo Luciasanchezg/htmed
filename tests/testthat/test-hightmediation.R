@@ -3,21 +3,19 @@
 ## Generating data
 ## ----------------------------------------------------------------------------
 #### Data
-data("models_surv", package = "hightmed")
 data("df", package = "hightmed")
+data("models_surv", package = "hightmed")
 
-## fitted models for the outcome and mediator
-medANDout_surv <- generating_models(column.models='model.m.formula', model.type=lm,
-                                    data=df, data.models=models_surv, model.m = TRUE)
-medANDout_surv <- generating_models(column.models='model.y.formula', model.type=survival::survreg,
-                                    data=df, data.models=medANDout_surv, model.m = FALSE)
+file.tests <- "../testdata"
+load(file.path(file.tests, 'medANDout_surv.RData'))
+load(file.path(file.tests, 'medANDout_lm.RData'))
 
 
 ## ----------------------------------------------------------------------------
 ## Tests for generating the mediation models
 ## ----------------------------------------------------------------------------
 test_that(
-  desc = "checking if hightmed() generates the high-throughput mediation tests",
+  desc = "checking if hightmed() generates the high-throughput mediation tests (one outcome)",
   code = {
 
     # reading expected results
@@ -37,24 +35,30 @@ test_that(
   })
 
 
-# test_that(
-#   desc = "Catch message when some models are warnings or errors",
-#   code = {
-#     expect_message(
-#       hightmed(sims=1000,
-#                data.models=medANDtreat,
-#                column.modelm = 'model.M',
-#                column.modely = 'model.Y',
-#                treat='treatments',
-#                mediator='mediators',
-#                outcome='outcome',
-#                seed=1),
-#       regexp = "Some models for the outcome contain warnings or errors. These rows will be removed"
-#     )
-#   }
-# )
+test_that(
+  desc = "checking if hightmed() generates the high-throughput mediation tests (more than one outcomes)",
+  code = {
+
+    # reading expected results
+    file.tests <- "../testdata"
+    load(file.path(file.tests, 'mediation_lm.RData'))
+
+    mediation_results <- hightmed(sims = 1000,
+                                  data.models=medANDout_lm,
+                                  column.modelm='model.M',
+                                  column.modely='model.Y',
+                                  treat='treatments',
+                                  mediator='mediators',
+                                  outcome='outcome',
+                                  seed=1)
+
+    expect_equal(mediation_results, mediation_lm)
+  })
 
 
+## ----------------------------------------------------------------------------
+## Checking for errors
+## ----------------------------------------------------------------------------
 test_that(
   desc = "Catch errors related to wrong arguments passed to hightmed()",
   code = {
@@ -89,7 +93,7 @@ test_that(
                mediator='mediators',
                outcome='outcome',
                seed='1'),
-      regexp = "Seed must be numeric"
+      regexp = "Seed must be numeric or not provided"
     )
     expect_error(
       hightmed(sims=1000,
@@ -123,6 +127,110 @@ test_that(
                outcome='outcome',
                seed=1),
       regexp = "Wrong column names for treat, mediator or outcome"
+    )
+  }
+)
+
+
+test_that(
+  desc = "Errors related to warnings or errors in all the fitted models for outcome or mediator",
+  code = {
+
+    withr::local_package("survival")
+
+    medANDout_surv <- generating_models(
+      column.models='model.m.formula',
+      model.type=glm,
+      data=df,
+      data.models=models_surv,
+      model.m = TRUE,
+      family=binomial
+    )
+
+    medANDout_surv <- generating_models(
+      column.models='model.y.formula',
+      model.type=survreg,
+      data=df,
+      data.models=medANDout_surv,
+      model.m = FALSE
+    )
+
+    expect_error(
+      hightmed(sims=1000,
+               data.models=medANDout_surv,
+               column.modelm = 'model.M',
+               column.modely = 'model.Y',
+               treat='treatments',
+               mediator='mediators',
+               outcome='outcome',
+               seed=1),
+      regexp = "All models for the outcome or the mediator contain warnings or errors"
+    )
+
+    df <- df[1, ]
+    medANDout_surv <- generating_models(
+      column.models='model.m.formula',
+      model.type=lm,
+      data=df,
+      data.models=models_surv,
+      model.m = TRUE
+    )
+    medANDout_surv <- generating_models(
+      column.models='model.y.formula',
+      model.type=survreg,
+      data=df,
+      data.models=medANDout_surv,
+      model.m = FALSE
+    )
+
+    expect_error(
+      hightmed(sims=1000,
+               data.models=medANDout_surv,
+               column.modelm = 'model.M',
+               column.modely = 'model.Y',
+               treat='treatments',
+               mediator='mediators',
+               outcome='outcome',
+               seed=1),
+      regexp = "All models for the outcome or the mediator contain warnings or errors"
+    )
+  }
+)
+
+
+test_that(
+  desc = "Message related to warnings or errors in the fitted models for outcome or mediator",
+  code = {
+
+    withr::local_package("survival")
+    df <- df[1:12, ]
+
+    medANDout_surv <- generating_models(
+      column.models='model.m.formula',
+      model.type=lm,
+      data=df,
+      data.models=models_surv,
+      model.m = TRUE
+    )
+
+    medANDout_surv <- generating_models(
+      column.models='model.y.formula',
+      model.type=survreg,
+      data=df,
+      data.models=medANDout_surv,
+      model.m = FALSE
+    )
+
+    expect_message(
+      hightmed(sims=1000,
+               data.models=medANDout_surv,
+               column.modelm = 'model.M',
+               column.modely = 'model.Y',
+               treat='treatments',
+               mediator='mediators',
+               outcome='outcome',
+               seed=1),
+      regexp = "Some models for the outcome contain warnings or errors. These rows will be removed"
     )
   }
 )
