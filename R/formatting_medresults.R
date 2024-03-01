@@ -22,7 +22,7 @@ formatting_med <- function(mediation.list) {
     stop("mediation.list is not a list")
   }
 
-  if ( any(unlist(lapply(mediation.list, FUN=function(sublist) {class(sublist)})) != 'list') ) {
+  if ( any(unlist(lapply(mediation.list, FUN=function(sublist) { class(sublist) })) != 'list') ) {
     stop("mediation.list is not a list of lists")
   }
 
@@ -38,6 +38,8 @@ formatting_med <- function(mediation.list) {
       names(mediation.list[[out]]) <- names_out
     }
     else {
+      dup_names <- names_out[duplicated(names_out)]
+      message(paste('Duplicated models:', paste(dup_names, collapse=', ')))
       stop("Are you introducing the same model more than one time?")
     }
   }
@@ -48,7 +50,6 @@ formatting_med <- function(mediation.list) {
 
   return(filt_summary)
 }
-
 
 
 ################################################################################
@@ -129,6 +130,7 @@ formatting_med <- function(mediation.list) {
       # mutate_if(is.numeric, ~ na_if(., 0))
 
     results.list[[out]] <- results
+
   }
   return(results.list)
 }

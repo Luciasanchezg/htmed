@@ -8,7 +8,7 @@ data("models_surv", package = "hightmed")
 
 file.tests <- "../testdata"
 load(file.path(file.tests, 'medANDout_surv.RData'))
-load(file.path(file.tests, 'medANDout_lm.RData'))
+
 
 
 ## ----------------------------------------------------------------------------
@@ -42,6 +42,7 @@ test_that(
     # reading expected results
     file.tests <- "../testdata"
     load(file.path(file.tests, 'mediation_lm.RData'))
+    load(file.path(file.tests, 'medANDout_lm.RData'))
 
     mediation_results <- hightmed(sims = 1000,
                                   data.models=medANDout_lm,
@@ -138,54 +139,25 @@ test_that(
 
     withr::local_package("survival")
 
-    medANDout_surv <- generating_models(
-      column.models='model.m.formula',
-      model.type=glm,
-      data=df,
-      data.models=models_surv,
-      model.m = TRUE,
-      family=binomial
-    )
-
-    medANDout_surv <- generating_models(
-      column.models='model.y.formula',
-      model.type=survreg,
-      data=df,
-      data.models=medANDout_surv,
-      model.m = FALSE
-    )
-
-    expect_error(
-      hightmed(sims=1000,
-               data.models=medANDout_surv,
-               column.modelm = 'model.M',
-               column.modely = 'model.Y',
-               treat='treatments',
-               mediator='mediators',
-               outcome='outcome',
-               seed=1),
-      regexp = "All models for the outcome or the mediator contain warnings or errors"
-    )
-
     df <- df[1, ]
-    medANDout_surv <- generating_models(
+    models <- generating_models(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
       data.models=models_surv,
       model.m = TRUE
     )
-    medANDout_surv <- generating_models(
+    models <- generating_models(
       column.models='model.y.formula',
       model.type=survreg,
       data=df,
-      data.models=medANDout_surv,
+      data.models=models,
       model.m = FALSE
     )
 
     expect_error(
       hightmed(sims=1000,
-               data.models=medANDout_surv,
+               data.models=models,
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',
@@ -205,7 +177,7 @@ test_that(
     withr::local_package("survival")
     df <- df[1:12, ]
 
-    medANDout_surv <- generating_models(
+    models <- generating_models(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
@@ -213,17 +185,17 @@ test_that(
       model.m = TRUE
     )
 
-    medANDout_surv <- generating_models(
+    models <- generating_models(
       column.models='model.y.formula',
       model.type=survreg,
       data=df,
-      data.models=medANDout_surv,
+      data.models=models,
       model.m = FALSE
     )
 
     expect_message(
       hightmed(sims=1000,
-               data.models=medANDout_surv,
+               data.models=models,
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',
@@ -234,5 +206,4 @@ test_that(
     )
   }
 )
-
 

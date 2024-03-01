@@ -8,28 +8,31 @@ NULL
 #' @description `visual_htmed()` enables to visualize the results of the causal
 #'   mediation analyses performed in a single plot
 #'
-#' @param mediation.list lists of lists with the results of mediation
+#' @param mediation.form lists of lists with the results of mediation
 #' @param outcome name of the outcome the user want to visualice
 #' @param ... rest of arguments passed to ggplot
 #'
 #' @return returns a ggplot object
 #' @export
 #'
-visual_htmed <- function(mediation.list, outcome, ...) {
-  p <- ggplot(data=mediation.list[[outcome]]) +
-    geom_point(aes(x=treatment, y = factor(mediator), size=`Estimate_Prop._Mediated_(average)`, color=`Estimate_ACME_(average)`)) +
-    scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
-    labs(x = "Treatment", y = "Mediator", size="Prop.med", col="Est.med") +
-    scale_x_discrete(guide = guide_axis(angle = 45))
-  return(p)
+visual_htmed <- function(mediation.form, outcome, ...) {
+
+  checks <- .checks_visual(mediation.form=mediation.form, outcome=outcome)
+  if (checks) {
+    p <- ggplot(data=mediation.form[[outcome]]) +
+      geom_point(aes(x=treatment, y = factor(mediator), size=`Estimate_Prop._Mediated_(average)`, color=`Estimate_ACME_(average)`)) +
+      scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
+      labs(x = "Treatment", y = "Mediator", size="Prop.med", col="Est.med") +
+      scale_x_discrete(guide = guide_axis(angle = 45))
+    return(p)
+  }
 }
-#p <- visual_htmed(mediation.list = filt_mediation.list, outcome = 'tsurvHF')
 
 
 ################################################################################
 #' Graph summary of the high-throughput causal mediation analysis
 #'
-#' @param mediation.list lists of lists with the results of mediation
+#' @param mediation.form lists of lists with the results of mediation
 #' @param outcome name of the outcome the user want to visualice
 #' @param vertex.label.cex number indicating the font size of the node
 #' @param vertex.size number indicating the size of the node
@@ -41,7 +44,7 @@ visual_htmed <- function(mediation.list, outcome, ...) {
 #' @export
 #'
 graph_htmed <- function(
-    mediation.list,
+    mediation.form,
     outcome,
     vertex.label.cex=.75,
     vertex.size=16,
@@ -50,7 +53,7 @@ graph_htmed <- function(
     ...
     ) {
 
-  tabl <- mediation.list[[outcome]]
+  tabl <- mediation.form[[outcome]]
 
   # stablising the nodes
   nodes <- data.frame(
@@ -81,6 +84,7 @@ graph_htmed <- function(
 }
 
 
+################################################################################
 .layout_in_circles <- function(graph, group=1) {
   layout <- lapply(split(V(graph), group), function(x) {
     layout_in_circle(induced_subgraph(graph,x))
@@ -89,5 +93,39 @@ graph_htmed <- function(
   x <- matrix(0, nrow=vcount(graph), ncol=2)
   split(x, group) <- layout
   x
+}
+
+
+.checks_visual <- function(mediation.form, outcome) {
+
+  if (!"list" %in% class(mediation.form)) {
+    stop("mediation.form is not a list")
+  }
+
+  if ( any(unlist(lapply(format_lm, FUN=function(sublist) { !'data.frame' %in% class(sublist) }))) ) {
+    stop("mediation.form is not a list of DataFrames")
+  }
+
+  if (!"character" %in% class(outcome)) {
+    stop("outcome is not a character")
+  }
+
+  if (!outcome %in% names(mediation.form)) {
+    stop("The outcome is not in mediation.form")
+  }
+
+  if ( !all(c('p-value_Prop._Mediated_(average)',
+             'Estimate_Prop._Mediated_(average)',
+             'Estimate_ACME_(average)') %in% colnames(mediation.form[[outcome]])) ) {
+    stop("Wrong columns in the outcome chosen")
+  }
+
+  x <- mediation.form[[outcome]] %>%
+    filter(!is.na(`p-value_Prop._Mediated_(average)`), !is.na(`Estimate_Prop._Mediated_(average)`), !is.na(`Estimate_ACME_(average)`))
+  if (dim(x)[1] == 0) {
+    stop(paste('None of the mediation models for', outcome, 'presented statistically significant values'))
+  }
+
+  return(TRUE)
 }
 
