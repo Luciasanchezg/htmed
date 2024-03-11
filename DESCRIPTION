@@ -15,7 +15,6 @@ Imports:
     parallel,
     stats,
     reshape2,
-    tibble,
     tidyr,
     mediation,
     igraph,

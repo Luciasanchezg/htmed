@@ -1,8 +1,13 @@
 
 #' @import dplyr
 #' @import mediation
-#' @importFrom parallel mcmapply  detectCores
+#' @importFrom parallel mcmapply detectCores
 NULL
+
+
+################################################################################
+# Generation of mediation models
+################################################################################
 
 #' High-throughput causal mediation analysis
 #'
@@ -49,10 +54,8 @@ hightmed <- function(
     mediator,
     outcome,
     seed = NULL,
-    adjust = NULL,
     ...
     ) {
-
   ## TODO:
   ## controlar que los modelos que meto en model.m o model.y sean los soportados por mediate (esto lo hace el paquete mediate?)
   ## Posibilidad de ajuste (multiple linear regression: GENDER)
@@ -122,7 +125,6 @@ hightmed <- function(
 }
 
 
-################################################################################
 .mediationHT <- function(
     models.m,
     models.y,
@@ -144,7 +146,6 @@ hightmed <- function(
                                 model <- mediation::mediate(model.m = m, model.y = y,
                                                             treat = as.character(tr), mediator = as.character(me),
                                                             sims = sims, ...)
-                                #stats.model <- extract_mediation_summary(summary(model))
                                 return(model)
                               },
                               warning=function(w) { return(paste("Warning message:", w, sep=' ')) },
@@ -167,3 +168,4 @@ hightmed <- function(
   message(paste0("Number of cores that will be used: ", ncores))
   return(ncores)
 }
+

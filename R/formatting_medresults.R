@@ -2,7 +2,13 @@
 #' @import dplyr
 #' @importFrom reshape2 dcast melt
 #' @importFrom tidyr separate_wider_delim
+#' @impo stats p.adjust
 NULL
+
+
+################################################################################
+# Formatting mediation models for posterior analysis
+################################################################################
 
 #' Formatting results from causal mediation analysis
 #'
@@ -14,8 +20,9 @@ NULL
 #' @return lists of lists with the mediate analysis filtered
 #' @export
 #'
-formatting_med <- function(mediation.list) {
-
+formatting_med <- function(
+    mediation.list
+    ) {
   ## TODO: no está contemplada la posibilidad de covariates
 
   if (!"list" %in% class(mediation.list)) {
@@ -26,7 +33,6 @@ formatting_med <- function(mediation.list) {
     stop("mediation.list is not a list of lists")
   }
 
-  # if ( any(unlist(lapply(mediation.list, FUN=function(outcome) {lapply(outcome, FUN=function(model) {class(model)})})) != 'mediate') ) {
   if ( any(unlist(lapply(mediation.list, FUN=function(outcome) { lapply(outcome, FUN=function(model) { !grepl('med*', class(model)) }) }))) ) {
     stop("Some of the models introduced are not mediation models")
   }
@@ -45,14 +51,12 @@ formatting_med <- function(mediation.list) {
   }
 
   onerow_summary <- .med_summary_list(mediation.list)
-
   filt_summary <- .filtering_summary.list(onerow_summary)
 
   return(filt_summary)
 }
 
 
-################################################################################
 .med_summary_list <- function(mediation.list) {
 
   summary.list <- list()
@@ -69,7 +73,7 @@ formatting_med <- function(mediation.list) {
 
       # reshaping summaries into one row
       model.reshape <- reshape2::dcast(reshape2::melt(model.stats, id.var="row.names"),
-                                       formula = 1~variable+row.names) %>% dplyr::select(-c(`1`))
+                                       formula = 1~variable+row.names) %>% dplyr::select(-c('1'))
       rownames(model.reshape) <- med
 
       model.stats.list[[med]] <- model.reshape
@@ -108,26 +112,20 @@ formatting_med <- function(mediation.list) {
 
   results.list <- list()
   for (out in names(mediation_sum.list)) {
+
     results <- mediation_sum.list[[out]] %>%
-      mutate(names = row.names(.)) %>%
+      mutate(names = row.names(mediation_sum.list[[out]])) %>%
       tidyr::separate_wider_delim(data=., cols=names, delim=' ~ ', names=c('mediator', 'treatment')) %>%
       #mutate(outcome = out) %>%
 
-      dplyr::select(c(`p-value_Prop._Mediated_(average)`,
-                      `Estimate_Prop._Mediated_(average)`,
-                      `Estimate_ACME_(average)`,
-                      mediator, treatment)) %>%
+      # computing adjusted p.value (Benjamini & Hochberg)
+      mutate(`adj.p-value_Prop._Mediated_(average)` = p.adjust (`p-value_Prop._Mediated_(average)`, method='BH')) %>%
 
-      # Replacing new columns with NAs if p-value_Prop.Mediated_(average) < 0.05
-      mutate(`p-value_Prop._Mediated_(average)` = as.numeric(`p-value_Prop._Mediated_(average)`),
-             `p-value_Prop._Mediated_(average)` = replace(`p-value_Prop._Mediated_(average)`, `p-value_Prop._Mediated_(average)` > 0.05, NA)) %>%
-
-      mutate(`Estimate_Prop._Mediated_(average)` = as.numeric(`Estimate_Prop._Mediated_(average)`),
-             `Estimate_Prop._Mediated_(average)` = case_when(is.na(`p-value_Prop._Mediated_(average)`)~NA, TRUE ~ `Estimate_Prop._Mediated_(average)`)) %>%
-
-      mutate(`Estimate_ACME_(average)` = as.numeric(`Estimate_ACME_(average)`),
-             `Estimate_ACME_(average)` = case_when(is.na(`p-value_Prop._Mediated_(average)`)~NA, TRUE ~ `Estimate_ACME_(average)`)) # %>%
-      # mutate_if(is.numeric, ~ na_if(., 0))
+      dplyr::select(c('p-value_Prop._Mediated_(average)',
+                      'adj.p-value_Prop._Mediated_(average)',
+                      'Estimate_Prop._Mediated_(average)',
+                      'Estimate_ACME_(average)',
+                      'mediator', 'treatment'))
 
     results.list[[out]] <- results
 

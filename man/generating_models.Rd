@@ -28,6 +28,8 @@ performed, taking into account the ones allowed by mediate()}
 \item{model.m}{Default: TRUE. A boolean for choosing if we are going to
 perform the fitted models for mediator (TRUE) or outcome (FALSE)}
 
+\item{outcome}{a string with the name of the column that contains the outcome}
+
 \item{...}{other arguments that the models performed will need}
 }
 \value{

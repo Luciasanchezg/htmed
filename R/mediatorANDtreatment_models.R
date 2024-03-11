@@ -1,63 +1,20 @@
 
 #' @importFrom stats setNames as.formula
-#' @importFrom tibble column_to_rownames
 #' @importFrom parallel mclapply
 #' @importFrom rlang is_empty sym
 NULL
 
-#' Merging the fitted models for mediator and outcome
-#'
-#' @description `providing_models()` generates a single dataframe with as many
-#'   rows as different models to perform mediation and two columns (one with the
-#'   fitted models for mediator and another with fitted models for outcome)
-#'
-#' @param model.m a list with the fitted models for mediator
-#' @param model.y a list with the fitted models for outcome
-#'
-#' @return returns a dataframe with two different columns
-#'
-#'   * model.M: column with the fitted models for mediator
-#'
-#'   * model.Y: column with the fitted models for outcome
-#' @export
-#'
-providing_models <- function(model.m, model.y) {
-  ## TODO: no estoy implementando esta función de momento
-
-  if (length(model.m) != length(model.y)) {
-    stop("The fitted models for mediator and treatment does not have the same length")
-  }
-
-  if (!setequal(names(model.m),names(model.y))) {
-    stop("Provide the same names in both lists")
-  }
-
-  # model.m
-  #model_names.m <- .extracting_terms(model.m)
-
-  model.m.df <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(model.m))), c('model.M'))
-  model.m.df$model.M <- model.m
-  rownames(model.m.df) <- names(model.m)
-
-  # model.y
-  #model_names.y <- .extracting_terms(model.y)
-
-  model.y.df <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(model.y))), c('model.Y'))
-  model.y.df$model.Y <- model.y
-  rownames(model.y.df) <- names(model.y)
-
-  # merging results from fitted models for mediator and outcome in a single dataframe
-  results.models <- merge(model.m.df, model.y.df, by=0) %>% tibble::column_to_rownames(var='Row.names')
-  return(results.models)
-}
-
 
 ################################################################################
+# Generation of fitted models for the outcome and the mediator
+################################################################################
+
 #' Generating the fitted models for mediator OR outcome
 #'
 #' @description `generating_models()` generates a single dataframe with as many
 #'   rows as different models to perform mediation and a column (with the fitted
 #'   models for mediator OR the fitted models for outcome)
+#'
 #' @param column.models a character indicating the name of the column containing
 #'   the fitted models for mediator
 #' @param model.type a function indicating the kind of analysis that will be
@@ -66,6 +23,7 @@ providing_models <- function(model.m, model.y) {
 #' @param data.models a dataframe with the column indicated in column.models
 #' @param model.m Default: TRUE. A boolean for choosing if we are going to
 #'   perform the fitted models for mediator (TRUE) or outcome (FALSE)
+#' @param outcome a string with the name of the column that contains the outcome
 #' @param ... other arguments that the models performed will need
 #'
 #' @return returns a dataframe with a column, named model.M or model.Y,
@@ -167,7 +125,7 @@ generating_models <- function(
   }
 }
 
-################################################################################
+
 .one_outcome <- function(
     column.models,
     model.type,
@@ -177,7 +135,6 @@ generating_models <- function(
     ncores,
     ...
     ) {
-
   # generating the models
   models <- .model_MY(list.models=data.models[[column.models]], model.type=model.type, data=data, ncores=ncores, ...)
 
@@ -190,6 +147,7 @@ generating_models <- function(
   return(results)
 }
 
+
 .more_outcomes <- function(
     column.models,
     model.type,
@@ -200,7 +158,6 @@ generating_models <- function(
     outcome,
     ...
     ) {
-
   results.list <- list()
   for (out in levels(data.models[[outcome]])) {
     subset.models <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == out)
@@ -214,14 +171,13 @@ generating_models <- function(
   return(results.df)
 }
 
-################################################################################
+
 .check_formula <- function(
     column.models,
     data.models
     ) {
   models <- c()
   for (model in data.models[[column.models]]) {
-
     tryCatch(
       {
         m <- stats::as.formula(model)
@@ -235,6 +191,28 @@ generating_models <- function(
       }
     )
   }
+  return(models)
+}
+
+
+.model_MY <- function(
+    list.models,
+    model.type,
+    data,
+    ncores,
+    ...
+) {
+  # parallelizing model generation
+  models <- tryCatch(
+    {
+      parallel::mclapply(list.models, function(formula) {
+
+        .modeling(model.type=model.type, formula=formula, data=data, ...)
+
+      }, mc.cores = ncores)
+    }
+  )
+  names(models) <- list.models
   return(models)
 }
 
@@ -259,27 +237,7 @@ generating_models <- function(
 }
 
 
-.model_MY <- function(
-    list.models,
-    model.type,
-    data,
-    ncores,
-    ...
-    ) {
 
-  # parallelizing model generation
-  models <- tryCatch(
-    {
-      parallel::mclapply(list.models, function(formula) {
-
-        .modeling(model.type=model.type, formula=formula, data=data, ...)
-
-      }, mc.cores = ncores)
-    }
-  )
-  names(models) <- list.models
-  return(models)
-}
 
 
 

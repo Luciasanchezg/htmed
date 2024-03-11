@@ -5,7 +5,7 @@
 \title{Graph summary of the high-throughput causal mediation analysis}
 \usage{
 graph_htmed(
-  mediation.list,
+  mediation.form,
   outcome,
   vertex.label.cex = 0.75,
   vertex.size = 16,
@@ -15,7 +15,7 @@ graph_htmed(
 )
 }
 \arguments{
-\item{mediation.list}{lists of lists with the results of mediation}
+\item{mediation.form}{lists of lists with the results of mediation}
 
 \item{outcome}{name of the outcome the user want to visualice}
 
@@ -30,7 +30,7 @@ graph_htmed(
 \item{...}{rest of arguments passed to igraph}
 }
 \value{
-returns a ggplot object
+prints out a graph from igraph package
 }
 \description{
 Graph summary of the high-throughput causal mediation analysis

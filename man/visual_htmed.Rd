@@ -4,10 +4,10 @@
 \alias{visual_htmed}
 \title{Visualization of the high-throughput causal mediation analysis}
 \usage{
-visual_htmed(mediation.list, outcome, ...)
+visual_htmed(mediation.form, outcome, ...)
 }
 \arguments{
-\item{mediation.list}{lists of lists with the results of mediation}
+\item{mediation.form}{lists of lists with the results of mediation}
 
 \item{outcome}{name of the outcome the user want to visualice}
 
