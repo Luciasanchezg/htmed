@@ -247,10 +247,24 @@ graph_htmed <- function(
     stop("mediation.form is not a list of DataFrames")
   }
 
-  for (i in c(outcome, treatment, mediator, prop.med, acme)) {
-    if (!"character" %in% class(i)) {
-      stop(paste(i, "is not a character"))
-    }
+  if (!"character" %in% class(outcome)) {
+    stop(paste("outcome is not a character"))
+  }
+
+  if (!"character" %in% class(treatment)) {
+    stop(paste("treatment is not a character"))
+  }
+
+  if (!"character" %in% class(mediator)) {
+    stop(paste("mediator is not a character"))
+  }
+
+  if (!"character" %in% class(prop.med)) {
+    stop(paste("prop.med is not a character"))
+  }
+
+  if (!"character" %in% class(acme)) {
+    stop(paste("acme is not a character"))
   }
 
   if (!outcome %in% names(mediation.form)) {
@@ -272,7 +286,7 @@ graph_htmed <- function(
     }
 
     if (!"numeric" %in% class(pval)) {
-      stop("pval is not a character")
+      stop("pval is not a number")
     }
 
     if ( !pval.column %in% colnames(mediation.form[[outcome]]) ) {
@@ -318,7 +332,7 @@ graph_htmed <- function(
                     !!rlang::sym(acme) := case_when(is.na(!!rlang::sym(pval.column))~NA, TRUE ~ !!rlang::sym(acme) ))
 
     x <- mediation.form[[outcome]] %>%
-      filter(!is.na(as.character(pval.column)))
+      filter(!is.na(!!rlang::sym(pval.column)))
     if (dim(x)[1] == 0) {
       stop(paste('None of the mediation models for', outcome, 'presented statistically significant values, for the p-value chosen'))
     }

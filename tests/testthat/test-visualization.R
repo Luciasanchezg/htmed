@@ -14,7 +14,7 @@ load(file.path(file.tests, 'format_lm.RData'))
 
 ## ----------------------------------------------------------------------------
 ## Errors in visualizing results for visual_htmed()
-## ----------------------------------------------------------------------------
+## Format errors --------------------------------------------------------------
 test_that(
   desc = "Catch errors related to wrong arguments passed to visualization()",
   code = {
@@ -33,109 +33,84 @@ test_that(
       regexp = "outcome is not a character"
     )
     expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', mediator = lm),
+      regexp = "mediator is not a character"
+    )
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', treatment = lm),
+      regexp = "treatment is not a character"
+    )
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', pval = '0.05', pval.column = 'p-value_Prop._Mediated_(average)'),
+      regexp = "pval is not a number"
+    )
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', pval = '0.05', pval.column = lm),
+      regexp = "pval.column is not a character"
+    )
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', prop.med = lm),
+      regexp = "prop.med is not a character"
+    )
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', acme = lm),
+      regexp = "acme is not a character"
+    )
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', split = lm),
+      regexp = "split is not a character"
+    )
+  }
+)
+
+
+## Information not in the input -----------------------------------------------
+test_that(
+  desc = "Catch errors related to wrong arguments passed to visualization()",
+  code = {
+    expect_error(
       visual_htmed(mediation.form = format_surv, outcome = 'outcome'),
       regexp = "The outcome is not in mediation.form"
     )
-  }
-)
-
-
-test_that(
-  desc = "Modifying DataFrame",
-  code = {
-    format_surv$outcome.1 <- format_surv$outcome.1 %>% rename('p-value_PropMed'='p-value_Prop._Mediated_(average)')
     expect_error(
-      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1'),
-      regexp = "Wrong columns in the outcome chosen"
-    )
-  }
-)
-
-
-test_that(
-  desc = "Modifying DataFrame",
-  code = {
-    format_surv$outcome.1 <- format_surv$outcome.1 %>% rename('treat'='treatment')
-    expect_error(
-      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1'),
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', treatment = 'outcome.2'),
       regexp = "treatment and/or mediator columns do not exist"
     )
-  }
-)
-
-
-test_that(
-  desc = "Catch errors related to wrong arguments passed to visualization()",
-  code = {
-    out <- 'outcome.2'
     expect_error(
-      visual_htmed(mediation.form = format_lm, outcome = out),
-      regexp = paste('None of the mediation models for', out, 'presented statistically significant values')
-    )
-  }
-)
-
-
-## ----------------------------------------------------------------------------
-## Errors in visualizing results for graph_htmed()
-## ----------------------------------------------------------------------------
-test_that(
-  desc = "Catch errors related to wrong arguments passed to visualization()",
-  code = {
-    expect_error(
-      graph_htmed(mediation.form = format_surv$outcome.1, outcome = 'outcome.1'),
-      regexp = "mediation.form is not a list"
-    )
-    format_surv_list <- list()
-    format_surv_list[['surv']] <- format_surv
-    expect_error(
-      graph_htmed(mediation.form = format_surv_list, outcome = 'surv'),
-      regexp = "mediation.form is not a list of DataFrames"
-    )
-    expect_error(
-      graph_htmed(mediation.form = format_surv, outcome = lm),
-      regexp = "outcome is not a character"
-    )
-    expect_error(
-      graph_htmed(mediation.form = format_surv, outcome = 'outcome'),
-      regexp = "The outcome is not in mediation.form"
-    )
-  }
-)
-
-
-test_that(
-  desc = "Modifying DataFrame",
-  code = {
-    format_surv$outcome.1 <- format_surv$outcome.1 %>% rename('p-value_PropMed'='p-value_Prop._Mediated_(average)')
-    expect_error(
-      graph_htmed(mediation.form = format_surv, outcome = 'outcome.1'),
-      regexp = "Wrong columns in the outcome chosen"
-    )
-  }
-)
-
-
-test_that(
-  desc = "Modifying DataFrame",
-  code = {
-    format_surv$outcome.1 <- format_surv$outcome.1 %>% rename('treat'='treatment')
-    expect_error(
-      graph_htmed(mediation.form = format_surv, outcome = 'outcome.1'),
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', mediator = 'outcome.2'),
       regexp = "treatment and/or mediator columns do not exist"
     )
-  }
-)
-
-
-test_that(
-  desc = "Catch errors related to wrong arguments passed to visualization()",
-  code = {
-    out <- 'outcome.2'
     expect_error(
-      graph_htmed(mediation.form = format_lm, outcome = out),
-      regexp = paste('None of the mediation models for', out, 'presented statistically significant values')
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', pval.column = 'outcome.1'),
+      regexp = "pval.column is not in the dataset"
+    )
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', prop.med = 'outcome.1'),
+      regexp = "Wrong columns for proportion of mediation and/or ACME in the outcome chosen"
+    )
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', acme = 'outcome.1'),
+      regexp = "Wrong columns for proportion of mediation and/or ACME in the outcome chosen"
+    )
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', split = 'outcome.1'),
+      regexp = "split is not in the dataset"
     )
   }
 )
+
+
+## Not models passed the filters ----------------------------------------------
+test_that(
+  desc = "Catch errors related to wrong arguments passed to visualization()",
+  code = {
+    expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', pval.column = 'adj.p-value_Prop._Mediated_(average)', pval = 0),
+      regexp = "None of the mediation models for outcome.1 presented statistically significant values, for the p-value chosen"
+    )
+  }
+)
+
+
+
 
