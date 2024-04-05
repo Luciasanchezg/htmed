@@ -1,6 +1,7 @@
 
 #' @import ggplot2
-#' @importFrom igraph plot.igraph layout_in_circle graph_from_data_frame ecount V vcount
+#' @import ggraph
+#' @importFrom igraph layout_in_circle graph_from_data_frame V vcount
 #' @importFrom stats na.omit
 #' @importFrom rlang sym
 #' @importFrom dplyr mutate
@@ -18,7 +19,7 @@ NULL
 #' @param mediation.form lists of lists with the results of mediation
 #' @param outcome a character indicating the name of the outcome the user wants
 #'   to visualice
-#' @param pval.column a character with the name of the column that contains the
+#' @param pval.column a character with ?the name of the column that contains the
 #'   p-values
 #' @param pval a number establishing the threshold for the `pval.column`
 #' @param prop.med a character indicating the column with the Prop.Mediated
@@ -176,7 +177,7 @@ graph_htmed <- function(
     # edges
     relations <- stats::na.omit(tabl) %>%
       rename("from" = treatment, 'to' = mediator, 'Prop.med' = prop.med, 'Est.med' = acme) %>%
-      dplyr::select(c('from', 'to', 'Prop.med', 'Est.med', column2split))
+      dplyr::select(c('from', 'to', 'Prop.med', 'Est.med', split))
 
     if ( !is.null(split) ) {
       pList <- list()
@@ -194,7 +195,7 @@ graph_htmed <- function(
 
         g <- igraph::graph_from_data_frame(relations.i, directed=TRUE, vertices=nodes.i)
         coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
-        lay <- create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
+        lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
         pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes)
       }
@@ -220,7 +221,7 @@ graph_htmed <- function(
       # graph
       g <- igraph::graph_from_data_frame(relations, directed=TRUE, vertices=nodes)
       coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
-      lay <- create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
+      lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
       return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes))
     }
@@ -366,9 +367,9 @@ graph_htmed <- function(
     ...
     ) {
 
-  ggraph(layout_graph) +
+  ggraph::ggraph(layout_graph) +
     # edges
-    geom_edge_arc(
+    ggraph::geom_edge_arc(
       aes(
         col = Est.med,
         width = Prop.med
@@ -376,11 +377,11 @@ graph_htmed <- function(
       # curvature=0.1,
       strength=0.1,
       arrow = arrow(length = unit(4, 'mm')),
-      start_cap = circle(1, 'mm'),
-      end_cap = circle(ifelse(n.nodes < 30, 11+n.nodes/10, 7+n.nodes/50), 'mm')
+      start_cap = ggraph::circle(1, 'mm'),
+      end_cap = ggraph::circle(ifelse(n.nodes < 30, 11+n.nodes/10, 7+n.nodes/50), 'mm')
     ) +
-    scale_edge_width(range = c(.5, 2)) +
-    scale_edge_colour_gradient2(
+    ggraph::scale_edge_width(range = c(.5, 2)) +
+    ggraph::scale_edge_colour_gradient2(
       low = "blue",
       high = "red",
       mid = "white",
@@ -388,12 +389,12 @@ graph_htmed <- function(
       na.value = "transparent"
     ) +
     #nodes
-    geom_node_point(
+    ggraph::geom_node_point(
       # size = ifelse(n.nodes < 30, 30, 20+300/n.nodes),
       size = ifelse(n.nodes < 30, 30, 15+200/n.nodes),
       col = layout_graph$vertex.color
     ) +
-    geom_node_text(
+    ggraph::geom_node_text(
       aes(
         label = name
       ),

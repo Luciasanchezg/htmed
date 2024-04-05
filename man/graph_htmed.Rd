@@ -7,10 +7,13 @@
 graph_htmed(
   mediation.form,
   outcome,
-  vertex.label.cex = 0.75,
-  vertex.size = 16,
-  edge.width = 2,
-  edge.arrow.size = 0.5,
+  pval.column = NULL,
+  pval = 0.05,
+  prop.med = "Estimate_Prop._Mediated_(average)",
+  acme = "Estimate_ACME_(average)",
+  treatment = "treatment",
+  mediator = "mediator",
+  split = NULL,
   ...
 )
 }
@@ -19,6 +22,8 @@ graph_htmed(
 
 \item{outcome}{name of the outcome the user want to visualice}
 
+\item{...}{rest of arguments passed to igraph}
+
 \item{vertex.label.cex}{number indicating the font size of the node}
 
 \item{vertex.size}{number indicating the size of the node}
@@ -26,8 +31,6 @@ graph_htmed(
 \item{edge.width}{number indicating the edge width}
 
 \item{edge.arrow.size}{number indicating the arrow size}
-
-\item{...}{rest of arguments passed to igraph}
 }
 \value{
 prints out a graph from igraph package

@@ -2,7 +2,7 @@
 #' @import dplyr
 #' @importFrom reshape2 dcast melt
 #' @importFrom tidyr separate_wider_delim
-#' @impo stats p.adjust
+#' @importFrom stats p.adjust
 NULL
 
 

@@ -4,14 +4,42 @@
 \alias{visual_htmed}
 \title{Visualization of the high-throughput causal mediation analysis}
 \usage{
-visual_htmed(mediation.form, outcome, ...)
+visual_htmed(
+  mediation.form,
+  outcome,
+  pval.column = NULL,
+  pval = 0.05,
+  prop.med = "Estimate_Prop._Mediated_(average)",
+  acme = "Estimate_ACME_(average)",
+  treatment = "treatment",
+  mediator = "mediator",
+  split = NULL
+)
 }
 \arguments{
 \item{mediation.form}{lists of lists with the results of mediation}
 
-\item{outcome}{name of the outcome the user want to visualice}
+\item{outcome}{a character indicating the name of the outcome the user wants
+to visualice}
 
-\item{...}{rest of arguments passed to ggplot}
+\item{pval.column}{a character with ?the name of the column that contains the
+p-values}
+
+\item{pval}{a number establishing the threshold for the \code{pval.column}}
+
+\item{prop.med}{a character indicating the column with the Prop.Mediated
+information (Default: Estimate_Prop.\emph{Mediated}(average))}
+
+\item{acme}{a character indicating the column with the ACME information
+(Default: Estimate_ACME_(average))}
+
+\item{treatment}{a character with the name of the column containing the
+treatment information}
+
+\item{mediator}{a character with the name of the column containing the
+mediator information}
+
+\item{split}{a character indicating the name of the column used for the split}
 }
 \value{
 returns a ggplot object
