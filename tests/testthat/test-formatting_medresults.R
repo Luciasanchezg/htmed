@@ -13,15 +13,14 @@ load(file.path(file.tests, 'mediation_lm.RData'))
 test_that(
   desc = "checking if formatting_medresults() produces the expected outcome",
   code = {
-
     # reading expected results
     file.tests <- "../testdata"
     load(file.path(file.tests, 'format_surv.RData'))
-
     format_results <- formatting_med(mediation_surv)
 
     expect_equal(format_results, format_surv)
-  })
+  }
+)
 
 
 test_that(

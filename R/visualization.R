@@ -84,50 +84,6 @@ visual_htmed <- function(
 }
 
 
-
-# graph_htmed <- function(
-#     mediation.form,
-#     outcome,
-#     vertex.label.cex=.75,
-#     vertex.size=16,
-#     edge.width = 2,
-#     edge.arrow.size = .5,
-#     ...
-#     ) {
-#   # checks <- .checks_visual(mediation.form=mediation.form, outcome=outcome)
-#   # if (checks) {
-#     tabl <- mediation.form[[outcome]]
-#
-#     # stablising the nodes
-#     nodes <- data.frame(
-#       name = c(unique(tabl[['mediator']]), unique(tabl[['treatment']]))
-#     )
-#
-#     # stablising the edges
-#     relations <- stats::na.omit(tabl) %>%
-#       rename("from" = "treatment", 'to' = 'mediator') %>% dplyr::select(c('from', 'to'))
-#
-#     g <- igraph::graph_from_data_frame(relations, directed=TRUE, vertices=nodes)
-#
-#     # colors for the nodes and the edges
-#     igraph::V(g)[as.character(c(unique(relations[['from']])))]$color <- '#FFA500'
-#     igraph::V(g)[as.character(c(unique(relations[['to']])))]$color <- '#F0FFF0'
-#
-#     '%!in%' <- function(x,y)!('%in%'(x,y))
-#     igraph::plot.igraph(
-#       g,
-#       layout=.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[['treatment']]),
-#       vertex.label.cex=vertex.label.cex,
-#       vertex.size=vertex.size,
-#       edge.width=edge.width,
-#       edge.arrow.size=edge.arrow.size,
-#       edge.curved=seq(-0.25, 0.25, length = igraph::ecount(g)),
-#       ...
-#     )
-#   # }
-# }
-
-
 #' Graph summary of the high-throughput causal mediation analysis
 #'
 #' @param mediation.form lists of lists with the results of mediation
@@ -366,7 +322,6 @@ graph_htmed <- function(
     n.nodes,
     ...
     ) {
-
   ggraph::ggraph(layout_graph) +
     # edges
     ggraph::geom_edge_arc(
@@ -402,5 +357,5 @@ graph_htmed <- function(
       repel = FALSE,
       size = ifelse(n.nodes < 30, 5, 2.5+30/n.nodes)
     ) +
-    theme_void()
+    theme(panel.background = element_rect(fill = 'white', colour = 'transparent'))
 }

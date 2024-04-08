@@ -5,12 +5,39 @@
 #### Data
 file.tests <- "../testdata"
 load(file.path(file.tests, 'format_surv.RData'))
-load(file.path(file.tests, 'format_lm.RData'))
+# load(file.path(file.tests, 'format_lm.RData'))
 
 ## ----------------------------------------------------------------------------
 ## Tests for visualizing results
 ## ----------------------------------------------------------------------------
+test_that(
+  desc = "checking if visual_htmed() produces the expected outcome",
+  code = {
 
+    # reading expected results
+    file.tests <- "../testdata"
+    load(file.path(file.tests, 'visual_surv_outcome1_noadj.RData'))
+
+    visual_outcome1_noadj <- visual_htmed(mediation.form = format_surv, outcome = 'outcome.1')
+
+    expect_equal(visual_surv_outcome1_noadj, visual_outcome1_noadj)
+  }
+)
+
+# g <- igraph::graph_from_data_frame(relations, directed=TRUE, vertices=nodes): cambia con cada iteración
+# test_that(
+#   desc = "checking if graph_htmed() produces the expected outcome",
+#   code = {
+#
+#     # reading expected results
+#     file.tests <- "../testdata"
+#     load(file.path(file.tests, 'graph_surv_outcome1_noadj.RData'))
+#     set.seed(1)
+#     graph_outcome1_noadj <- graph_htmed(mediation.form = format_surv, outcome = 'outcome.1')
+#
+#     expect_equal(graph_surv_outcome1_noadj, graph_outcome1_noadj)
+#   }
+# )
 
 ## ----------------------------------------------------------------------------
 ## Errors in visualizing results for visual_htmed()
