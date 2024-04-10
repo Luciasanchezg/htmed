@@ -1,6 +1,6 @@
 
 #' @import ggplot2
-#' @import ggraph
+#' @importFrom ggraph ggraph geom_edge_arc circle scale_edge_width scale_edge_colour_gradient2 geom_node_point geom_node_text
 #' @importFrom igraph layout_in_circle graph_from_data_frame V vcount
 #' @importFrom stats na.omit
 #' @importFrom rlang sym

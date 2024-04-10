@@ -109,7 +109,7 @@ formatting_med <- function(
 
 
 .filtering_summary.list <- function(mediation_sum.list) {
-
+  # TODO: compute adjusted p.value over the total amount analysis performed (not just with the ones from the same outcome)
   results.list <- list()
   for (out in names(mediation_sum.list)) {
 
@@ -119,7 +119,7 @@ formatting_med <- function(
       #mutate(outcome = out) %>%
 
       # computing adjusted p.value (Benjamini & Hochberg)
-      mutate(`adj.p-value_Prop._Mediated_(average)` = p.adjust (`p-value_Prop._Mediated_(average)`, method='BH')) %>%
+      mutate(`adj.p-value_Prop._Mediated_(average)` = p.adjust(`p-value_Prop._Mediated_(average)`, method='BH')) %>%
 
       dplyr::select(c('p-value_Prop._Mediated_(average)',
                       'adj.p-value_Prop._Mediated_(average)',

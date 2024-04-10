@@ -23,4 +23,7 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0),
     survival,
-    withr
+    withr,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
