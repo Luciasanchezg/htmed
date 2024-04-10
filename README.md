@@ -15,6 +15,8 @@ library(dplyr)
 #> The following objects are masked from 'package:base':
 #> 
 #>     intersect, setdiff, setequal, union
+library(ggraph)
+#> Loading required package: ggplot2
 ```
 
 In this vignette, we will use all the functions available in `hightmed`
@@ -141,19 +143,9 @@ mediation.
 graph_outcome1_nosig <- graph_htmed(mediation.form = format_results, outcome = 'outcome.1')
 #> pval.column argument not provided. Results without filtering data will be displayed
 graph_outcome1_nosig
-#> # A tibble: 8 × 8
-#>           x         y circular name        vertex.color vertex.color.label
-#>       <dbl>     <dbl> <lgl>    <chr>       <chr>        <chr>             
-#> 1  2   e+ 0  0        FALSE    mediator.1  #0180AB      #000000           
-#> 2  1.22e-16  2   e+ 0 FALSE    mediator.2  #0180AB      #000000           
-#> 3 -2   e+ 0  2.45e-16 FALSE    mediator.3  #0180AB      #000000           
-#> 4 -3.67e-16 -2   e+ 0 FALSE    mediator.4  #0180AB      #000000           
-#> 5  1   e+ 0  0        FALSE    treatment.1 #FDA855      #000000           
-#> 6  6.12e-17  1   e+ 0 FALSE    treatment.2 #FDA855      #000000           
-#> 7 -1   e+ 0  1.22e-16 FALSE    treatment.3 #FDA855      #000000           
-#> 8 -1.84e-16 -1   e+ 0 FALSE    treatment.4 #FDA855      #000000           
-#> # ℹ 2 more variables: .ggraph.orig_index <int>, .ggraph.index <int>
 ```
+
+<img src="man/figures/README-visualizing-2-1.png" width="100%" />
 
 We can also restrict our results, to display only significant results.
 As `formatting_med()` computed the adjusted p-value, we can choose only
@@ -181,19 +173,9 @@ graph_outcome1_adj0.05 <- graph_htmed(
   , pval = 0.05)
 #> Results with adj.p-value_Prop._Mediated_(average) < 0.05 will be filtered out
 graph_outcome1_adj0.05
-#> # A tibble: 8 × 8
-#>           x         y circular name        vertex.color vertex.color.label
-#>       <dbl>     <dbl> <lgl>    <chr>       <chr>        <chr>             
-#> 1  2   e+ 0  0        FALSE    mediator.1  #BDD6D0      #666666           
-#> 2  1.22e-16  2   e+ 0 FALSE    mediator.2  #BDD6D0      #666666           
-#> 3 -2   e+ 0  2.45e-16 FALSE    mediator.3  #0180AB      #000000           
-#> 4 -3.67e-16 -2   e+ 0 FALSE    mediator.4  #0180AB      #000000           
-#> 5  1   e+ 0  0        FALSE    treatment.1 #FDA855      #000000           
-#> 6  6.12e-17  1   e+ 0 FALSE    treatment.2 #FBC495      #666666           
-#> 7 -1   e+ 0  1.22e-16 FALSE    treatment.3 #FDA855      #000000           
-#> 8 -1.84e-16 -1   e+ 0 FALSE    treatment.4 #FDA855      #000000           
-#> # ℹ 2 more variables: .ggraph.orig_index <int>, .ggraph.index <int>
 ```
+
+<img src="man/figures/README-visualizing-4-1.png" width="100%" />
 
 Now, imagine that we are interested in displaying the results in a
 slightly different way: as mediators 2-4 are somehow related, we want to
@@ -226,16 +208,12 @@ graph_outcome1_split <- graph_htmed(
   , split = 'clust')
 #> pval.column argument not provided. Results without filtering data will be displayed
 graph_outcome1_split
-#> # A tibble: 8 × 8
-#>           x         y circular name        vertex.color vertex.color.label
-#>       <dbl>     <dbl> <lgl>    <chr>       <chr>        <chr>             
-#> 1  2   e+ 0  0        FALSE    mediator.1  #0180AB      #000000           
-#> 2  1.22e-16  2   e+ 0 FALSE    mediator.2  #BDD6D0      #666666           
-#> 3 -2   e+ 0  2.45e-16 FALSE    mediator.3  #BDD6D0      #666666           
-#> 4 -3.67e-16 -2   e+ 0 FALSE    mediator.4  #BDD6D0      #666666           
-#> 5  1   e+ 0  0        FALSE    treatment.1 #FDA855      #000000           
-#> 6  6.12e-17  1   e+ 0 FALSE    treatment.2 #FDA855      #000000           
-#> 7 -1   e+ 0  1.22e-16 FALSE    treatment.3 #FDA855      #000000           
-#> 8 -1.84e-16 -1   e+ 0 FALSE    treatment.4 #FDA855      #000000           
-#> # ℹ 2 more variables: .ggraph.orig_index <int>, .ggraph.index <int>
+#> $mediator.1
 ```
+
+<img src="man/figures/README-visualizing-6-1.png" width="100%" />
+
+    #> 
+    #> $other_med
+
+<img src="man/figures/README-visualizing-6-2.png" width="100%" />

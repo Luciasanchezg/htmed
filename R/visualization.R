@@ -159,10 +159,10 @@ graph_htmed <- function(
         g <- igraph::graph_from_data_frame(relations.i, directed=TRUE, vertices=nodes.i)
         coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
         lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
-        return(lay)
-        # pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes)
+
+        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes)
       }
-      # return(pList)
+      return(pList)
     }
     else {
       # node color
@@ -185,8 +185,8 @@ graph_htmed <- function(
       g <- igraph::graph_from_data_frame(relations, directed=TRUE, vertices=nodes)
       coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
       lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
-      return(lay)
-      # return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes))
+
+      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes))
     }
   }
 }
@@ -326,8 +326,7 @@ graph_htmed <- function(
 
 .graph_ggraph <- function(
     layout_graph,
-    n.nodes,
-    ...
+    n.nodes
     ) {
   ggraph::ggraph(layout_graph) +
     # edges

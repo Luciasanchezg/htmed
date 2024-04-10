@@ -18,7 +18,8 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(hightmed)
 library(survival)
-library(dplyr)
+library(dplyr) ##
+library(ggraph) ##
 ```
 
 In this vignette, we will use all the functions available in `hightmed` package to illustrate an example of how high-throughput mediation analysis could be performed.
