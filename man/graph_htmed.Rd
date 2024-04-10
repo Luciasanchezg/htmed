@@ -13,24 +13,33 @@ graph_htmed(
   acme = "Estimate_ACME_(average)",
   treatment = "treatment",
   mediator = "mediator",
-  split = NULL,
-  ...
+  split = NULL
 )
 }
 \arguments{
 \item{mediation.form}{lists of lists with the results of mediation}
 
-\item{outcome}{name of the outcome the user want to visualice}
+\item{outcome}{a character indicating the name of the outcome the user wants
+to visualice}
 
-\item{...}{rest of arguments passed to igraph}
+\item{pval.column}{a character with ?the name of the column that contains the
+p-values}
 
-\item{vertex.label.cex}{number indicating the font size of the node}
+\item{pval}{a number establishing the threshold for the \code{pval.column}}
 
-\item{vertex.size}{number indicating the size of the node}
+\item{prop.med}{a character indicating the column with the Prop.Mediated
+information (Default: Estimate_Prop.\emph{Mediated}(average))}
 
-\item{edge.width}{number indicating the edge width}
+\item{acme}{a character indicating the column with the ACME information
+(Default: Estimate_ACME_(average))}
 
-\item{edge.arrow.size}{number indicating the arrow size}
+\item{treatment}{a character with the name of the column containing the
+treatment information}
+
+\item{mediator}{a character with the name of the column containing the
+mediator information}
+
+\item{split}{a character indicating the name of the column used for the split}
 }
 \value{
 prints out a graph from igraph package

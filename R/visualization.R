@@ -87,12 +87,20 @@ visual_htmed <- function(
 #' Graph summary of the high-throughput causal mediation analysis
 #'
 #' @param mediation.form lists of lists with the results of mediation
-#' @param outcome name of the outcome the user want to visualice
-#' @param vertex.label.cex number indicating the font size of the node
-#' @param vertex.size number indicating the size of the node
-#' @param edge.width number indicating the edge width
-#' @param edge.arrow.size number indicating the arrow size
-#' @param ... rest of arguments passed to igraph
+#' @param outcome a character indicating the name of the outcome the user wants
+#'   to visualice
+#' @param pval.column a character with ?the name of the column that contains the
+#'   p-values
+#' @param pval a number establishing the threshold for the `pval.column`
+#' @param prop.med a character indicating the column with the Prop.Mediated
+#'   information (Default: Estimate_Prop._Mediated_(average))
+#' @param acme a character indicating the column with the ACME information
+#'   (Default: Estimate_ACME_(average))
+#' @param treatment a character with the name of the column containing the
+#'   treatment information
+#' @param mediator a character with the name of the column containing the
+#'   mediator information
+#' @param split a character indicating the name of the column used for the split
 #'
 #' @return prints out a graph from igraph package
 #' @export
@@ -106,8 +114,7 @@ graph_htmed <- function(
     acme = 'Estimate_ACME_(average)',
     treatment = 'treatment',
     mediator = 'mediator',
-    split = NULL,
-    ...
+    split = NULL
     ) {
   checks <- .checks_visual(mediation.form = mediation.form, outcome = outcome,
                            pval.column = pval.column, pval = pval,
@@ -152,10 +159,10 @@ graph_htmed <- function(
         g <- igraph::graph_from_data_frame(relations.i, directed=TRUE, vertices=nodes.i)
         coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
         lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
-
-        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes)
+        return(lay)
+        # pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes)
       }
-      return(pList)
+      # return(pList)
     }
     else {
       # node color
@@ -178,8 +185,8 @@ graph_htmed <- function(
       g <- igraph::graph_from_data_frame(relations, directed=TRUE, vertices=nodes)
       coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
       lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
-
-      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes))
+      return(lay)
+      # return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes))
     }
   }
 }

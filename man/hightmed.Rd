@@ -43,7 +43,7 @@ the models}
 
 \item{seed}{integer to set a seed}
 
-\item{...}{other arguments passed to mediate package.}
+\item{...}{other arguments passed to mediate package}
 }
 \value{
 returns a list of lists with the results of mediation for each

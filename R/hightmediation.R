@@ -39,7 +39,7 @@ NULL
 #' @param outcome a lists indicating the name of the outcome variables used in
 #'   the models
 #' @param seed integer to set a seed
-#' @param ... other arguments passed to mediate package.
+#' @param ... other arguments passed to mediate package
 #'
 #' @return returns a list of lists with the results of mediation for each
 #'   combination of outcome, mediator and treatment variables
