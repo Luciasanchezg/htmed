@@ -3,50 +3,120 @@
 
 # hightmed
 
-<!-- badges: start -->
-<!-- badges: end -->
-
-The goal of hightmed is to …
-
-## Installation
-
-You can install the development version of hightmed from
-[GitHub](https://github.com/) with:
-
-``` r
-# install.packages("devtools")
-devtools::install_github("Luciasanchezg/hightmed")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
 ``` r
 library(hightmed)
-## basic example code
+library(survival)
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+In this vignette, we will use all the functions available in `hightmed`
+package to illustrate an example of how high-throughput mediation
+analysis could be performed. To do so, we will make use of a dataframe
+that contains information of 98 mice that have died between week 26 and
+week 138 (this information is stored in a column called `age_death`).
+The dataframe also contains several columns indicating the sex of the
+mice (`gender`), and the measures of different treatments and mediators
+collected in a continuous form. There is an additional column (`HF`),
+that differentiates between mice that have died as a result of heart
+failure or not, 1 or 0, respectively.
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+data("df", package = "hightmed")
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+With this data, we hypothesize that some treatments could be responsible
+of the heart failure observed in the mice, and that some mediators could
+explain the underlying mechanism of the relationship between the
+treatment and heart failure.
 
-You can also embed plots, for example:
+Therefore, we are interested in testing the association between each
+treatment and heart failure, trought each mediator. The `models_surv`
+dataframe contains the `model.M` and `model.Y` formulas needed for each
+mediation analysis.
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+``` r
+data("models_surv", package = "hightmed")
+```
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+Using the `generating_models()` function, we will generate the fitted
+models for the mediator and the outcome, for each group of mediator,
+treatment and outcome that we want to analyse. This function can be
+executed iteratively to generate both groups of fitted models.
+
+``` r
+# fitted models for the mediator
+medANDtreat <- generating_models(
+    column.models='model.m.formula'
+  , model.type=lm
+  , data=df
+  , data.models=models_surv
+  , model.m = TRUE
+  ) 
+#> Number of cores that will be used: 5
+#> Your data contains NA. These rows will not be taken into account for the models
+#> Performing fitted models for mediator
+
+# fitted models for the outcome
+medANDtreat <- generating_models(
+    column.models='model.y.formula'
+  , model.type=survival::survreg
+  , data=df
+  , data.models=medANDtreat
+  , model.m = FALSE
+  ) 
+#> Number of cores that will be used: 5
+#> Your data contains NA. These rows will not be taken into account for the models
+#> Performing fitted models for outcome
+```
+
+The new dataframe will contain the same information than the
+`models_surv` one, but with two additional columns: the fitted models
+for the mediators and treatments, respectively.
+
+To apply high-troughput mediation, we execute the `hightmed()` function
+over this data. The output of this function will be a list of lists,
+with as many elements as different outcomes are present in the data.
+Each sublist will contain the results of the mediation analysis as
+mediate objects.
+
+``` r
+med_results <- hightmed(
+    sims=1000
+  , data.models=medANDtreat
+  , column.modelm = 'model.M'
+  , column.modely = 'model.Y'
+  , treat='treatments'
+  , mediator='mediators'
+  , outcome='outcome'
+  , seed=1
+  )
+#> Number of cores that will be used: 5
+
+paste('Class of the mediation analysis results', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
+#> [1] "Class of the mediation analysis results mediate"
+```
+
+As we can see in the previous slide, `hightmed()` generates objects of
+class mediate. We need to transform this data to simplify it and make it
+more user-friendly for the visualizations that will be performed later.
+`formatting_med()` will generate a dataframe with the essential columns
+needed for the visualizations. This function will also compute the
+adjusted p-value over the analysis performed for each outcome and return
+them to an additional column.
+
+``` r
+# formatting data
+format_results <- formatting_med(med_results)
+```
+
+We can create a scatterplot for each outcome with the `visual_htmed()`
+function. This will allow us to represent the relationship between the
+treatments and mediators, being the size of the dot proportional to the
+proportion of mediation, and the color, the estimation of mediation.
+
+``` r
+visual_outcome1_nosig <- visual_htmed(mediation.form = format_results, outcome = 'outcome.1')
+#> pval.column argument not provided. Results without filtering data will be displayed
+visual_outcome1_nosig
+```
+
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
