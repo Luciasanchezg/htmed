@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 
 # hightmed
 
-```{r setup}
+```{r setup, message=FALSE}
 library(hightmed)
 library(survival)
 library(dplyr) ##
@@ -73,7 +73,7 @@ med_results <- hightmed(
   , seed=1
   )
 
-paste('Class of the mediation analysis results', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
+paste('Class of the mediation analysis results:', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
 ```
 
 As we can see in the previous slide, `hightmed()` generates objects of class mediate. We need to transform this data to simplify it and make it more user-friendly for the visualizations that will be performed later. `formatting_med()` will generate a dataframe with the essential columns needed for the visualizations. This function will also compute the adjusted p-value over the analysis performed for each outcome and return them to an additional column.
@@ -100,7 +100,7 @@ We can also restrict our results, to display only significant results. As `forma
 visual_outcome1_adj0.05 <- visual_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'adj.p-value_Prop._Mediated_(average)'
+  , pval.column = 'adj.p-value.by_outcome'
   , pval = 0.05)
 visual_outcome1_adj0.05
 ```
@@ -110,7 +110,7 @@ visual_outcome1_adj0.05
 graph_outcome1_adj0.05 <- graph_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'adj.p-value_Prop._Mediated_(average)'
+  , pval.column = 'adj.p-value.by_outcome'
   , pval = 0.05)
 graph_outcome1_adj0.05
 ```

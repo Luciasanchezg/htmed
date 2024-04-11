@@ -19,10 +19,11 @@ library(hightmed)
 library(survival)
 ```
 
-In this vignette, we will use all the functions available in `hightmed` package to illustrate an example of how high-throughput mediation analysis could be performed.
+
+In this tutorial, we will use all the functions available in `hightmed` package to illustrate an example of how high-throughput mediation analysis could be performed.
 To do so, we will make use of a dataframe that contains information of 98 mice that have died between week 26 and week 138 (this information is stored in a column called `age_death`). The dataframe also contains several columns indicating the sex of the mice (`gender`), and the measures of different treatments and mediators collected in a continuous form. There is an additional column (`HF`), that differentiates between mice that have died as a result of heart failure or not, 1 or 0, respectively.
 
-```{r}
+```{r load_df}
 data("df", package = "hightmed")
 ```
 
@@ -30,12 +31,12 @@ With this data, we hypothesize that some treatments could be responsible of the 
 
 Therefore, we are interested in testing the association between each treatment and heart failure, trought each mediator. The `models_surv` dataframe contains the `model.M` and `model.Y` formulas needed for each mediation analysis.
 
-```{r}
+```{r load_models}
 data("models_surv", package = "hightmed")
 ```
 
 Using the `generating_models()` function, we will generate the fitted models for the mediator and the outcome, for each group of mediator, treatment and outcome that we want to analyse. This function can be executed iteratively to generate both groups of fitted models. 
-```{r}
+```{r generatting_models, message=FALSE}
 # fitted models for the mediator
 medANDtreat <- generating_models(
     column.models='model.m.formula'
@@ -58,7 +59,7 @@ medANDtreat <- generating_models(
 The new dataframe will contain the same information than the `models_surv` one, but with two additional columns: the fitted models for the mediators and treatments, respectively. 
 
 To apply high-troughput mediation, we execute the `hightmed()` function over this data. The output of this function will be a list of lists, with as many elements as different outcomes are present in the data. Each sublist will contain the results of the mediation analysis as mediate objects. 
-```{r}
+```{r applying_htmed, message=FALSE}
 med_results <- hightmed(
     sims=1000
   , data.models=medANDtreat
@@ -70,56 +71,56 @@ med_results <- hightmed(
   , seed=1
   )
 
-paste('Class of the mediation analysis results', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
+paste('Class of the mediation analysis results:', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
 ```
 
 As we can see in the previous slide, `hightmed()` generates objects of class mediate. We need to transform this data to simplify it and make it more user-friendly for the visualizations that will be performed later. `formatting_med()` will generate a dataframe with the essential columns needed for the visualizations. This function will also compute the adjusted p-value over the analysis performed for each outcome and return them to an additional column.
-```{r}
+```{r formatting_data}
 # formatting data
 format_results <- formatting_med(med_results)
 ```
 
 We can create a scatterplot for each outcome with the `visual_htmed()` function. This will allow us to represent the relationship between the treatments and mediators, being the size of the dot proportional to the proportion of mediation, and the color, the estimation of mediation.
-```{r}
+```{r visualizing-1}
 visual_outcome1_nosig <- visual_htmed(mediation.form = format_results, outcome = 'outcome.1')
 visual_outcome1_nosig
 ```
 
 Another visualization can be done with `graph_htmed()` function. In the default mode of this function, the graph will display the treatments as the internal nodes, and the mediator as the external ones. Similar to what `visual_htmed()` does, the width of the edges is proportional to the proportion of mediation, and the color, to the estimation of mediation.
-```{r}
+```{r visualizing-2}
 graph_outcome1_nosig <- graph_htmed(mediation.form = format_results, outcome = 'outcome.1')
 graph_outcome1_nosig
 ```
 
 
 We can also restrict our results, to display only significant results. As `formatting_med()` computed the adjusted p-value, we can choose only significant p-values based on it.
-```{r}
+```{r visualizing-3}
 visual_outcome1_adj0.05 <- visual_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'adj.p-value_Prop._Mediated_(average)'
+  , pval.column = 'adj.p-value.by_outcome'
   , pval = 0.05)
 visual_outcome1_adj0.05
 ```
 
 
-```{r}
+```{r visualizing-4}
 graph_outcome1_adj0.05 <- graph_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'adj.p-value_Prop._Mediated_(average)'
+  , pval.column = 'adj.p-value.by_outcome'
   , pval = 0.05)
 graph_outcome1_adj0.05
 ```
 
 Now, imagine that we are interested in displaying the results in a slightly different way: as mediators 2-4 are somehow related, we want to visualize the analysis in which these mediators are involved separated from the analyses performed with mediator.1. This can be done just by adding an additional column to the `format_results` dataframe, indicating how to group the data.
-```{r}
+```{r adding_split}
 format_results$outcome.1 <- format_results$outcome.1 %>%
   mutate(clust = case_when(mediator == 'mediator.1' ~ 'mediator.1',
                            mediator != 'mediator.1' ~ 'other_med'))
 ```
 
-```{r}
+```{r visualizing-5}
 visual_outcome1_split <- visual_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
@@ -128,11 +129,21 @@ visual_outcome1_split
 ```
 
 
-```{r}
+```{r visualizing-6}
 graph_outcome1_split <- graph_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
   , split = 'clust')
-graph_outcome1_split
+
+```
+
+```{r}
+# Results for mediator.1
+graph_outcome1_split$mediator.1
+```
+
+```{r}
+# Results for other_med
+graph_outcome1_split$other_med
 ```
 

@@ -132,7 +132,7 @@ test_that(
   desc = "Catch errors related to wrong arguments passed to visualization()",
   code = {
     expect_error(
-      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', pval.column = 'adj.p-value_Prop._Mediated_(average)', pval = 0),
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', pval.column = 'adj.p-value.by_outcome', pval = 0),
       regexp = "None of the mediation models for outcome.1 presented statistically significant values, for the p-value chosen"
     )
   }

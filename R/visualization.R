@@ -102,7 +102,7 @@ visual_htmed <- function(
 #'   mediator information
 #' @param split a character indicating the name of the column used for the split
 #'
-#' @return prints out a graph from igraph package
+#' @return prints out a graph
 #' @export
 #'
 graph_htmed <- function(
@@ -185,7 +185,7 @@ graph_htmed <- function(
       g <- igraph::graph_from_data_frame(relations, directed=TRUE, vertices=nodes)
       coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
       lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
-
+      return(lay)
       return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes))
     }
   }

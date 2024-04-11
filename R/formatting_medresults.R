@@ -51,7 +51,7 @@ formatting_med <- function(
   }
 
   onerow_summary <- .med_summary_list(mediation.list)
-  filt_summary <- .filtering_summary.list(onerow_summary)
+  filt_summary <- .filt_and_adjpval(onerow_summary)
 
   return(filt_summary)
 }
@@ -108,21 +108,30 @@ formatting_med <- function(
 }
 
 
-.filtering_summary.list <- function(mediation_sum.list) {
-  # TODO: compute adjusted p.value over the total amount analysis performed (not just with the ones from the same outcome)
+.filt_and_adjpval <- function(mediation_sum.list) {
+
+  # computing adjusted p-value for all analyses (Benjamini & Hochberg)
+  mediation_sum.df <- bind_rows(mediation_sum.list, .id = 'outcome') %>%
+    mutate(outcome = as.factor(outcome)) %>%
+    mutate(`adj.p-value.all` = p.adjust(`p-value_Prop._Mediated_(average)`, method='BH'))
+
+  list_format <- list()
+  for (i in levels(mediation_sum.df[['outcome']])) {
+    list_format[[i]] <- mediation_sum.df %>% dplyr::filter(`outcome` == i)
+    list_format[[i]][['outcome']] <- NULL
+  }
+
   results.list <- list()
-  for (out in names(mediation_sum.list)) {
+  for (out in names(list_format)) {
 
-    results <- mediation_sum.list[[out]] %>%
-      mutate(names = row.names(mediation_sum.list[[out]])) %>%
+    results <- list_format[[out]] %>%
+      mutate(names = row.names(list_format[[out]])) %>%
       tidyr::separate_wider_delim(data=., cols=names, delim=' ~ ', names=c('mediator', 'treatment')) %>%
-      #mutate(outcome = out) %>%
-
-      # computing adjusted p.value (Benjamini & Hochberg)
-      mutate(`adj.p-value_Prop._Mediated_(average)` = p.adjust(`p-value_Prop._Mediated_(average)`, method='BH')) %>%
-
+      # computing adjusted p.value by outcome (Benjamini & Hochberg)
+      mutate(`adj.p-value.by_outcome` = p.adjust(`p-value_Prop._Mediated_(average)`, method='BH')) %>%
       dplyr::select(c('p-value_Prop._Mediated_(average)',
-                      'adj.p-value_Prop._Mediated_(average)',
+                      'adj.p-value.all',
+                      'adj.p-value.by_outcome',
                       'Estimate_Prop._Mediated_(average)',
                       'Estimate_ACME_(average)',
                       'mediator', 'treatment'))

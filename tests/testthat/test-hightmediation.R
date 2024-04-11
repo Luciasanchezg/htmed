@@ -1,6 +1,6 @@
 
 ## ----------------------------------------------------------------------------
-## Generating data
+## Loading data
 ## ----------------------------------------------------------------------------
 #### Data
 data("df", package = "hightmed")
@@ -8,8 +8,6 @@ data("models_surv", package = "hightmed")
 
 file.tests <- "../testdata"
 load(file.path(file.tests, 'medANDout_surv.RData'))
-
-
 
 ## ----------------------------------------------------------------------------
 ## Tests for generating the mediation models

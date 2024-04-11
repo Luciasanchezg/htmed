@@ -7,16 +7,7 @@
 library(hightmed)
 library(survival)
 library(dplyr) ##
-#> 
-#> Attaching package: 'dplyr'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 library(ggraph) ##
-#> Loading required package: ggplot2
 ```
 
 In this tutorial, we will use all the functions available in `hightmed`
@@ -95,8 +86,8 @@ med_results <- hightmed(
   , seed=1
   )
 
-paste('Class of the mediation analysis results', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
-#> [1] "Class of the mediation analysis results mediate"
+paste('Class of the mediation analysis results:', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
+#> [1] "Class of the mediation analysis results: mediate"
 ```
 
 As we can see in the previous slide, `hightmed()` generates objects of
@@ -148,9 +139,9 @@ significant p-values based on it.
 visual_outcome1_adj0.05 <- visual_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'adj.p-value_Prop._Mediated_(average)'
+  , pval.column = 'adj.p-value.by_outcome'
   , pval = 0.05)
-#> Results with adj.p-value_Prop._Mediated_(average) < 0.05 will be filtered out
+#> Results with adj.p-value.by_outcome < 0.05 will be filtered out
 visual_outcome1_adj0.05
 #> Warning: Removed 11 rows containing missing values or values outside the scale range
 #> (`geom_point()`).
@@ -162,9 +153,9 @@ visual_outcome1_adj0.05
 graph_outcome1_adj0.05 <- graph_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'adj.p-value_Prop._Mediated_(average)'
+  , pval.column = 'adj.p-value.by_outcome'
   , pval = 0.05)
-#> Results with adj.p-value_Prop._Mediated_(average) < 0.05 will be filtered out
+#> Results with adj.p-value.by_outcome < 0.05 will be filtered out
 graph_outcome1_adj0.05
 ```
 

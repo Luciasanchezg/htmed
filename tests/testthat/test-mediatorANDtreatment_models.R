@@ -2,7 +2,7 @@
 # skip_if_not("survival" %in% tolower((.packages())))
 
 ## ----------------------------------------------------------------------------
-## Generating data
+## Loading data
 ## ----------------------------------------------------------------------------
 #### Data
 data("models_surv", package = "hightmed")
