@@ -22,7 +22,7 @@ library(dplyr) ##
 library(ggraph) ##
 ```
 
-In this vignette, we will use all the functions available in `hightmed` package to illustrate an example of how high-throughput mediation analysis could be performed.
+In this tutorial, we will use all the functions available in `hightmed` package to illustrate an example of how high-throughput mediation analysis could be performed.
 To do so, we will make use of a dataframe that contains information of 98 mice that have died between week 26 and week 138 (this information is stored in a column called `age_death`). The dataframe also contains several columns indicating the sex of the mice (`gender`), and the measures of different treatments and mediators collected in a continuous form. There is an additional column (`HF`), that differentiates between mice that have died as a result of heart failure or not, 1 or 0, respectively.
 
 ```{r load_df}
@@ -38,7 +38,7 @@ data("models_surv", package = "hightmed")
 ```
 
 Using the `generating_models()` function, we will generate the fitted models for the mediator and the outcome, for each group of mediator, treatment and outcome that we want to analyse. This function can be executed iteratively to generate both groups of fitted models. 
-```{r generatting_models}
+```{r generatting_models, message=FALSE}
 # fitted models for the mediator
 medANDtreat <- generating_models(
     column.models='model.m.formula'
@@ -61,7 +61,7 @@ medANDtreat <- generating_models(
 The new dataframe will contain the same information than the `models_surv` one, but with two additional columns: the fitted models for the mediators and treatments, respectively. 
 
 To apply high-troughput mediation, we execute the `hightmed()` function over this data. The output of this function will be a list of lists, with as many elements as different outcomes are present in the data. Each sublist will contain the results of the mediation analysis as mediate objects. 
-```{r applying_htmed}
+```{r applying_htmed, message=FALSE}
 med_results <- hightmed(
     sims=1000
   , data.models=medANDtreat
@@ -136,6 +136,16 @@ graph_outcome1_split <- graph_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
   , split = 'clust')
-graph_outcome1_split
+
+```
+
+```{r}
+# Results for mediator.1
+graph_outcome1_split$mediator.1
+```
+
+```{r}
+# Results for other_med
+graph_outcome1_split$other_med
 ```
 

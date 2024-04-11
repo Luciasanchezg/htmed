@@ -339,7 +339,7 @@ graph_htmed <- function(
       strength=0.1,
       arrow = arrow(length = unit(4, 'mm')),
       start_cap = ggraph::circle(1, 'mm'),
-      end_cap = ggraph::circle(ifelse(n.nodes < 30, 11+n.nodes/10, 7+n.nodes/50), 'mm')
+      end_cap = ggraph::circle(ifelse(n.nodes < 30, 5+n.nodes/10, 6+n.nodes/50), 'mm')
     ) +
     ggraph::scale_edge_width(range = c(.5, 2)) +
     ggraph::scale_edge_colour_gradient2(
@@ -352,7 +352,7 @@ graph_htmed <- function(
     #nodes
     ggraph::geom_node_point(
       # size = ifelse(n.nodes < 30, 30, 20+300/n.nodes),
-      size = ifelse(n.nodes < 30, 30, 15+200/n.nodes),
+      size = ifelse(n.nodes < 30, 12, 10+200/n.nodes),
       col = layout_graph$vertex.color
     ) +
     ggraph::geom_node_text(
@@ -361,7 +361,7 @@ graph_htmed <- function(
       ),
       col = layout_graph$vertex.color.label,
       repel = FALSE,
-      size = ifelse(n.nodes < 30, 5, 2.5+30/n.nodes)
+      size = ifelse(n.nodes < 30, 2, 1.5+30/n.nodes)
     ) +
     theme(panel.background = element_rect(fill = 'white', colour = 'transparent'))
 }

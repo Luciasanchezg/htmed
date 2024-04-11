@@ -6,7 +6,7 @@
 ``` r
 library(hightmed)
 library(survival)
-library(dplyr)
+library(dplyr) ##
 #> 
 #> Attaching package: 'dplyr'
 #> The following objects are masked from 'package:stats':
@@ -15,11 +15,11 @@ library(dplyr)
 #> The following objects are masked from 'package:base':
 #> 
 #>     intersect, setdiff, setequal, union
-library(ggraph)
+library(ggraph) ##
 #> Loading required package: ggplot2
 ```
 
-In this vignette, we will use all the functions available in `hightmed`
+In this tutorial, we will use all the functions available in `hightmed`
 package to illustrate an example of how high-throughput mediation
 analysis could be performed. To do so, we will make use of a dataframe
 that contains information of 98 mice that have died between week 26 and
@@ -62,9 +62,6 @@ medANDtreat <- generating_models(
   , data.models=models_surv
   , model.m = TRUE
   ) 
-#> Number of cores that will be used: 5
-#> Your data contains NA. These rows will not be taken into account for the models
-#> Performing fitted models for mediator
 
 # fitted models for the outcome
 medANDtreat <- generating_models(
@@ -74,9 +71,6 @@ medANDtreat <- generating_models(
   , data.models=medANDtreat
   , model.m = FALSE
   ) 
-#> Number of cores that will be used: 5
-#> Your data contains NA. These rows will not be taken into account for the models
-#> Performing fitted models for outcome
 ```
 
 The new dataframe will contain the same information than the
@@ -100,7 +94,6 @@ med_results <- hightmed(
   , outcome='outcome'
   , seed=1
   )
-#> Number of cores that will be used: 5
 
 paste('Class of the mediation analysis results', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
 #> [1] "Class of the mediation analysis results mediate"
@@ -207,13 +200,18 @@ graph_outcome1_split <- graph_htmed(
   , outcome = 'outcome.1'
   , split = 'clust')
 #> pval.column argument not provided. Results without filtering data will be displayed
-graph_outcome1_split
-#> $mediator.1
 ```
 
-<img src="man/figures/README-visualizing-6-1.png" width="100%" />
+``` r
+# Results for mediator.1
+graph_outcome1_split$mediator.1
+```
 
-    #> 
-    #> $other_med
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
-<img src="man/figures/README-visualizing-6-2.png" width="100%" />
+``` r
+# Results for other_med
+graph_outcome1_split$other_med
+```
+
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
