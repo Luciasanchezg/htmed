@@ -12,6 +12,7 @@ load(file.path(file.tests, 'medANDout_surv.RData'))
 ## ----------------------------------------------------------------------------
 ## Tests for generating the mediation models
 ## ----------------------------------------------------------------------------
+
 test_that(
   desc = "checking if hightmed() generates the high-throughput mediation tests (one outcome)",
   code = {

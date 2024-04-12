@@ -128,7 +128,7 @@ formatting_med <- function(
 
     results <- list_format[[out]] %>%
       mutate(names = row.names(list_format[[out]])) %>%
-      tidyr::separate_wider_delim(data=.data, cols=names, delim=' ~ ', names=c('mediator', 'treatment')) %>%
+      tidyr::separate_wider_delim(data=., cols=names, delim=' ~ ', names=c('mediator', 'treatment')) %>%
       # computing adjusted p.value by outcome (Benjamini & Hochberg)
       mutate(`adj.p-value.by_outcome` = p.adjust(.data$`p-value_Prop._Mediated_(average)`, method='BH')) %>%
       dplyr::select(c('p-value_Prop._Mediated_(average)',
