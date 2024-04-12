@@ -1,10 +1,11 @@
 
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot geom_point facet_wrap scale_color_gradient2 ggtitle labs scale_x_discrete theme_light theme arrow unit guide_axis element_rect aes
 #' @importFrom ggraph ggraph geom_edge_arc circle scale_edge_width scale_edge_colour_gradient2 geom_node_point geom_node_text
 #' @importFrom igraph layout_in_circle graph_from_data_frame V vcount
 #' @importFrom stats na.omit
 #' @importFrom rlang sym
-#' @importFrom dplyr mutate
+#' @importFrom dplyr %>% mutate case_when rename
+#' @importFrom rlang := .data
 NULL
 
 ################################################################################
@@ -68,7 +69,8 @@ visual_htmed <- function(
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
         ggtitle(paste("Results for outcome:", outcome)) +
         labs(x = "Treatment", y = "Mediator", size="Prop.med", col="Est.med") +
-        scale_x_discrete(guide = guide_axis(angle = 45)) + theme_light()
+        scale_x_discrete(guide = guide_axis(angle = 45)) +
+        theme_light()
     }
     else {
       p <- ggplot(data=mediation.form[[outcome]]) +
@@ -76,7 +78,8 @@ visual_htmed <- function(
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
         ggtitle(paste("Results for outcome:", outcome)) +
         labs(x = "Treatment", y = "Mediator", size="Prop.med", col="Est.med") +
-        scale_x_discrete(guide = guide_axis(angle = 45)) + theme_light()
+        scale_x_discrete(guide = guide_axis(angle = 45)) +
+        theme_light()
     }
 
     return(p)
@@ -185,7 +188,7 @@ graph_htmed <- function(
       g <- igraph::graph_from_data_frame(relations, directed=TRUE, vertices=nodes)
       coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
       lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
-      return(lay)
+
       return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes))
     }
   }
@@ -332,8 +335,8 @@ graph_htmed <- function(
     # edges
     ggraph::geom_edge_arc(
       aes(
-        col = Est.med,
-        width = Prop.med
+        col = .data$Est.med,
+        width = .data$Prop.med
       ),
       # curvature=0.1,
       strength=0.1,
@@ -357,11 +360,11 @@ graph_htmed <- function(
     ) +
     ggraph::geom_node_text(
       aes(
-        label = name
+        label = .data$name
       ),
       col = layout_graph$vertex.color.label,
       repel = FALSE,
       size = ifelse(n.nodes < 30, 2, 1.5+30/n.nodes)
     ) +
-    theme(panel.background = element_rect(fill = 'white', colour = 'transparent'))
+    ggplot2::theme(panel.background = element_rect(fill = 'white', colour = 'transparent'))
 }

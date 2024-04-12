@@ -42,7 +42,7 @@ mediator information}
 \item{split}{a character indicating the name of the column used for the split}
 }
 \value{
-prints out a graph from igraph package
+prints out a graph
 }
 \description{
 Graph summary of the high-throughput causal mediation analysis

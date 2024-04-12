@@ -52,11 +52,6 @@ combination of outcome, mediator and treatment variables
 \description{
 \code{hightmed()} allows to perform high-throughput causal mediation
 analysis, using the mediate package to perform the mediation analysis. This
-function has to different functionalities, depending on the input provided:
-\itemize{
-\item Performing the mediation analysis, given the fitted models for mediator
-and outcome, respectively.
-\item Performing the fitted models for mediator and outcome. After that,
-mediation analysis will be also performed.
-}
+function allows to permorm mediation analysis given the fitted models for
+mediator and outcome.
 }

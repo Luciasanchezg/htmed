@@ -2,6 +2,7 @@
 #' @importFrom stats setNames as.formula
 #' @importFrom parallel mclapply
 #' @importFrom rlang is_empty sym
+#' @importFrom dplyr group_by filter n pull
 NULL
 
 
@@ -40,8 +41,6 @@ generating_models <- function(
     ...
     ) {
   ## TODO: eval(parse(text="lm(M ~ I + gender, data=df)"))
-  ## controlar error todos los modelos (porque no converja, no porque los parámetros iniciales estén errados)
-  ## ¿Debo controlar si le introduzco los modelos que únicamente mediate permite? ¿Debo tener estos paquetes en DESCRIPTION de hightmed?
 
   # getting the number of cores available
   ncores <- .ncores()

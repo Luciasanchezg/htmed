@@ -1,8 +1,9 @@
 
-#' @import dplyr
+#' @importFrom dplyr %>% mutate bind_rows
 #' @importFrom reshape2 dcast melt
 #' @importFrom tidyr separate_wider_delim
 #' @importFrom stats p.adjust
+#' @importFrom tibble rownames_to_column
 NULL
 
 
@@ -67,9 +68,10 @@ formatting_med <- function(
 
       # getting the summary for the mediation
       model.stats <- .mediation_summary(mediation.list[[i]][[med]]) %>%
-        as.data.frame(.) %>%
-        mutate(row.names = row.names(.)) %>%
-        mutate(row.names = gsub(' ', '_', row.names))
+        as.data.frame() %>%
+        # dplyr::mutate(row.names = row.names(.)) %>%
+        tibble::rownames_to_column(var = 'row.names') %>%
+        dplyr::mutate(row.names = gsub(' ', '_', row.names))
 
       # reshaping summaries into one row
       model.reshape <- reshape2::dcast(reshape2::melt(model.stats, id.var="row.names"),
@@ -111,13 +113,13 @@ formatting_med <- function(
 .filt_and_adjpval <- function(mediation_sum.list) {
 
   # computing adjusted p-value for all analyses (Benjamini & Hochberg)
-  mediation_sum.df <- bind_rows(mediation_sum.list, .id = 'outcome') %>%
-    mutate(outcome = as.factor(outcome)) %>%
-    mutate(`adj.p-value.all` = p.adjust(`p-value_Prop._Mediated_(average)`, method='BH'))
+  mediation_sum.df <- dplyr::bind_rows(mediation_sum.list, .id = 'outcome') %>%
+    dplyr::mutate(outcome = as.factor(.data$outcome)) %>%
+    dplyr::mutate(`adj.p-value.all` = p.adjust(.data$`p-value_Prop._Mediated_(average)`, method='BH'))
 
   list_format <- list()
   for (i in levels(mediation_sum.df[['outcome']])) {
-    list_format[[i]] <- mediation_sum.df %>% dplyr::filter(`outcome` == i)
+    list_format[[i]] <- mediation_sum.df %>% dplyr::filter(.data$outcome == i)
     list_format[[i]][['outcome']] <- NULL
   }
 
@@ -126,9 +128,9 @@ formatting_med <- function(
 
     results <- list_format[[out]] %>%
       mutate(names = row.names(list_format[[out]])) %>%
-      tidyr::separate_wider_delim(data=., cols=names, delim=' ~ ', names=c('mediator', 'treatment')) %>%
+      tidyr::separate_wider_delim(data=.data, cols=names, delim=' ~ ', names=c('mediator', 'treatment')) %>%
       # computing adjusted p.value by outcome (Benjamini & Hochberg)
-      mutate(`adj.p-value.by_outcome` = p.adjust(`p-value_Prop._Mediated_(average)`, method='BH')) %>%
+      mutate(`adj.p-value.by_outcome` = p.adjust(.data$`p-value_Prop._Mediated_(average)`, method='BH')) %>%
       dplyr::select(c('p-value_Prop._Mediated_(average)',
                       'adj.p-value.all',
                       'adj.p-value.by_outcome',

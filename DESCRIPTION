@@ -19,6 +19,7 @@ Imports:
     tidyr,
     mediation,
     igraph,
+    tibble,
     rlang
 Suggests: 
     testthat (>= 3.0.0),

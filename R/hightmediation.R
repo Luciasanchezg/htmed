@@ -1,6 +1,6 @@
 
-#' @import dplyr
-#' @import mediation
+#' @importFrom dplyr %>% filter
+#' @importFrom mediation mediate
 #' @importFrom parallel mcmapply detectCores
 NULL
 
@@ -13,13 +13,8 @@ NULL
 #'
 #' @description `hightmed()` allows to perform high-throughput causal mediation
 #'   analysis, using the mediate package to perform the mediation analysis. This
-#'   function has to different functionalities, depending on the input provided:
-#'
-#'   * Performing the mediation analysis, given the fitted models for mediator
-#'   and outcome, respectively.
-#'
-#'   * Performing the fitted models for mediator and outcome. After that,
-#'   mediation analysis will be also performed.
+#'   function allows to permorm mediation analysis given the fitted models for
+#'   mediator and outcome.
 #'
 #' @param sims number of Monte Carlo draws for nonparametric bootstrap or
 #'   quasi-Bayesian approximation. Default: 1000
@@ -43,6 +38,7 @@ NULL
 #'
 #' @return returns a list of lists with the results of mediation for each
 #'   combination of outcome, mediator and treatment variables
+#'
 #' @export
 #'
 hightmed <- function(
@@ -107,7 +103,7 @@ hightmed <- function(
   results.med <- list()
   for (i in levels(data.models[[outcome]])) {
 
-    data.models.subset <- data.models %>% filter(!!rlang::sym(outcome) == i)
+    data.models.subset <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == i)
 
     treat.subset <- data.models.subset[[treat]]
     mediator.subset <- data.models.subset[[mediator]]
