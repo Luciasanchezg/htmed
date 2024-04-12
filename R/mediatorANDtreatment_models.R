@@ -14,10 +14,9 @@ NULL
 #'
 #' @description This function generates a dataframe with the fitted models
 #'   performed for the mediators or the outcomes (depending on the input
-#'   provided). To do so, we will need two objects:
-#'  * data: a dataframe with the values to perform the statistical models.
-#'  * data.models: a dataframe with the information of the models that need to
-#'    be performed.
+#'   provided). To do so, we will need two objects: * data: a dataframe with the
+#'   values to perform the statistical models. * data.models: a dataframe with
+#'   the information of the models that need to be performed.
 #'
 #' @param column.models a character indicating the name of the column containing
 #'   the fitted models for mediators OR outcomes.
@@ -29,12 +28,14 @@ NULL
 #' @param data.models a dataframe with the column specified in column.models.
 #'   This will contain the formulas for the models as characters.
 #' @param model.m Default: TRUE. A boolean for choosing if we are going to
-#'   perform the fitted models for mediator (TRUE) or outcome (FALSE)
+#'   perform the fitted models for mediator (TRUE) or outcome (FALSE). Default:
+#'   TRUE
 #' @param outcome a string. This will refer to the name of the column that
-#'   contains the outcome
-#' @param ... other arguments that models will need. Some
-#'   functions, as \code{\link[stats]{glm}}, requires additional arguments, such
-#'   as family, that can be specified here.
+#'   contains the outcome. Run in the default mode, the function understands
+#'   that all analyses share the same outcome. Default: NULL.
+#' @param ... other arguments that models will need. Some functions, as
+#'   \code{\link[stats]{glm}}, requires additional arguments, such as family,
+#'   that can be specified here.
 #'
 #' @return returns a dataframe with a column, named model.M or model.Y,
 #'   depending on the fitted models performed
@@ -98,7 +99,6 @@ generating_models <- function(
     if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
   } else {
     dup_mods <- data.models %>%
-      #group_by(get('column.models'), get('outcome')) %>%
       group_by(!!rlang::sym(outcome), !!rlang::sym(column.models)) %>%
       filter(n()>1) %>%
       pull(!!rlang::sym(column.models)) %>% unique

@@ -12,28 +12,39 @@ NULL
 # Functions to visualize the mediation model results
 ################################################################################
 
-#' Visualization of the high-throughput causal mediation analysis
+#' Scatterplot with high-throughput causal mediation analyses
 #'
 #' @description `visual_htmed()` enables to visualize the results of the causal
-#'   mediation analyses performed in a single plot
+#'   mediation analyses for a specific outcome in a single scatterplot.
 #'
-#' @param mediation.form lists of lists with the results of mediation
+#'   This function also allows to filter results by p-value, giving the column
+#'   that contains this information and the threshold of significance. If not,
+#'   the scatterplot will display all results, without taking into account the
+#'   significance reported.
+#'
+#'   In case split argument is provided, as many scatterplots as different
+#'   levels in the split column will be generated.
+#'
+#' @param mediation.form lists of lists with the summary of the mediation
+#'   analyses
 #' @param outcome a character indicating the name of the outcome the user wants
 #'   to visualice
-#' @param pval.column a character with ?the name of the column that contains the
-#'   p-values
+#' @param pval.column a character with the name of the column that contains the
+#'   p-values. Default: NULL
 #' @param pval a number establishing the threshold for the `pval.column`
 #' @param prop.med a character indicating the column with the Prop.Mediated
-#'   information (Default: Estimate_Prop._Mediated_(average))
-#' @param acme a character indicating the column with the ACME information
-#'   (Default: Estimate_ACME_(average))
+#'   information. Default: Estimate_Prop._Mediated_(average).
+#' @param acme a character indicating the column with the ACME information.
+#'   Default: Estimate_ACME_(average).
 #' @param treatment a character with the name of the column containing the
-#'   treatment information
+#'   treatment information. Default: treatment
 #' @param mediator a character with the name of the column containing the
-#'   mediator information
-#' @param split a character indicating the name of the column used for the split
+#'   mediator information. Default: mediator.
+#' @param split a character indicating the name of the column used for the
+#'   split. Default: NULL
 #'
-#' @return returns a ggplot object
+#' @return returns a scatterplot with the treatments in the X axis and the mediators in the Y axis.
+#' The size of the dots will indicate the proportion of mediation. The color of the dots refers to the estimator of mediation.
 #' @export
 #'
 visual_htmed <- function(
@@ -89,23 +100,37 @@ visual_htmed <- function(
 
 #' Graph summary of the high-throughput causal mediation analysis
 #'
-#' @param mediation.form lists of lists with the results of mediation
+#' @description `graph_htmed()` enables to visualize the results of the causal
+#'   mediation analyses for a specific outcome in a single graph
+#'
+#'   This function also allows to filter results by p-value, giving the column
+#'   that contains this information and the threshold of significance. If not,
+#'   the scatterplot will display all results, without taking into account the
+#'   significance reported.
+#'
+#'   In case split argument is provided, as many graphs as different
+#'   levels in the split column will be generated.
+#'
+#' @param mediation.form lists of lists with the summary of the mediation
+#'   analyses
 #' @param outcome a character indicating the name of the outcome the user wants
 #'   to visualice
-#' @param pval.column a character with ?the name of the column that contains the
-#'   p-values
+#' @param pval.column a character with the name of the column that contains the
+#'   p-values. Default: NULL
 #' @param pval a number establishing the threshold for the `pval.column`
 #' @param prop.med a character indicating the column with the Prop.Mediated
-#'   information (Default: Estimate_Prop._Mediated_(average))
-#' @param acme a character indicating the column with the ACME information
-#'   (Default: Estimate_ACME_(average))
+#'   information. Default: Estimate_Prop._Mediated_(average).
+#' @param acme a character indicating the column with the ACME information.
+#'   Default: Estimate_ACME_(average).
 #' @param treatment a character with the name of the column containing the
-#'   treatment information
+#'   treatment information. Default: treatment
 #' @param mediator a character with the name of the column containing the
-#'   mediator information
-#' @param split a character indicating the name of the column used for the split
+#'   mediator information. Default: mediator.
+#' @param split a character indicating the name of the column used for the
+#'   split. Default: NULL
 #'
-#' @return prints out a graph
+#' @return returns a graph with an inner circle (treatments) and an outer circle (mediators).
+#' The width of the edges will indicate the proportion of mediation. The color of the edges refers to the estimator of mediation.
 #' @export
 #'
 graph_htmed <- function(
@@ -285,12 +310,12 @@ graph_htmed <- function(
     ) {
   if ( !is.null(pval.column) ) {
 
-    message(paste('Results with', pval.column, '<', pval, 'will be filtered out'))
+    message(paste('Results with', pval.column, '<=', pval, 'will be filtered out'))
 
     # filtering results giving a p-value (default: 0.05)
     mediation.form[[outcome]]  <- mediation.form[[outcome]] %>%
       dplyr::mutate(!!rlang::sym(pval.column) := as.numeric(!!rlang::sym(pval.column)),
-                    !!rlang::sym(pval.column) := replace(!!rlang::sym(pval.column), !!rlang::sym(pval.column) >= pval, NA )) %>%
+                    !!rlang::sym(pval.column) := replace(!!rlang::sym(pval.column), !!rlang::sym(pval.column) > pval, NA )) %>%
 
       dplyr::mutate(!!rlang::sym(prop.med) := as.numeric(!!rlang::sym(prop.med)),
                     !!rlang::sym(prop.med) := case_when(is.na(!!rlang::sym(pval.column))~NA, TRUE ~ !!rlang::sym(prop.med) )) %>%

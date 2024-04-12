@@ -24,7 +24,7 @@ NULL
 #' @param treat a character. Name of the column that contains the treatments.
 #' @param mediator a character. Name of the column that contains the mediators.
 #' @param outcome a character. Name of the column that contains the outcomes.
-#' @param seed integer to set a seed (for reproducibility).
+#' @param seed integer to set a seed (for reproducibility). Default: NULL
 #' @param ... other arguments passed to \code{\link[mediation]{mediate}}
 #'   function.
 #'
