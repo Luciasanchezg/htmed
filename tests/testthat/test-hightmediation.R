@@ -16,44 +16,40 @@ load(file.path(file.tests, 'medANDout_surv.RData'))
 test_that(
   desc = "checking if hightmed() generates the high-throughput mediation tests (one outcome)",
   code = {
-
     # reading expected results
     file.tests <- "../testdata"
     load(file.path(file.tests, 'mediation_surv.RData'))
 
-    mediation_results <- hightmed(sims=1000,
-                                  data.models=medANDout_surv,
+    mediation_results <- hightmed(data.models=medANDout_surv,
                                   column.modelm = 'model.M',
                                   column.modely = 'model.Y',
                                   treat='treatments',
                                   mediator='mediators',
                                   outcome='outcome',
                                   seed=1)
-
     expect_equal(mediation_results, mediation_surv)
-  })
+  }
+)
 
 
 test_that(
   desc = "checking if hightmed() generates the high-throughput mediation tests (more than one outcomes)",
   code = {
-
     # reading expected results
     file.tests <- "../testdata"
     load(file.path(file.tests, 'mediation_lm.RData'))
     load(file.path(file.tests, 'medANDout_lm.RData'))
 
-    mediation_results <- hightmed(sims = 1000,
-                                  data.models=medANDout_lm,
+    mediation_results <- hightmed(data.models=medANDout_lm,
                                   column.modelm='model.M',
                                   column.modely='model.Y',
                                   treat='treatments',
                                   mediator='mediators',
                                   outcome='outcome',
                                   seed=1)
-
     expect_equal(mediation_results, mediation_lm)
-  })
+  }
+)
 
 
 ## ----------------------------------------------------------------------------
@@ -63,8 +59,7 @@ test_that(
   desc = "Catch errors related to wrong arguments passed to hightmed()",
   code = {
     expect_error(
-      hightmed(sims=1000,
-               data.models=medANDout_surv,
+      hightmed(data.models=medANDout_surv,
                column.modelm = medANDout_surv,
                column.modely = 'model.Y',
                treat='treatments',
@@ -74,19 +69,7 @@ test_that(
       regexp = "Please, provide the name of the corresponding columns as characters"
     )
     expect_error(
-      hightmed(sims='1000',
-               data.models=medANDout_surv,
-               column.modelm = 'model.M',
-               column.modely = 'model.Y',
-               treat='treatments',
-               mediator='mediators',
-               outcome='outcome',
-               seed=1),
-      regexp = "Number of simulations must be numeric"
-    )
-    expect_error(
-      hightmed(sims=1000,
-               data.models=medANDout_surv,
+      hightmed(data.models=medANDout_surv,
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',
@@ -96,8 +79,7 @@ test_that(
       regexp = "Seed must be numeric or not provided"
     )
     expect_error(
-      hightmed(sims=1000,
-               data.models=as.matrix(medANDout_surv),
+      hightmed(data.models=as.matrix(medANDout_surv),
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',
@@ -107,8 +89,7 @@ test_that(
       regexp = "data.models must contain a DataFrame"
     )
     expect_error(
-      hightmed(sims=1000,
-               data.models=medANDout_surv,
+      hightmed(data.models=medANDout_surv,
                column.modelm = 'model.X',
                column.modely = 'model.Y',
                treat='treatments',
@@ -118,8 +99,7 @@ test_that(
       regexp = "Wrong column names for fitted models for mediator or outcome"
     )
     expect_error(
-      hightmed(sims=1000,
-               data.models=medANDout_surv,
+      hightmed(data.models=medANDout_surv,
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',
@@ -135,7 +115,6 @@ test_that(
 test_that(
   desc = "Errors related to warnings or errors in all the fitted models for outcome or mediator",
   code = {
-
     withr::local_package("survival")
 
     df <- df[1, ]
@@ -153,10 +132,8 @@ test_that(
       data.models=models,
       model.m = FALSE
     )
-
     expect_error(
-      hightmed(sims=1000,
-               data.models=models,
+      hightmed(data.models=models,
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',
@@ -172,7 +149,6 @@ test_that(
 test_that(
   desc = "Message related to warnings or errors in the fitted models for outcome or mediator",
   code = {
-
     withr::local_package("survival")
     df <- df[1:12, ]
 
@@ -183,7 +159,6 @@ test_that(
       data.models=models_surv,
       model.m = TRUE
     )
-
     models <- generating_models(
       column.models='model.y.formula',
       model.type=survreg,
@@ -191,10 +166,8 @@ test_that(
       data.models=models,
       model.m = FALSE
     )
-
     expect_message(
-      hightmed(sims=1000,
-               data.models=models,
+      hightmed(data.models=models,
                column.modelm = 'model.M',
                column.modely = 'model.Y',
                treat='treatments',

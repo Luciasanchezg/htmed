@@ -169,9 +169,7 @@ generating_models <- function(
   results.list <- list()
   for (out in levels(data.models[[outcome]])) {
     subset.models <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == out)
-
     results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=subset.models, model_name=model_name, ncores=ncores, ...)
-
     results.list[[out]] <- results
   }
   results.df <- do.call(rbind, results.list)

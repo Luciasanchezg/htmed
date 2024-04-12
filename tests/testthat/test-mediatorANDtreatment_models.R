@@ -27,10 +27,11 @@ test_that(
       data.models=models_surv,
       model.m = TRUE
       ) %>%
-      arrange(model.m.formula)
+      dplyr::arrange(model.m.formula)
 
     expect_equal(med$model.M, med_surv$model.M)
-  })
+  }
+)
 
 
 test_that(
@@ -49,10 +50,11 @@ test_that(
       data=df,
       data.models=models_surv,
       model.m = FALSE) %>%
-      arrange(model.y.formula)
+      dplyr::arrange(model.y.formula)
 
     expect_equal(out$model.Y, out_surv$model.Y)
-})
+    }
+  )
 
 
 ## ----------------------------------------------------------------------------
@@ -74,7 +76,7 @@ test_that(
       data.models=models_surv,
       model.m = TRUE
     ) %>%
-      arrange(model.m.formula)
+      dplyr::arrange(model.m.formula)
 
     preprocess <- generating_models(
       column.models='model.y.formula',
@@ -83,10 +85,11 @@ test_that(
       data.models=preprocess,
       model.m = FALSE
     ) %>%
-      arrange(model.y.formula)
+      dplyr::arrange(model.y.formula)
 
     expect_equal(preprocess, medANDout_surv)
-  })
+  }
+)
 
 
 test_that(
@@ -105,7 +108,7 @@ test_that(
       model.m = TRUE,
       outcome='outcome'
     ) %>%
-      arrange(model.m.formula)
+      dplyr::arrange(model.m.formula)
 
     preprocess <- generating_models(
       column.models='model.y.formula',
@@ -115,7 +118,7 @@ test_that(
       model.m = FALSE,
       outcome='outcome'
     ) %>%
-      arrange(model.y.formula)
+      dplyr::arrange(model.y.formula)
 
     expect_equal(preprocess, medANDout_lm)
   })

@@ -12,37 +12,28 @@ NULL
 #' High-throughput causal mediation analysis
 #'
 #' @description `hightmed()` allows to perform high-throughput causal mediation
-#'   analysis, using the mediate package to perform the mediation analysis. This
-#'   function allows to permorm mediation analysis given the fitted models for
-#'   mediator and outcome.
+#'   analysis, using the \code{\link[mediation]{mediate}} for each model.
 #'
-#' @param sims number of Monte Carlo draws for nonparametric bootstrap or
-#'   quasi-Bayesian approximation. Default: 1000
-#' @param data.models a dataframe with, at least, three columns: treatment,
-#'   mediator and outcome. If model.generator=FALSE. This dataframe needs to
-#'   have two aditional columns, with the models for the mediator (model.M) and
-#'   the models for the outcome (model.Y)
-#' @param column.modelm name of the column with the fitted models for mediator
-#'   to perform
-#' @param column.modely name of the column with the fitted models for outcome to
-#'   perform
-#' @param treat a list indicating the name of the treatment variables used in
-#'   the models. The treatment can be either binary (integer or a two-valued
-#'   factor) or continuous (numeric).
-#' @param mediator a list indicating the name of the mediator variables used in
-#'   the models.
-#' @param outcome a lists indicating the name of the outcome variables used in
-#'   the models
-#' @param seed integer to set a seed
-#' @param ... other arguments passed to mediate package
+#' @param data.models a dataframe with, at least, five columns: for the
+#'   treatments, mediators, outcomes, fitted models for treatments and
+#'   mediators, respectively.
+#' @param column.modelm a character. Name of the column with the fitted models
+#'   for mediators.
+#' @param column.modely a character. Name of the column with the fitted models
+#'   for outcomes.
+#' @param treat a character. Name of the column that contains the treatments.
+#' @param mediator a character. Name of the column that contains the mediators.
+#' @param outcome a character. Name of the column that contains the outcomes.
+#' @param seed integer to set a seed (for reproducibility).
+#' @param ... other arguments passed to \code{\link[mediation]{mediate}}
+#'   function.
 #'
 #' @return returns a list of lists with the results of mediation for each
-#'   combination of outcome, mediator and treatment variables
+#'   combination of outcome, mediator and treatment variables.
 #'
 #' @export
 #'
 hightmed <- function(
-    sims = 1000,
     data.models,
     column.modelm,
     column.modely,
@@ -61,10 +52,6 @@ hightmed <- function(
 
   if (!is.character(c(treat, mediator, outcome, column.modelm, column.modely))) {
     stop("Please, provide the name of the corresponding columns as characters")
-  }
-
-  if (!"numeric" %in% class(sims)) {
-    stop("Number of simulations must be numeric")
   }
 
   if ((!"numeric" %in% class(seed)) & (!is.null(seed))) {
@@ -107,14 +94,13 @@ hightmed <- function(
 
     treat.subset <- data.models.subset[[treat]]
     mediator.subset <- data.models.subset[[mediator]]
-    outcome.subset <- data.models.subset[[outcome]]
 
     models.m <- data.models.subset[[column.modelm]]
     models.y <- data.models.subset[[column.modely]]
 
     results.med[[i]] <- .mediationHT(models.m=models.m, models.y=models.y,
-                                treat=treat.subset, mediator=mediator.subset, outcome=outcome.subset,
-                                sims=sims, ncores=ncores, seed=seed, ...)
+                                treat=treat.subset, mediator=mediator.subset,
+                                ncores=ncores, seed=seed, ...)
   }
 
   return(results.med)
@@ -126,9 +112,7 @@ hightmed <- function(
     models.y,
     treat,
     mediator,
-    outcome,
     ncores,
-    sims,
     seed,
     ...
     ) {
@@ -140,8 +124,7 @@ hightmed <- function(
                               {
                                 set.seed(seed)
                                 model <- mediation::mediate(model.m = m, model.y = y,
-                                                            treat = as.character(tr), mediator = as.character(me),
-                                                            sims = sims, ...)
+                                                            treat = as.character(tr), mediator = as.character(me), ...)
                                 return(model)
                               },
                               warning=function(w) { return(paste("Warning message:", w, sep=' ')) },
