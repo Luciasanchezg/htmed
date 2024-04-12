@@ -10,22 +10,31 @@ NULL
 # Generation of fitted models for the outcome and the mediator
 ################################################################################
 
-#' Generating the fitted models for mediator OR outcome
+#' Generating the fitted models for mediators OR outcomes
 #'
-#' @description `generating_models()` generates a single dataframe with as many
-#'   rows as different models to perform mediation and a column (with the fitted
-#'   models for mediator OR the fitted models for outcome)
+#' @description This function generates a dataframe with the fitted models
+#'   performed for the mediators or the outcomes (depending on the input
+#'   provided). To do so, we will need two objects:
+#'  * data: a dataframe with the values to perform the statistical models.
+#'  * data.models: a dataframe with the information of the models that need to
+#'    be performed.
 #'
 #' @param column.models a character indicating the name of the column containing
-#'   the fitted models for mediator
+#'   the fitted models for mediators OR outcomes.
 #' @param model.type a function indicating the kind of analysis that will be
-#'   performed, taking into account the ones allowed by mediate()
-#' @param data a dataframe with the information to perform the models
-#' @param data.models a dataframe with the column indicated in column.models
+#'   performed, taking into account the ones allowed by
+#'   \code{\link[mediation]{mediate}}.
+#' @param data a dataframe with the information to perform the statistical
+#'   models.
+#' @param data.models a dataframe with the column specified in column.models.
+#'   This will contain the formulas for the models as characters.
 #' @param model.m Default: TRUE. A boolean for choosing if we are going to
 #'   perform the fitted models for mediator (TRUE) or outcome (FALSE)
-#' @param outcome a string with the name of the column that contains the outcome
-#' @param ... other arguments that the models performed will need
+#' @param outcome a string. This will refer to the name of the column that
+#'   contains the outcome
+#' @param ... other arguments that models will need. Some
+#'   functions, as \code{\link[stats]{glm}}, requires additional arguments, such
+#'   as family, that can be specified here.
 #'
 #' @return returns a dataframe with a column, named model.M or model.Y,
 #'   depending on the fitted models performed
@@ -205,9 +214,7 @@ generating_models <- function(
   models <- tryCatch(
     {
       parallel::mclapply(list.models, function(formula) {
-
         .modeling(model.type=model.type, formula=formula, data=data, ...)
-
       }, mc.cores = ncores)
     }
   )

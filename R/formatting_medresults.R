@@ -74,8 +74,7 @@ formatting_med <- function(
         dplyr::mutate(row.names = gsub(' ', '_', row.names))
 
       # reshaping summaries into one row
-      model.reshape <- reshape2::dcast(reshape2::melt(model.stats, id.var="row.names"),
-                                       formula = 1~variable+row.names) %>% dplyr::select(-c('1'))
+      model.reshape <- reshape2::dcast(reshape2::melt(model.stats, id.var="row.names"), formula = 1~variable+row.names) %>% dplyr::select(-c('1'))
       rownames(model.reshape) <- med
 
       model.stats.list[[med]] <- model.reshape
@@ -131,11 +130,8 @@ formatting_med <- function(
       tidyr::separate_wider_delim(data=., cols=names, delim=' ~ ', names=c('mediator', 'treatment')) %>%
       # computing adjusted p.value by outcome (Benjamini & Hochberg)
       mutate(`adj.p-value.by_outcome` = p.adjust(.data$`p-value_Prop._Mediated_(average)`, method='BH')) %>%
-      dplyr::select(c('p-value_Prop._Mediated_(average)',
-                      'adj.p-value.all',
-                      'adj.p-value.by_outcome',
-                      'Estimate_Prop._Mediated_(average)',
-                      'Estimate_ACME_(average)',
+      dplyr::select(c('p-value_Prop._Mediated_(average)', 'adj.p-value.all', 'adj.p-value.by_outcome',
+                      'Estimate_Prop._Mediated_(average)', 'Estimate_ACME_(average)',
                       'mediator', 'treatment'))
 
     results.list[[out]] <- results

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mediatorANDtreatment_models.R
 \name{generating_models}
 \alias{generating_models}
-\title{Generating the fitted models for mediator OR outcome}
+\title{Generating the fitted models for mediators OR outcomes}
 \usage{
 generating_models(
   column.models,
@@ -16,28 +16,36 @@ generating_models(
 }
 \arguments{
 \item{column.models}{a character indicating the name of the column containing
-the fitted models for mediator}
+the fitted models for mediators OR outcomes.}
 
 \item{model.type}{a function indicating the kind of analysis that will be
-performed, taking into account the ones allowed by mediate()}
+performed, taking into account the ones allowed by
+\code{\link[mediation]{mediate}}.}
 
-\item{data}{a dataframe with the information to perform the models}
+\item{data}{a dataframe with the information to perform the statistical
+models.}
 
-\item{data.models}{a dataframe with the column indicated in column.models}
+\item{data.models}{a dataframe with the column specified in column.models.
+This will contain the formulas for the models as characters.}
 
 \item{model.m}{Default: TRUE. A boolean for choosing if we are going to
 perform the fitted models for mediator (TRUE) or outcome (FALSE)}
 
-\item{outcome}{a string with the name of the column that contains the outcome}
+\item{outcome}{a string. This will refer to the name of the column that
+contains the outcome}
 
-\item{...}{other arguments that the models performed will need}
+\item{...}{other arguments that models will need. Some
+functions, as \code{\link[stats]{glm}}, requires additional arguments, such
+as family, that can be specified here.}
 }
 \value{
 returns a dataframe with a column, named model.M or model.Y,
 depending on the fitted models performed
 }
 \description{
-\code{generating_models()} generates a single dataframe with as many
-rows as different models to perform mediation and a column (with the fitted
-models for mediator OR the fitted models for outcome)
+This function generates a dataframe with the fitted models
+performed for the mediators or the outcomes (depending on the input
+provided). To do so, two objects: * data: a dataframe with the values to
+perform the statistical models. * data.models: a dataframe with the
+information of the models that need to be performed.
 }
