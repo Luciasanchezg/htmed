@@ -108,29 +108,35 @@ visual_htmed <- function(
 #'   the scatterplot will display all results, without taking into account the
 #'   significance reported.
 #'
-#'   In case split argument is provided, as many graphs as different
-#'   levels in the split column will be generated.
+#'   In case split argument is provided, as many graphs as different levels in
+#'   the split column will be generated.
 #'
 #' @param mediation.form lists of lists with the summary of the mediation
-#'   analyses
+#'   analyses.
 #' @param outcome a character indicating the name of the outcome the user wants
-#'   to visualice
+#'   to visualice.
 #' @param pval.column a character with the name of the column that contains the
-#'   p-values. Default: NULL
+#'   p-values. Default: NULL.
 #' @param pval a number establishing the threshold for the `pval.column`
 #' @param prop.med a character indicating the column with the Prop.Mediated
 #'   information. Default: Estimate_Prop._Mediated_(average).
 #' @param acme a character indicating the column with the ACME information.
 #'   Default: Estimate_ACME_(average).
 #' @param treatment a character with the name of the column containing the
-#'   treatment information. Default: treatment
+#'   treatment information. Default: treatment.
 #' @param mediator a character with the name of the column containing the
 #'   mediator information. Default: mediator.
 #' @param split a character indicating the name of the column used for the
-#'   split. Default: NULL
+#'   split. Default: NULL.
+#' @param size_node a number indicating the factor to set the size of the nodes.
+#'   Default: 1.
+#' @param size_name a number indicating the factor to set the size of the node
+#'   names. Default: 1.
+#' @param end_arrow a number indicating the factor to set the arrow. Default: 1.
 #'
-#' @return returns a graph with an inner circle (treatments) and an outer circle (mediators).
-#' The width of the edges will indicate the proportion of mediation. The color of the edges refers to the estimator of mediation.
+#' @return returns a graph with an inner circle (treatments) and an outer circle
+#'   (mediators). The width of the edges will indicate the proportion of
+#'   mediation. The color of the edges refers to the estimator of mediation.
 #' @export
 #'
 graph_htmed <- function(
@@ -142,7 +148,10 @@ graph_htmed <- function(
     acme = 'Estimate_ACME_(average)',
     treatment = 'treatment',
     mediator = 'mediator',
-    split = NULL
+    split = NULL,
+    size_node = 1,
+    size_name = 1,
+    end_arrow = 1
     ) {
   checks <- .checks_visual(mediation.form = mediation.form, outcome = outcome,
                            pval.column = pval.column, pval = pval,
@@ -151,6 +160,16 @@ graph_htmed <- function(
                            split = split)
 
   if (checks) {
+    if ((!"numeric" %in% class(size_node) | (sign(size_node) != '1'))) {
+      stop("size_node must be numeric and positive")
+    }
+    if (!"numeric" %in% class(size_name) | (sign(size_name) != '1')) {
+      stop("size_name must be numeric and positive")
+    }
+    if (!"numeric" %in% class(end_arrow) | (sign(end_arrow) != '1')) {
+      stop("end_arrow must be numeric and positive")
+    }
+
     tabl <- .filtering_pval(mediation.form = mediation.form, outcome = outcome,
                             pval.column = pval.column, pval = pval,
                             prop.med = prop.med, acme = acme)
@@ -214,7 +233,7 @@ graph_htmed <- function(
       coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
       lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
-      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes))
+      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes, size_node=size_node, size_name=size_name, end_arrow=end_arrow))
     }
   }
 }
@@ -358,7 +377,10 @@ graph_htmed <- function(
 
 .graph_ggraph <- function(
     layout_graph,
-    n.nodes
+    n.nodes,
+    size_node = 1,
+    size_name = 1,
+    end_arrow = 1
     ) {
   ggraph::ggraph(layout_graph) +
     # edges
@@ -371,7 +393,7 @@ graph_htmed <- function(
       strength=0.1,
       arrow = arrow(length = unit(4, 'mm')),
       start_cap = ggraph::circle(1, 'mm'),
-      end_cap = ggraph::circle(ifelse(n.nodes < 30, 5+n.nodes/10, 6+n.nodes/50), 'mm')
+      end_cap = (ggraph::circle(ifelse(n.nodes < 30, 5+n.nodes/10 * end_arrow, 6+n.nodes/50 * end_arrow), 'mm'))
     ) +
     ggraph::scale_edge_width(range = c(.5, 2)) +
     ggraph::scale_edge_colour_gradient2(
@@ -384,7 +406,7 @@ graph_htmed <- function(
     #nodes
     ggraph::geom_node_point(
       # size = ifelse(n.nodes < 30, 30, 20+300/n.nodes),
-      size = ifelse(n.nodes < 30, 12, 10+200/n.nodes),
+      size = (ifelse(n.nodes < 30, 12 * size_node, 10+200/n.nodes * size_node)),
       col = layout_graph$vertex.color
     ) +
     ggraph::geom_node_text(
@@ -393,7 +415,7 @@ graph_htmed <- function(
       ),
       col = layout_graph$vertex.color.label,
       repel = FALSE,
-      size = ifelse(n.nodes < 30, 2, 1.5+30/n.nodes)
+      size = (ifelse(n.nodes < 30, 2 * size_name, 1.5+30/n.nodes * size_name)),
     ) +
     ggplot2::theme(panel.background = element_rect(fill = 'white', colour = 'transparent'))
 }
