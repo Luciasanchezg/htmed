@@ -7,13 +7,22 @@
 formatting_med(mediation.list)
 }
 \arguments{
-\item{mediation.list}{list of lists, with as many sublists as different
-outcomes has been tested in the causal mediation analysis.}
+\item{mediation.list}{list of lists with as many sublists as different
+outcomes has been tested in the causal mediation analysis. The first level
+of this list will contain the different outcomes that have been analised.
+The second level, will contain the mediate objects with the analyses
+information.}
 }
 \value{
-lists of lists with the mediate analysis filtered
+lists of lists with the summary of the mediate analyses and the
+adjusted p-values.
 }
 \description{
-\code{formatting_med()} extracts the information from the causal
-mediation analysis to filter statistically significant mediation results
+\code{formatting_med()} extracts some useful information from the
+causal mediation analyses. This function also computes:
+\itemize{
+\item Adjusted p-value computed for the models in the same level.
+\item Adjusted p-value by all the analyses present object. In case there is
+just one outcome, both adjusted p-values will be the same.
+}
 }

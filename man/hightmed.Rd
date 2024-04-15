@@ -5,7 +5,6 @@
 \title{High-throughput causal mediation analysis}
 \usage{
 hightmed(
-  sims = 1000,
   data.models,
   column.modelm,
   column.modely,
@@ -17,41 +16,32 @@ hightmed(
 )
 }
 \arguments{
-\item{sims}{number of Monte Carlo draws for nonparametric bootstrap or
-quasi-Bayesian approximation. Default: 1000}
+\item{data.models}{a dataframe with, at least, five columns: for the
+treatments, mediators, outcomes, fitted models for treatments and
+mediators, respectively.}
 
-\item{data.models}{a dataframe with, at least, three columns: treatment,
-mediator and outcome. If model.generator=FALSE. This dataframe needs to
-have two aditional columns, with the models for the mediator (model.M) and
-the models for the outcome (model.Y)}
+\item{column.modelm}{a character. Name of the column with the fitted models
+for mediators.}
 
-\item{column.modelm}{name of the column with the fitted models for mediator
-to perform}
+\item{column.modely}{a character. Name of the column with the fitted models
+for outcomes.}
 
-\item{column.modely}{name of the column with the fitted models for outcome to
-perform}
+\item{treat}{a character. Name of the column that contains the treatments.}
 
-\item{treat}{a list indicating the name of the treatment variables used in
-the models. The treatment can be either binary (integer or a two-valued
-factor) or continuous (numeric).}
+\item{mediator}{a character. Name of the column that contains the mediators.}
 
-\item{mediator}{a list indicating the name of the mediator variables used in
-the models.}
+\item{outcome}{a character. Name of the column that contains the outcomes.}
 
-\item{outcome}{a lists indicating the name of the outcome variables used in
-the models}
+\item{seed}{integer to set a seed (for reproducibility). Default: NULL}
 
-\item{seed}{integer to set a seed}
-
-\item{...}{other arguments passed to mediate package}
+\item{...}{other arguments passed to \code{\link[mediation]{mediate}}
+function.}
 }
 \value{
 returns a list of lists with the results of mediation for each
-combination of outcome, mediator and treatment variables
+combination of outcome, mediator and treatment variables.
 }
 \description{
 \code{hightmed()} allows to perform high-throughput causal mediation
-analysis, using the mediate package to perform the mediation analysis. This
-function allows to permorm mediation analysis given the fitted models for
-mediator and outcome.
+analysis, using the \code{\link[mediation]{mediate}} for each model.
 }

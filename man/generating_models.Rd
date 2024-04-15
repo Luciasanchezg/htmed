@@ -29,14 +29,16 @@ models.}
 This will contain the formulas for the models as characters.}
 
 \item{model.m}{Default: TRUE. A boolean for choosing if we are going to
-perform the fitted models for mediator (TRUE) or outcome (FALSE)}
+perform the fitted models for mediator (TRUE) or outcome (FALSE). Default:
+TRUE}
 
 \item{outcome}{a string. This will refer to the name of the column that
-contains the outcome}
+contains the outcome. Run in the default mode, the function understands
+that all analyses share the same outcome. Default: NULL.}
 
-\item{...}{other arguments that models will need. Some
-functions, as \code{\link[stats]{glm}}, requires additional arguments, such
-as family, that can be specified here.}
+\item{...}{other arguments that models will need. Some functions, as
+\code{\link[stats]{glm}}, requires additional arguments, such as family,
+that can be specified here.}
 }
 \value{
 returns a dataframe with a column, named model.M or model.Y,
@@ -45,7 +47,7 @@ depending on the fitted models performed
 \description{
 This function generates a dataframe with the fitted models
 performed for the mediators or the outcomes (depending on the input
-provided). To do so, two objects: * data: a dataframe with the values to
-perform the statistical models. * data.models: a dataframe with the
-information of the models that need to be performed.
+provided). To do so, we will need two objects: * data: a dataframe with the
+values to perform the statistical models. * data.models: a dataframe with
+the information of the models that need to be performed.
 }

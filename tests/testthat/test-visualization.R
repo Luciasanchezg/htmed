@@ -24,7 +24,6 @@ test_that(
   }
 )
 
-# g <- igraph::graph_from_data_frame(relations, directed=TRUE, vertices=nodes): cambia con cada iteración
 # test_that(
 #   desc = "checking if graph_htmed() produces the expected outcome",
 #   code = {
@@ -112,6 +111,10 @@ test_that(
       regexp = "pval.column is not in the dataset"
     )
     expect_error(
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', pval = -3, pval.column = 'adj.p-value.by_outcome'),
+      regexp = "Negative values not supported by pval"
+    )
+    expect_error(
       visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', prop.med = 'outcome.1'),
       regexp = "Wrong columns for proportion of mediation and/or ACME in the outcome chosen"
     )
@@ -127,10 +130,11 @@ test_that(
 )
 
 
-## Not models passed the filters ----------------------------------------------
+## None of the models passed the filters ----------------------------------------------
 test_that(
   desc = "Catch errors related to wrong arguments passed to visualization()",
   code = {
+    format_surv$outcome.1 <- format_surv$outcome.1 %>% dplyr::filter(`adj.p-value.by_outcome` != 0)
     expect_error(
       visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', pval.column = 'adj.p-value.by_outcome', pval = 0),
       regexp = "None of the mediation models for outcome.1 presented statistically significant values, for the p-value chosen"

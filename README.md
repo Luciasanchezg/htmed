@@ -141,7 +141,7 @@ visual_outcome1_adj0.05 <- visual_htmed(
   , outcome = 'outcome.1'
   , pval.column = 'adj.p-value.by_outcome'
   , pval = 0.05)
-#> Results with adj.p-value.by_outcome < 0.05 will be filtered out
+#> Results with adj.p-value.by_outcome <= 0.05 will be filtered out
 visual_outcome1_adj0.05
 #> Warning: Removed 11 rows containing missing values or values outside the scale range
 #> (`geom_point()`).
@@ -155,7 +155,7 @@ graph_outcome1_adj0.05 <- graph_htmed(
   , outcome = 'outcome.1'
   , pval.column = 'adj.p-value.by_outcome'
   , pval = 0.05)
-#> Results with adj.p-value.by_outcome < 0.05 will be filtered out
+#> Results with adj.p-value.by_outcome <= 0.05 will be filtered out
 graph_outcome1_adj0.05
 ```
 

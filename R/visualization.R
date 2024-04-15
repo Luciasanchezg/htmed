@@ -240,23 +240,23 @@ graph_htmed <- function(
   }
 
   if (!"character" %in% class(outcome)) {
-    stop(paste("outcome is not a character"))
+    stop("outcome is not a character")
   }
 
   if (!"character" %in% class(treatment)) {
-    stop(paste("treatment is not a character"))
+    stop("treatment is not a character")
   }
 
   if (!"character" %in% class(mediator)) {
-    stop(paste("mediator is not a character"))
+    stop("mediator is not a character")
   }
 
   if (!"character" %in% class(prop.med)) {
-    stop(paste("prop.med is not a character"))
+    stop("prop.med is not a character")
   }
 
   if (!"character" %in% class(acme)) {
-    stop(paste("acme is not a character"))
+    stop("acme is not a character")
   }
 
   if (!outcome %in% names(mediation.form)) {
@@ -277,12 +277,16 @@ graph_htmed <- function(
       stop("pval.column is not a character")
     }
 
+    if ( !pval.column %in% colnames(mediation.form[[outcome]]) ) {
+      stop("pval.column is not in the dataset")
+    }
+
     if (!"numeric" %in% class(pval)) {
       stop("pval is not a number")
     }
 
-    if ( !pval.column %in% colnames(mediation.form[[outcome]]) ) {
-      stop("pval.column is not in the dataset")
+    if (sign(pval) == '-1') {
+      stop("Negative values not supported by pval")
     }
   }
 

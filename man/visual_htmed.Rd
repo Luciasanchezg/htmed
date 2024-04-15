@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{visual_htmed}
 \alias{visual_htmed}
-\title{Visualization of the high-throughput causal mediation analysis}
+\title{Scatterplot with high-throughput causal mediation analyses}
 \usage{
 visual_htmed(
   mediation.form,
@@ -17,34 +17,45 @@ visual_htmed(
 )
 }
 \arguments{
-\item{mediation.form}{lists of lists with the results of mediation}
+\item{mediation.form}{lists of lists with the summary of the mediation
+analyses}
 
 \item{outcome}{a character indicating the name of the outcome the user wants
 to visualice}
 
-\item{pval.column}{a character with ?the name of the column that contains the
-p-values}
+\item{pval.column}{a character with the name of the column that contains the
+p-values. Default: NULL}
 
 \item{pval}{a number establishing the threshold for the \code{pval.column}}
 
 \item{prop.med}{a character indicating the column with the Prop.Mediated
-information (Default: Estimate_Prop.\emph{Mediated}(average))}
+information. Default: Estimate_Prop.\emph{Mediated}(average).}
 
-\item{acme}{a character indicating the column with the ACME information
-(Default: Estimate_ACME_(average))}
+\item{acme}{a character indicating the column with the ACME information.
+Default: Estimate_ACME_(average).}
 
 \item{treatment}{a character with the name of the column containing the
-treatment information}
+treatment information. Default: treatment}
 
 \item{mediator}{a character with the name of the column containing the
-mediator information}
+mediator information. Default: mediator.}
 
-\item{split}{a character indicating the name of the column used for the split}
+\item{split}{a character indicating the name of the column used for the
+split. Default: NULL}
 }
 \value{
-returns a ggplot object
+returns a scatterplot with the treatments in the X axis and the mediators in the Y axis.
+The size of the dots will indicate the proportion of mediation. The color of the dots refers to the estimator of mediation.
 }
 \description{
 \code{visual_htmed()} enables to visualize the results of the causal
-mediation analyses performed in a single plot
+mediation analyses for a specific outcome in a single scatterplot.
+
+This function also allows to filter results by p-value, giving the column
+that contains this information and the threshold of significance. If not,
+the scatterplot will display all results, without taking into account the
+significance reported.
+
+In case split argument is provided, as many scatterplots as different
+levels in the split column will be generated.
 }
