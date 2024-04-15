@@ -20,6 +20,7 @@ NULL
 #'
 #'   * Adjusted p-value by all the analyses present object. In case there is
 #'   just one outcome, both adjusted p-values will be the same.
+#'
 #' @param mediation.list list of lists with as many sublists as different
 #'   outcomes has been tested in the causal mediation analysis. The first level
 #'   of this list will contain the different outcomes that have been analised.

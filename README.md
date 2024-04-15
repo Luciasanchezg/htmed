@@ -76,14 +76,12 @@ mediate objects.
 
 ``` r
 med_results <- hightmed(
-    sims=1000
-  , data.models=medANDtreat
+    data.models=medANDtreat
   , column.modelm = 'model.M'
   , column.modely = 'model.Y'
   , treat='treatments'
   , mediator='mediators'
   , outcome='outcome'
-  , seed=1
   )
 
 paste('Class of the mediation analysis results:', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
