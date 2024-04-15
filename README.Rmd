@@ -139,12 +139,12 @@ graph_outcome1_split <- graph_htmed(
 
 ```
 
-```{r}
+```{r visualizing-7}
 # Results for mediator.1
 graph_outcome1_split$mediator.1
 ```
 
-```{r}
+```{r visualizing-8}
 # Results for other_med
 graph_outcome1_split$other_med
 ```

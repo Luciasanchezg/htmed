@@ -6,8 +6,8 @@
 ``` r
 library(hightmed)
 library(survival)
-library(dplyr) ##
-library(ggraph) ##
+library(dplyr) #
+library(ggraph) #
 ```
 
 In this tutorial, we will use all the functions available in `hightmed`
@@ -198,11 +198,11 @@ graph_outcome1_split <- graph_htmed(
 graph_outcome1_split$mediator.1
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+<img src="man/figures/README-visualizing-7-1.png" width="100%" />
 
 ``` r
 # Results for other_med
 graph_outcome1_split$other_med
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+<img src="man/figures/README-visualizing-8-1.png" width="100%" />
