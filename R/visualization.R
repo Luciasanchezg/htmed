@@ -160,13 +160,22 @@ graph_htmed <- function(
                            split = split)
 
   if (checks) {
-    if ((!"numeric" %in% class(size_node) | (sign(size_node) != '1'))) {
+    if (!"numeric" %in% class(size_node)) {
+      stop("size_node must be numeric")
+    }
+    else if (sign(size_node) != '1') {
       stop("size_node must be numeric and positive")
     }
-    if (!"numeric" %in% class(size_name) | (sign(size_name) != '1')) {
+    if (!"numeric" %in% class(size_name)) {
+      stop("size_name must be numeric")
+    }
+    else if (sign(size_name) != '1') {
       stop("size_name must be numeric and positive")
     }
-    if (!"numeric" %in% class(end_arrow) | (sign(end_arrow) != '1')) {
+    if (!"numeric" %in% class(end_arrow)) {
+      stop("end_arrow must be numeric")
+    }
+    else if (sign(end_arrow) != '1') {
       stop("end_arrow must be numeric and positive")
     }
 

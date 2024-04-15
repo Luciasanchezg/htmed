@@ -39,7 +39,7 @@ test_that(
 # )
 
 ## ----------------------------------------------------------------------------
-## Errors in visualizing results for visual_htmed()
+## Errors in visualizing results for visual_htmed() OR graph_htmed()
 ## Format errors --------------------------------------------------------------
 test_that(
   desc = "Catch errors related to wrong arguments passed to visualization()",
@@ -138,6 +138,28 @@ test_that(
     expect_error(
       visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', pval.column = 'adj.p-value.by_outcome', pval = 0),
       regexp = "None of the mediation models for outcome.1 presented statistically significant values, for the p-value chosen"
+    )
+  }
+)
+
+
+## ----------------------------------------------------------------------------
+## Errors in visualizing results just for graph_htmed()
+## Format errors --------------------------------------------------------------
+test_that(
+  desc = "Catch errors related to wrong arguments passed to visualization()",
+  code = {
+    expect_error(
+      graph_htmed(mediation.form = format_surv, outcome = 'outcome.1', size_node = -2),
+      regexp = "size_node must be numeric and positive"
+    )
+    expect_error(
+      graph_htmed(mediation.form = format_surv, outcome = 'outcome.1', size_name = 'two'),
+      regexp = "size_name must be numeric"
+    )
+    expect_error(
+      graph_htmed(mediation.form = format_surv, outcome = 'outcome.1', end_arrow = '-1'),
+      regexp = "end_arrow must be numeric"
     )
   }
 )
