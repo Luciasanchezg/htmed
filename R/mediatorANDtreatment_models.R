@@ -91,6 +91,14 @@ generating_models <- function(
     }
   }
 
+  if ((model.m == TRUE) & ('model.M' %in% colnames(data.models))) {
+    stop("You are performing fitted models for mediator, but the column model.M already exists")
+  }
+
+  if ((model.m == FALSE) & ('model.Y' %in% colnames(data.models))) {
+    stop("You are performing fitted models for outcome, but the column model.Y already exists")
+  }
+
   # checking if the models can be converted in a formula
   models <- .check_formula(column.models=column.models, data.models=data.models)
   if (is.null(models)) {
