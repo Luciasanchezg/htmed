@@ -31,28 +31,43 @@ NULL
 #'   adjusted p-values.
 #' @export
 #'
+#'
 formatting_med <- function(
-    mediation.list
-    ) {
+    mediation.list,
+    split = FALSE
+) {
   ## TODO: no está contemplada la posibilidad de covariates
 
+  if (split == FALSE) {
+    filt_summary <- .formatting_med(mediation.list=mediation.list)
+  }
+  else {
+    filt_summary <- lapply(names(mediation.list),
+                        FUN = function(subl) {.formatting_med(mediation.list=mediation.list[[subl]])})
+    names(filt_summary) <- names(mediation.list)
+  }
+  return(filt_summary)
+}
+
+
+.formatting_med <- function(
+    mediation.list
+    ) {
   if (!"list" %in% class(mediation.list)) {
     stop("mediation.list is not a list")
   }
-
   if ( any(unlist(lapply(mediation.list, FUN=function(sublist) { class(sublist) })) != 'list') ) {
     stop("mediation.list is not a list of lists")
   }
-
   if ( any(unlist(lapply(mediation.list, FUN=function(outcome) { lapply(outcome, FUN=function(model) { !grepl('med*', class(model)) }) }))) ) {
     stop("Some of the models introduced are not mediation models")
   }
 
-  for (out in names(mediation.list)) {
-    names_out <- sapply(mediation.list[[out]],
+  for (subl in names(mediation.list)) {
+    names_out <- sapply(mediation.list[[subl]],
                         FUN = function(model) {paste(model$mediator, '~', model$treat, sep=' ')})
     if (length(unique(names_out)) == length(names_out)) {
-      names(mediation.list[[out]]) <- names_out
+      names(mediation.list[[subl]]) <- names_out
     }
     else {
       dup_names <- names_out[duplicated(names_out)]
@@ -60,7 +75,6 @@ formatting_med <- function(
       stop("Are you introducing the same model more than one time?")
     }
   }
-
   onerow_summary <- .med_summary_list(mediation.list)
   filt_summary <- .filt_and_adjpval(onerow_summary)
 
