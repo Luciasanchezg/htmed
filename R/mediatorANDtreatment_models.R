@@ -2,7 +2,7 @@
 #' @importFrom stats setNames as.formula
 #' @importFrom parallel mclapply
 #' @importFrom rlang is_empty sym
-#' @importFrom dplyr group_by filter n pull
+#' @importFrom dplyr group_by filter n pull mutate
 NULL
 
 
@@ -48,6 +48,7 @@ generating_models <- function(
     data.models,
     model.m = TRUE,
     outcome = NULL,
+    data.split = NULL,
     ...
     ) {
   ## TODO: eval(parse(text="lm(M ~ I + gender, data=df)"))
@@ -90,28 +91,26 @@ generating_models <- function(
     }
   }
 
-  if (is.null(outcome)) {
-    dup_mods <- data.models %>%
-      group_by(!!rlang::sym(column.models)) %>%
-      filter(n()>1) %>%
-      pull(!!rlang::sym(column.models)) %>% unique
-
-    if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
-  } else {
-    dup_mods <- data.models %>%
-      group_by(!!rlang::sym(outcome), !!rlang::sym(column.models)) %>%
-      filter(n()>1) %>%
-      pull(!!rlang::sym(column.models)) %>% unique
-    if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
-  }
+  # if (is.null(outcome)) {
+  #   dup_mods <- data.models %>%
+  #     group_by(!!rlang::sym(column.models)) %>%
+  #     filter(n()>1) %>%
+  #     pull(!!rlang::sym(column.models)) %>% unique
+  #
+  #   if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
+  # } else {
+  #   dup_mods <- data.models %>%
+  #     group_by(!!rlang::sym(outcome), !!rlang::sym(column.models)) %>%
+  #     filter(n()>1) %>%
+  #     pull(!!rlang::sym(column.models)) %>% unique
+  #   if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
+  # }
 
   # checking if the models can be converted in a formula
   models <- .check_formula(column.models=column.models, data.models=data.models)
-
   if (is.null(models)) {
     stop("There are no right formulas in the columns selected")
   }
-
   data.models <- data.models[data.models[[column.models]] %in% as.character(models),]
 
   if (model.m == TRUE) {
@@ -123,14 +122,42 @@ generating_models <- function(
     message("Performing fitted models for outcome")
   }
 
-  if (!is.null(outcome)) {
-    results <- .more_outcomes(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model_name=model_name, ncores=ncores, outcome=outcome, ...)
-    return(results)
+  if (!is.null(data.split)) {
+    tosplit <- data %>% dplyr::select(!!rlang::sym(data.split)) %>% pull(!!rlang::sym(data.split)) %>% unique()
+
+    results <- data.frame()
+    for (i in tosplit) {
+      data.subs <- df %>% dplyr::filter(!!rlang::sym(data.split) == i)
+      # subsetting models_df if data.split exists in this dataframe
+      if (data.split %in% colnames(data.models)) {
+        data.models.subs <- data.models %>% dplyr::filter(!!rlang::sym(data.split) == i)
+      }
+      else {
+        data.models.subs <- data.models
+      }
+      # performing models
+      if (!is.null(outcome)) {
+        results.subs <- .more_outcomes(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models.subs, model_name=model_name, ncores=5, outcome=outcome)
+        results.subs[[data.split]] <- i
+        results <- rbind(results, results.subs)
+      }
+      else {
+        results.subs <- .one_outcome(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models.subs, model_name=model_name, ncores=5)
+        results.subs[[data.split]] <- i
+        results <- rbind(results, results.subs)
+      }
     }
-  else {
-    results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model_name=model_name, ncores=ncores, ...)
-    return(results)
   }
+  else {
+    # performing models
+    if (!is.null(outcome)) {
+      results <- .more_outcomes(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models, model_name=model_name, ncores=ncores, outcome=outcome, ...)
+    }
+    else {
+      results <- .one_outcome(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models, model_name=model_name, ncores=ncores, ...)
+    }
+  }
+  return(results)
 }
 
 
@@ -148,9 +175,10 @@ generating_models <- function(
 
   results.models <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(data.models[[column.models]]))), c(model_name))
   results.models[[model_name]] <- models
-  rownames(results.models) <- names(models)
+  results.models[['names']] <- names(models)
+  # rownames(results.models) <- names(models)
 
-  results <- merge(data.models, results.models, by.x=column.models, by.y ='row.names')
+  results <- merge(data.models, results.models, by.x=column.models, by.y ='names')
 
   return(results)
 }
