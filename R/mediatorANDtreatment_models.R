@@ -91,21 +91,6 @@ generating_models <- function(
     }
   }
 
-  # if (is.null(outcome)) {
-  #   dup_mods <- data.models %>%
-  #     group_by(!!rlang::sym(column.models)) %>%
-  #     filter(n()>1) %>%
-  #     pull(!!rlang::sym(column.models)) %>% unique
-  #
-  #   if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
-  # } else {
-  #   dup_mods <- data.models %>%
-  #     group_by(!!rlang::sym(outcome), !!rlang::sym(column.models)) %>%
-  #     filter(n()>1) %>%
-  #     pull(!!rlang::sym(column.models)) %>% unique
-  #   if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
-  # }
-
   # checking if the models can be converted in a formula
   models <- .check_formula(column.models=column.models, data.models=data.models)
   if (is.null(models)) {
@@ -170,16 +155,17 @@ generating_models <- function(
     ncores,
     ...
     ) {
+  # finding duplicate models
+  dup_mods <- data.models %>% group_by(!!rlang::sym(column.models)) %>% summarise(n=n()) %>% filter(n>1) %>% pull(!!rlang::sym(column.models)) %>% unique
+  if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
   # generating the models
   models <- .model_MY(list.models=data.models[[column.models]], model.type=model.type, data=data, ncores=ncores, ...)
 
   results.models <- stats::setNames(data.frame(matrix(ncol = 1, nrow = length(data.models[[column.models]]))), c(model_name))
   results.models[[model_name]] <- models
-  results.models[['names']] <- names(models)
-  # rownames(results.models) <- names(models)
+  rownames(results.models) <- names(models)
 
-  results <- merge(data.models, results.models, by.x=column.models, by.y ='names')
-
+  results <- merge(data.models, results.models, by.x=column.models, by.y ='row.names')
   return(results)
 }
 
