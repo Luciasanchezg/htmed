@@ -42,8 +42,17 @@ formatting_med <- function(
     filt_summary <- .formatting_med(mediation.list=mediation.list)
   }
   else {
-    filt_summary <- lapply(names(mediation.list),
-                        FUN = function(subl) {.formatting_med(mediation.list=mediation.list[[subl]])})
+    filt_summary <- lapply(names(med_results),
+                           FUN = function(subl) {
+                             formatted.list <- .formatting_med(mediation.list=med_results[[subl]])
+                             formatted.df <- lapply(names(formatted.list),
+                                                    FUN = function(subl.subl) {
+                                                      formatted.list[[subl.subl]] %>% mutate(split = subl.subl)
+                                                      }
+                                                    )
+                             do.call(rbind, formatted.df)
+                             }
+                           )
     names(filt_summary) <- names(mediation.list)
   }
   return(filt_summary)
@@ -111,7 +120,6 @@ formatting_med <- function(
 
 
 .mediation_summary <- function (x) {
-
   clp <- 100 * x$conf.level
 
   stats_model <- c(x$d0, x$d0.ci, x$d0.p)
@@ -120,21 +128,18 @@ formatting_med <- function(
   stats_model <- rbind(stats_model, c(x$n1, x$n1.ci, x$n1.p))
   stats_model <- rbind(stats_model, c(x$d.avg, x$d.avg.ci, x$d.avg.p))
   stats_model <- rbind(stats_model, c(x$n.avg, x$n.avg.ci, x$n.avg.p))
-
+  #stablishing rownames and colnames
   rownames(stats_model) <- c("ACME (control)", "ACME (treated)",
                              "Prop. Mediated (control)", "Prop. Mediated (treated)",
                              "ACME (average)",
                              "Prop. Mediated (average)")
-
   colnames(stats_model) <- c("Estimate", paste(clp, "% CI Lower", sep = ""),
                              paste(clp, "% CI Upper", sep = ""), "p-value")
-
   return(as.data.frame(stats_model))
 }
 
 
 .filt_and_adjpval <- function(mediation_sum.list) {
-
   # computing adjusted p-value for all analyses (Benjamini & Hochberg)
   mediation_sum.df <- dplyr::bind_rows(mediation_sum.list, .id = 'outcome') %>%
     dplyr::mutate(outcome = as.factor(.data$outcome)) %>%
@@ -157,9 +162,7 @@ formatting_med <- function(
       dplyr::select(c('p-value_Prop._Mediated_(average)', 'adj.p-value.all', 'adj.p-value.by_outcome',
                       'Estimate_Prop._Mediated_(average)', 'Estimate_ACME_(average)',
                       'mediator', 'treatment'))
-
     results.list[[out]] <- results
-
   }
   return(results.list)
 }

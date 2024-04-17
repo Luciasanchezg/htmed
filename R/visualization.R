@@ -202,7 +202,7 @@ graph_htmed <- function(
       pList <- list()
 
       for (i in levels(factor(relations[[split]]))) {
-        relations.i <- relations %>% dplyr::filter(!!rlang::sym(split) == i)
+        relations.i <- relations %>% dplyr::filter(!!rlang::sym(split) == .env$i)
 
         nodes.i <- nodes %>%
           dplyr::mutate(vertex.color = case_when(name %in% relations.i$from ~ '#FDA855',
