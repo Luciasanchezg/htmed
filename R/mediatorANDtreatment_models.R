@@ -119,24 +119,24 @@ generating_models <- function(
     tosplit <- data %>% dplyr::select(!!rlang::sym(data.split)) %>% pull(!!rlang::sym(data.split)) %>% unique()
 
     results <- data.frame()
-    for (i in tosplit) {
-      data.subs <- df %>% dplyr::filter(!!rlang::sym(data.split) == i)
+    for (split in tosplit) {
+      data.subs <- df %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)
       # subsetting models_df if data.split exists in this dataframe
       if (data.split %in% colnames(data.models)) {
-        data.models.subs <- data.models %>% dplyr::filter(!!rlang::sym(data.split) == i)
+        data.models.subs <- data.models %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)
       }
       else {
         data.models.subs <- data.models
       }
       # performing models
       if (!is.null(outcome)) {
-        results.subs <- .more_outcomes(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models.subs, model_name=model_name, ncores=5, outcome=outcome)
-        results.subs[[data.split]] <- i
+        results.subs <- .more_outcomes(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models.subs, model_name=model_name, ncores=ncores, outcome=outcome)
+        results.subs[[data.split]] <- split
         results <- rbind(results, results.subs)
       }
       else {
-        results.subs <- .one_outcome(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models.subs, model_name=model_name, ncores=5)
-        results.subs[[data.split]] <- i
+        results.subs <- .one_outcome(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models.subs, model_name=model_name, ncores=ncores)
+        results.subs[[data.split]] <- split
         results <- rbind(results, results.subs)
       }
     }
@@ -144,10 +144,10 @@ generating_models <- function(
   else {
     # performing models
     if (!is.null(outcome)) {
-      results <- .more_outcomes(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models, model_name=model_name, ncores=ncores, outcome=outcome, ...)
+      results <- .more_outcomes(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model_name=model_name, ncores=ncores, outcome=outcome, ...)
     }
     else {
-      results <- .one_outcome(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models, model_name=model_name, ncores=ncores, ...)
+      results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model_name=model_name, ncores=ncores, ...)
     }
   }
   return(results)
@@ -190,7 +190,7 @@ generating_models <- function(
     ) {
   results.list <- list()
   for (out in levels(data.models[[outcome]])) {
-    subset.models <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == out)
+    subset.models <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == .env$out)
     results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=subset.models, model_name=model_name, ncores=ncores, ...)
     results.list[[out]] <- results
   }

@@ -41,6 +41,7 @@ hightmed <- function(
     mediator,
     outcome,
     seed = NULL,
+    data.split = NULL,
     ...
     ) {
   ## TODO:
@@ -88,21 +89,38 @@ hightmed <- function(
 
   # Applying mediation
   results.med <- list()
-  for (i in levels(data.models[[outcome]])) {
+  for (out in levels(data.models[[outcome]])) {
 
-    data.models.subset <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == i)
+    data.models.subs <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == .env$out)
 
-    treat.subset <- data.models.subset[[treat]]
-    mediator.subset <- data.models.subset[[mediator]]
+    treat.subset <- data.models.subs[[treat]]
+    mediator.subset <- data.models.subs[[mediator]]
 
-    models.m <- data.models.subset[[column.modelm]]
-    models.y <- data.models.subset[[column.modely]]
+    models.m <- data.models.subs[[column.modelm]]
+    models.y <- data.models.subs[[column.modely]]
 
-    results.med[[i]] <- .mediationHT(models.m=models.m, models.y=models.y,
-                                treat=treat.subset, mediator=mediator.subset,
-                                ncores=ncores, seed=seed, ...)
+    if (!is.null(data.split)) {
+      tosplit <- data.models %>% dplyr::select(!!rlang::sym(data.split)) %>% pull(!!rlang::sym(data.split)) %>% unique()
+      for (split in tosplit) {
+        data.models.subs.spl <- data.models.subs %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)
+
+        treat.subset <- data.models.subs.spl[[treat]]
+        mediator.subset <- data.models.subs.spl[[mediator]]
+
+        models.m <- data.models.subs.spl[[column.modelm]]
+        models.y <- data.models.subs.spl[[column.modely]]
+
+        results.med[[out]][[split]] <- .mediationHT(models.m=models.m, models.y=models.y,
+                                                    treat=treat.subset, mediator=mediator.subset,
+                                                    ncores=ncores, seed=seed, ...)
+      }
+    }
+    else {
+      results.med[[out]] <- .mediationHT(models.m=models.m, models.y=models.y,
+                                         treat=treat.subset, mediator=mediator.subset,
+                                         ncores=ncores, seed=seed, ...)
+    }
   }
-
   return(results.med)
 }
 
