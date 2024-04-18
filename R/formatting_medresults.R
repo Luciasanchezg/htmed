@@ -44,9 +44,9 @@ formatting_med <- function(
     filt_summary <- .formatting_med(mediation.list=mediation.list)
   }
   else {
-    filt_summary <- lapply(names(med_results),
+    filt_summary <- lapply(names(mediation.list),
                            FUN = function(subl) {
-                             formatted.list <- .formatting_med(mediation.list=med_results[[subl]])
+                             formatted.list <- .formatting_med(mediation.list=mediation.list[[subl]])
                              formatted.df <- lapply(names(formatted.list),
                                                     FUN = function(subl.subl) {
                                                       formatted.list[[subl.subl]] %>% mutate(split = subl.subl)
