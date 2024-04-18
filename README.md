@@ -129,7 +129,7 @@ following arguments:
 -   treat, mediator and outcome (characters): these three arguments
     refer to the columns from `data.models` with the treatment, mediator
     and outcome information, respectively.
--   data.split: will be explained later.
+-   data.split (characters): will be explained later.
 
 There is an additional argument `seed` that can be introduced to ensure
 reproducibility of results.
@@ -248,7 +248,7 @@ functions.
 
 Nevertheless, you can filter the data by specifying the level of
 significance (`pval`) and the column to apply it (`pval.column`). In the
-following chunk, we will restrict our representation to mediation
+following chunks, we will restrict our representation to mediation
 analyses with an adjusted p-value \<= 0.05.
 
 ``` r
@@ -276,6 +276,24 @@ graph_outcome1_adj0.05
 ```
 
 <img src="man/figures/README-visualizing-4-1.png" width="100%" />
+
+Additionally, `grapg_htmed()` allows you to custom some visualization
+parameters such as the size of the node, the size of the node names and
+the end of the arrows, as it will be shown in the next chunk.
+
+``` r
+graph_htmed(
+    mediation.form = format_results
+  , outcome = 'outcome.1'
+  , pval.column = 'adj.p-value.by_outcome'
+  , pval = 0.05
+  , size_node = 1.5
+  , size_name = 1.3
+  , end_arrow = 4)
+#> Results with adj.p-value.by_outcome <= 0.05 will be filtered out
+```
+
+<img src="man/figures/README-visualizing-5-1.png" width="100%" />
 
 ## Splitting the data
 
@@ -432,5 +450,5 @@ graph_outcome1_nosig.split
     #> $HighBloodPressure
 
 <img src="man/figures/README-visualizing.split-2-2.png" width="100%" />
-The same occurs when applying `graph_htmed()`; two graph are generated,
+The same occurs when applying `graph_htmed()` ; two graph are generated,
 depending on the condition studied.

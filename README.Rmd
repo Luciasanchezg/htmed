@@ -91,7 +91,7 @@ hightmed() requires the following arguments:
 * data.models (dataframe): object with the fitted models for mediators and outcomes.
 * column.modelm and column.modely (characters): these arguments refer to the columns from `data.models` that contain the fitted models for mediator and outcomes, respectively.
 * treat, mediator and outcome (characters): these three arguments refer to the columns from `data.models` with the treatment, mediator and outcome information, respectively.
-* data.split: will be explained later.
+* data.split (characters): will be explained later.
 
 There is an additional argument `seed` that can be introduced to ensure reproducibility of results.
 ```{r applying_htmed-1, message=FALSE}
@@ -160,7 +160,7 @@ graph_outcome1_nosig
 
 You might have notice that we have not filtered out any mediation analyses in the representation, which means that all results, independently of the level of significance, are visualized. This is what occurs by default in both `visual_htmed()` and `graph_htmed()` functions.
 
-Nevertheless, you can filter the data by specifying the level of significance (`pval`) and the column to apply it (`pval.column`). In the following chunk, we will restrict our representation to mediation analyses with an adjusted p-value <= 0.05.
+Nevertheless, you can filter the data by specifying the level of significance (`pval`) and the column to apply it (`pval.column`). In the following chunks, we will restrict our representation to mediation analyses with an adjusted p-value <= 0.05.
 ```{r visualizing-3}
 visual_outcome1_adj0.05 <- visual_htmed(
   mediation.form = format_results
@@ -179,6 +179,19 @@ graph_outcome1_adj0.05 <- graph_htmed(
   , pval = 0.05)
 graph_outcome1_adj0.05
 ```
+
+Additionally, `grapg_htmed()` allows you to custom some visualization parameters such as the size of the node, the size of the node names and the end of the arrows, as it will be shown in the next chunk.
+```{r visualizing-5}
+graph_htmed(
+    mediation.form = format_results
+  , outcome = 'outcome.1'
+  , pval.column = 'adj.p-value.by_outcome'
+  , pval = 0.05
+  , size_node = 1.5
+  , size_name = 1.3
+  , end_arrow = 4)
+```
+
 
 ## Splitting the data
 
@@ -272,4 +285,4 @@ graph_outcome1_nosig.split <- graph_htmed(
   , split = 'split')
 graph_outcome1_nosig.split
 ```
-The same occurs when applying `graph_htmed()`; two graph are generated, depending on the condition studied.
+The same occurs when applying `graph_htmed()` ; two graph are generated, depending on the condition studied.
