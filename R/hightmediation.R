@@ -102,6 +102,12 @@ hightmed <- function(
     models.y <- data.models.subs[[column.modely]]
 
     if (!is.null(data.split)) {
+      if (!"character" %in% class(data.split)) {
+        stop("data.split is not a character")
+      }
+      if (!as.character(data.split) %in% colnames(data)) {
+        stop("data.split argument is not in data")
+      }
       tosplit <- data.models %>% dplyr::select(!!rlang::sym(data.split)) %>% pull(!!rlang::sym(data.split)) %>% unique()
       for (split in tosplit) {
         data.models.subs.spl <- data.models.subs %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)

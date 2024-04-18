@@ -2,7 +2,7 @@
 #' @importFrom stats setNames as.formula
 #' @importFrom parallel mclapply
 #' @importFrom rlang is_empty sym
-#' @importFrom dplyr group_by filter n pull mutate
+#' @importFrom dplyr group_by filter n pull mutate summarise
 NULL
 
 
@@ -117,20 +117,23 @@ generating_models <- function(
   }
 
   if (!is.null(data.split)) {
+    if (!"character" %in% class(data.split)) {
+      stop("data.split is not a character")
+    }
+    if (!as.character(data.split) %in% colnames(data)) {
+      stop("data.split argument is not in data")
+    }
     tosplit <- data %>% dplyr::select(!!rlang::sym(data.split)) %>% pull(!!rlang::sym(data.split)) %>% unique()
 
     results <- data.frame()
     for (split in tosplit) {
       data.subs <- df %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)
-      # subsetting models_df if data.split exists in this dataframe
-      if (data.split %in% colnames(data.models)) {
-        data.models.subs <- data.models %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)
-      }
-      else {
-        data.models.subs <- data.models
-      }
+      # subsetting data.models
+      data.models.subs <- data.models %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)
+
       # performing models
       if (!is.null(outcome)) {
+
         results.subs <- .more_outcomes(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models.subs, model_name=model_name, ncores=ncores, outcome=outcome)
         results.subs[[data.split]] <- split
         results <- rbind(results, results.subs)

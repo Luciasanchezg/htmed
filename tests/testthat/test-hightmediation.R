@@ -108,6 +108,28 @@ test_that(
                seed=1),
       regexp = "Wrong column names for treat, mediator or outcome"
     )
+    expect_error(
+      hightmed(data.models=medANDout_surv,
+               column.modelm = 'model.M',
+               column.modely = 'model.Y',
+               treat='treatments',
+               mediator='mediators',
+               outcome='outcome',
+               seed=1,
+               data.split='split.1'),
+      regexp = "data.split argument is not in data"
+    )
+    expect_error(
+      hightmed(data.models=medANDout_surv,
+               column.modelm = 'model.M',
+               column.modely = 'model.Y',
+               treat='treatments',
+               mediator='mediators',
+               outcome='outcome',
+               seed=1,
+               data.split=1),
+      regexp = "data.split is not a character"
+    )
   }
 )
 

@@ -229,6 +229,28 @@ test_that(
       ),
       regexp = "Some models are duplicated"
     )
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=df,
+        data.models=models_lm,
+        model.m = TRUE,
+        data.split='split.1'
+      ),
+      regexp = "data.split argument is not in data"
+    )
+    expect_error(
+      generating_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=df,
+        data.models=models_lm,
+        model.m = TRUE,
+        data.split=1,
+      ),
+      regexp = "data.split is not a character"
+    )
   }
 )
 
