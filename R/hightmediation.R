@@ -27,6 +27,8 @@ NULL
 #' @param seed integer to set a seed (for reproducibility). Default: NULL
 #' @param ... other arguments passed to \code{\link[mediation]{mediate}}
 #'   function.
+#' @param data.split a character indicating the column from data.models to split
+#'   the mediation analysis. Default: NULL.
 #'
 #' @return returns a list of lists with the results of mediation for each
 #'   combination of outcome, mediator and treatment variables.

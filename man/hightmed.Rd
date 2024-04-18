@@ -12,6 +12,7 @@ hightmed(
   mediator,
   outcome,
   seed = NULL,
+  data.split = NULL,
   ...
 )
 }
@@ -33,6 +34,9 @@ for outcomes.}
 \item{outcome}{a character. Name of the column that contains the outcomes.}
 
 \item{seed}{integer to set a seed (for reproducibility). Default: NULL}
+
+\item{data.split}{a character indicating the column from data.models to split
+the mediation analysis. Default: NULL.}
 
 \item{...}{other arguments passed to \code{\link[mediation]{mediate}}
 function.}

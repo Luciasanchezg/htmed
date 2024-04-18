@@ -27,15 +27,16 @@ NULL
 #'   models.
 #' @param data.models a dataframe with the column specified in column.models.
 #'   This will contain the formulas for the models as characters.
-#' @param model.m Default: TRUE. A boolean for choosing if we are going to
-#'   perform the fitted models for mediator (TRUE) or outcome (FALSE). Default:
-#'   TRUE
+#' @param model.m a boolean for choosing if we are going to perform the fitted
+#'   models for mediator (TRUE) or outcome (FALSE). Default: TRUE
 #' @param outcome a string. This will refer to the name of the column that
 #'   contains the outcome. Run in the default mode, the function understands
 #'   that all analyses share the same outcome. Default: NULL.
 #' @param ... other arguments that models will need. Some functions, as
 #'   \code{\link[stats]{glm}}, requires additional arguments, such as family,
 #'   that can be specified here.
+#' @param data.split a character indicating the column from data to split the
+#'   statistical analysis. Default: NULL.
 #'
 #' @return returns a dataframe with a column, named model.M or model.Y,
 #'   depending on the fitted models performed

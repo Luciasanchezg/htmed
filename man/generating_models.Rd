@@ -11,6 +11,7 @@ generating_models(
   data.models,
   model.m = TRUE,
   outcome = NULL,
+  data.split = NULL,
   ...
 )
 }
@@ -28,13 +29,15 @@ models.}
 \item{data.models}{a dataframe with the column specified in column.models.
 This will contain the formulas for the models as characters.}
 
-\item{model.m}{Default: TRUE. A boolean for choosing if we are going to
-perform the fitted models for mediator (TRUE) or outcome (FALSE). Default:
-TRUE}
+\item{model.m}{a boolean for choosing if we are going to perform the fitted
+models for mediator (TRUE) or outcome (FALSE). Default: TRUE}
 
 \item{outcome}{a string. This will refer to the name of the column that
 contains the outcome. Run in the default mode, the function understands
 that all analyses share the same outcome. Default: NULL.}
+
+\item{data.split}{a character indicating the column from data to split the
+statistical analysis. Default: NULL.}
 
 \item{...}{other arguments that models will need. Some functions, as
 \code{\link[stats]{glm}}, requires additional arguments, such as family,

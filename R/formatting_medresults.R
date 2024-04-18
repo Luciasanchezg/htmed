@@ -26,6 +26,8 @@ NULL
 #'   of this list will contain the different outcomes that have been analised.
 #'   The second level, will contain the mediate objects with the analyses
 #'   information.
+#' @param split a boolean. This argument indicate if we are dealing with
+#'   splitted data. Default: FALSE.
 #'
 #' @return lists of lists with the summary of the mediate analyses and the
 #'   adjusted p-values.

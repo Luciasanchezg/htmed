@@ -13,18 +13,21 @@ graph_htmed(
   acme = "Estimate_ACME_(average)",
   treatment = "treatment",
   mediator = "mediator",
-  split = NULL
+  split = NULL,
+  size_node = 1,
+  size_name = 1,
+  end_arrow = 1
 )
 }
 \arguments{
 \item{mediation.form}{lists of lists with the summary of the mediation
-analyses}
+analyses.}
 
 \item{outcome}{a character indicating the name of the outcome the user wants
-to visualice}
+to visualice.}
 
 \item{pval.column}{a character with the name of the column that contains the
-p-values. Default: NULL}
+p-values. Default: NULL.}
 
 \item{pval}{a number establishing the threshold for the \code{pval.column}}
 
@@ -35,17 +38,26 @@ information. Default: Estimate_Prop.\emph{Mediated}(average).}
 Default: Estimate_ACME_(average).}
 
 \item{treatment}{a character with the name of the column containing the
-treatment information. Default: treatment}
+treatment information. Default: treatment.}
 
 \item{mediator}{a character with the name of the column containing the
 mediator information. Default: mediator.}
 
 \item{split}{a character indicating the name of the column used for the
-split. Default: NULL}
+split. Default: NULL.}
+
+\item{size_node}{a number indicating the factor to set the size of the nodes.
+Default: 1.}
+
+\item{size_name}{a number indicating the factor to set the size of the node
+names. Default: 1.}
+
+\item{end_arrow}{a number indicating the factor to set the arrow. Default: 1.}
 }
 \value{
-returns a graph with an inner circle (treatments) and an outer circle (mediators).
-The width of the edges will indicate the proportion of mediation. The color of the edges refers to the estimator of mediation.
+returns a graph with an inner circle (treatments) and an outer circle
+(mediators). The width of the edges will indicate the proportion of
+mediation. The color of the edges refers to the estimator of mediation.
 }
 \description{
 \code{graph_htmed()} enables to visualize the results of the causal
@@ -56,6 +68,6 @@ that contains this information and the threshold of significance. If not,
 the scatterplot will display all results, without taking into account the
 significance reported.
 
-In case split argument is provided, as many graphs as different
-levels in the split column will be generated.
+In case split argument is provided, as many graphs as different levels in
+the split column will be generated.
 }

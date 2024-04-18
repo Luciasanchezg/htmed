@@ -4,7 +4,7 @@
 \alias{formatting_med}
 \title{Formatting results from causal mediation analysis}
 \usage{
-formatting_med(mediation.list)
+formatting_med(mediation.list, split = FALSE)
 }
 \arguments{
 \item{mediation.list}{list of lists with as many sublists as different
@@ -12,6 +12,9 @@ outcomes has been tested in the causal mediation analysis. The first level
 of this list will contain the different outcomes that have been analised.
 The second level, will contain the mediate objects with the analyses
 information.}
+
+\item{split}{a boolean. This argument indicate if we are dealing with
+splitted data. Default: FALSE.}
 }
 \value{
 lists of lists with the summary of the mediate analyses and the
