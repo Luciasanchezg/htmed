@@ -216,7 +216,7 @@ graph_htmed <- function(
         coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
         lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
-        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes)
+        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=i, size_node=size_node, size_name=size_name, end_arrow=end_arrow)
       }
       return(pList)
     }
@@ -242,7 +242,7 @@ graph_htmed <- function(
       coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
       lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
-      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes, size_node=size_node, size_name=size_name, end_arrow=end_arrow))
+      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=outcome, size_node=size_node, size_name=size_name, end_arrow=end_arrow))
     }
   }
 }
@@ -387,6 +387,7 @@ graph_htmed <- function(
 .graph_ggraph <- function(
     layout_graph,
     n.nodes,
+    text,
     size_node = 1,
     size_name = 1,
     end_arrow = 1
@@ -426,5 +427,6 @@ graph_htmed <- function(
       repel = FALSE,
       size = (ifelse(n.nodes < 30, 2 * size_name, 1.5+30/n.nodes * size_name)),
     ) +
-    ggplot2::theme(panel.background = element_rect(fill = 'white', colour = 'transparent'))
+    ggplot2::theme(panel.background = element_rect(fill = 'white', colour = 'transparent')) +
+    ggtitle(paste("Results for:", text))
 }
