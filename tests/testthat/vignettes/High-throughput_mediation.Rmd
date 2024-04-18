@@ -14,14 +14,18 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE}
 library(hightmed)
 library(survival)
+library(dplyr) #
+library(ggraph) #
 ```
 
-
 In this tutorial, we will use all the functions available in `hightmed` package to illustrate an example of how high-throughput mediation analysis could be performed.
-To do so, we will make use of a dataframe that contains information of 98 mice that have died between week 26 and week 138 (this information is stored in a column called `age_death`). The dataframe also contains several columns indicating the sex of the mice (`gender`), and the measures of different treatments and mediators collected in a continuous form. There is an additional column (`HF`), that differentiates between mice that have died as a result of heart failure or not, 1 or 0, respectively.
+
+## Data
+
+To do so, we will make use of a dataframe that contains information of 98 mice that have died between week 26 and week 138 (this information is stored in a column called `age_death`). The dataframe also contains several columns indicating the sex of the mice (`sex`), and the measures of different treatments and mediators collected in a continuous form. There is an additional column (`HF`), that differentiates between mice that have died as a result of heart failure or not, 1 or 0, respectively.
 
 ```{r load_df}
 data("df", package = "hightmed")
@@ -29,20 +33,38 @@ data("df", package = "hightmed")
 
 With this data, we hypothesize that some treatments could be responsible of the heart failure observed in the mice, and that some mediators could explain the underlying mechanism of the relationship between the treatment and heart failure. 
 
-Therefore, we are interested in testing the association between each treatment and heart failure, trought each mediator. The `models_surv` dataframe contains the `model.M` and `model.Y` formulas needed for each mediation analysis.
+Therefore, we are interested in testing the association between each treatment and heart failure, through each mediator. In order to perform this mediation analyses, we first need to compute the fitted models for mediators and outcomes, respectively, something that can be done with `generatting_models()`. However, before applying this function, we need to generate a new dataframe in which we will specify what combination of treatment, mediator and outcome we want to test. The dataframe (called `models` in this example), will be composed of as many rows as different analyses we want to perform and five different columns:
+
+* outcome (characters): it contains the different outcomes that we are interested in predict. In this example we will work with just one outcome: heart failure.
+* treatment (characters): column with the different treatments to test. 
+* mediator (characters): column with the different mediators to test.
+* model.m.formula (characters): this column will inform about the formula that needs to be apply to compute the fitted models for mediator.
+* model.y.formula (characters): similar to model.m.formula but with the formulas for the fitted models for outcome.
 
 ```{r load_models}
-data("models_surv", package = "hightmed")
+# data("models_surv", package = "hightmed")
+outcome <- 'outcome.1'
+treatment <- paste('treatment', c(1, 2, 3, 4), sep='.')
+mediator <- paste('mediator', c(1, 2, 3, 4), sep='.')
+    
+models <- expand.grid(outcome = outcome, treatment = treatment, mediator = mediator) %>%
+  mutate(model.m.formula = paste(mediator, '~', treatment)) %>%
+  mutate(model.y.formula = paste(outcome, '~', mediator, '+', treatment))
 ```
 
-Using the `generating_models()` function, we will generate the fitted models for the mediator and the outcome, for each group of mediator, treatment and outcome that we want to analyse. This function can be executed iteratively to generate both groups of fitted models. 
-```{r generatting_models, message=FALSE}
+## Simple usage
+### Generatting models for mediators and outcomes
+
+After generating `models`, we have all the necessary to apply the `generating_models()` function. This function will allow us to generate the fitted models for mediators and outcomes, for each combination of mediator, treatment and outcome, in an iterative manner. 
+`generating_models()` contains 6 arguments, being mandatory 4 of them: the dataframe with the values (`data`), the dataframe with the models to perform (`data.models`), the name of the column that contains the model formulas in `data.models` (`column.models`) and the statistical analysis we are interested in applying over the data (`model.type`). There are other 3 optional arguments: `model.m` indicates if we are computing the fitted models for mediators (TRUE) or for outcomes (FALSE), and `outcome` will refer to the column from the `data.models` object that contains the information of the outcomes. Although this last argument is optional and does not need to be specified if we have just one outcome, it is highly recommended if you are dealing with more than one dependent variables.
+The `data.split()` argument will be explained later.
+```{r generatting_models-1, message=FALSE}
 # fitted models for the mediator
 medANDtreat <- generating_models(
     column.models='model.m.formula'
   , model.type=lm
   , data=df
-  , data.models=models_surv
+  , data.models=models
   , model.m = TRUE
   ) 
 
@@ -54,37 +76,80 @@ medANDtreat <- generating_models(
   , data.models=medANDtreat
   , model.m = FALSE
   ) 
-
 ```
-The new dataframe will contain the same information than the `models_surv` one, but with two additional columns: the fitted models for the mediators and treatments, respectively. 
+The new dataframe will contain the same information than `models`, but with two additional columns:
 
-To apply high-troughput mediation, we execute the `hightmed()` function over this data. The output of this function will be a list of lists, with as many elements as different outcomes are present in the data. Each sublist will contain the results of the mediation analysis as mediate objects. 
-```{r applying_htmed, message=FALSE}
+* model.M: fitted models for mediators
+* model.Y: fitted models for outcomes
+
+### High-throughput mediation analysis
+
+To apply high-throughput mediation, we execute the `hightmed()` function over this data. From this point, we will just work with the dataframe generated in the previous step `medANDtreat`.
+hightmed() requires the following arguments:
+
+* data.models (dataframe): object with the fitted models for mediators and outcomes.
+* column.modelm and column.modely (characters): these arguments refer to the columns from `data.models` that contain the fitted models for mediator and outcomes, respectively.
+* treat, mediator and outcome (characters): these three arguments refer to the columns from `data.models` with the treatment, mediator and outcome information, respectively.
+* data.split (characters): will be explained later.
+
+There is an additional argument `seed` that can be introduced to ensure reproducibility of results.
+```{r applying_htmed-1, message=FALSE}
 med_results <- hightmed(
-    sims=1000
-  , data.models=medANDtreat
+    data.models=medANDtreat
   , column.modelm = 'model.M'
   , column.modely = 'model.Y'
-  , treat='treatments'
-  , mediator='mediators'
+  , treat='treatment'
+  , mediator='mediator'
   , outcome='outcome'
-  , seed=1
   )
-
-paste('Class of the mediation analysis results:', unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)}))))
 ```
 
-As we can see in the previous slide, `hightmed()` generates objects of class mediate. We need to transform this data to simplify it and make it more user-friendly for the visualizations that will be performed later. `formatting_med()` will generate a dataframe with the essential columns needed for the visualizations. This function will also compute the adjusted p-value over the analysis performed for each outcome and return them to an additional column.
-```{r formatting_data}
+```{r applying_htmed-2}
+# med_results %>% View(.)
+
+# Class of the mediation analysis results:
+unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)})))
+```
+`hightmed()` will generate a list of lists in which the first level will be the different outcomes tested (one in this example), and the second level, the mediation analyses performed.
+
+```{r applying_htmed-3}
+# Outcomes tested
+names(med_results)
+
+# Analyses performed for outcome.1
+names(med_results$outcome.1)
+```
+
+### Formatting the mediation results
+
+If we explore the results, we will see that the output is in some way difficult to understand.
+```{r formatting_data-1}
+# med_results$outcome.1$`mediator.1 ~ treatment.1` %>% View(.)
+```
+
+We need to transform this data to simplify and make it more user-friendly for the visualizations that will be performed later. Using `formatting_med()` with just `med_results` as input, we will generate a dataframe with the essential columns needed for the visualizations. 
+
+This function also computes two different kinds of adjusted p-value: adj.p-value.by_outcome and adj.p-value.all. The different between both is that while the first one adjust by each of the outcomes, the second adjusted p-value will take into account all the analyses from all the outcomes. The usage of one or the other will depend on the question that the investigator wants to answer.
+
+```{r formatting_data-2}
 # formatting data
 format_results <- formatting_med(med_results)
 ```
 
-We can create a scatterplot for each outcome with the `visual_htmed()` function. This will allow us to represent the relationship between the treatments and mediators, being the size of the dot proportional to the proportion of mediation, and the color, the estimation of mediation.
+### Visualization
+
+Finally, we will be interested in visualise our results. The package has two available functions for this purposse.
+
+We can create a scatterplot for each outcome with the `visual_htmed()` function. Run in the default model, just with the mandatory arguments, we will need to specify:
+
+* mediation_form (lists of lists): the object that contain the results.
+* outcome (characters): the outcome the user is interested in visualising.
+
 ```{r visualizing-1}
 visual_outcome1_nosig <- visual_htmed(mediation.form = format_results, outcome = 'outcome.1')
 visual_outcome1_nosig
 ```
+This scatterplot will represents, for outcome.1, the relationship between the treatments and mediators, being the size of the dot proportional to the proportion of mediation, and the color, the estimation of mediation.
 
 Another visualization can be done with `graph_htmed()` function. In the default mode of this function, the graph will display the treatments as the internal nodes, and the mediator as the external ones. Similar to what `visual_htmed()` does, the width of the edges is proportional to the proportion of mediation, and the color, to the estimation of mediation.
 ```{r visualizing-2}
@@ -92,8 +157,9 @@ graph_outcome1_nosig <- graph_htmed(mediation.form = format_results, outcome = '
 graph_outcome1_nosig
 ```
 
+You might have notice that we have not filtered out any mediation analyses in the representation, which means that all results, independently of the level of significance, are visualized. This is what occurs by default in both `visual_htmed()` and `graph_htmed()` functions.
 
-We can also restrict our results, to display only significant results. As `formatting_med()` computed the adjusted p-value, we can choose only significant p-values based on it.
+Nevertheless, you can filter the data by specifying the level of significance (`pval`) and the column to apply it (`pval.column`). In the following chunks, we will restrict our representation to mediation analyses with an adjusted p-value <= 0.05.
 ```{r visualizing-3}
 visual_outcome1_adj0.05 <- visual_htmed(
   mediation.form = format_results
@@ -113,37 +179,110 @@ graph_outcome1_adj0.05 <- graph_htmed(
 graph_outcome1_adj0.05
 ```
 
-Now, imagine that we are interested in displaying the results in a slightly different way: as mediators 2-4 are somehow related, we want to visualize the analysis in which these mediators are involved separated from the analyses performed with mediator.1. This can be done just by adding an additional column to the `format_results` dataframe, indicating how to group the data.
-```{r adding_split}
-format_results$outcome.1 <- format_results$outcome.1 %>%
-  mutate(clust = case_when(mediator == 'mediator.1' ~ 'mediator.1',
-                           mediator != 'mediator.1' ~ 'other_med'))
-```
-
+Additionally, `grapg_htmed()` allows you to custom some visualization parameters such as the size of the node, the size of the node names and the end of the arrows, as it will be shown in the next chunk.
 ```{r visualizing-5}
-visual_outcome1_split <- visual_htmed(
-  mediation.form = format_results
+graph_htmed(
+    mediation.form = format_results
   , outcome = 'outcome.1'
-  , split = 'clust')
-visual_outcome1_split
+  , pval.column = 'adj.p-value.by_outcome'
+  , pval = 0.05
+  , size_node = 1.5
+  , size_name = 1.3
+  , end_arrow = 4)
 ```
 
 
-```{r visualizing-6}
-graph_outcome1_split <- graph_htmed(
-  mediation.form = format_results
+## Splitting the data
+
+If we  explore again the original data, with the values for outcomes, treatments and mediators, we will see that there is an additional column not mentioned before (`split`). 
+```{r split}
+df %>% dplyr::select(split) %>% table(.)
+```
+
+This column contains two values that tells if the mice had Diabetes or High blood pressure.
+
+Under the previous hypothesis, we were perfoming the analyses with the mices as a whole. Nevertheless, we now think that the underlying mechanisms that leads to heart failure could differ depending on the condition observed in the animals. `hightmed` package allows to take this into account by some additional arguments present in the functions available.
+
+### Generating models for mediators and outcomes
+
+Therefore, we will execute `generating_models()` iteratively to generate both fitted outcomes for mediator and outcome, by adding `data.split` argument. This will indicate the column from `df` that has the information to split with.
+```{r generatting_models.split-1}
+# fitted models for the mediator
+medANDtreat.split <- generating_models(
+    column.models='model.m.formula'
+  , model.type=lm
+  , data=df
+  , data.models=models
+  , model.m = TRUE
+  , data.split = 'split'
+  ) 
+
+# fitted models for the outcome
+medANDtreat.split <- generating_models(
+    column.models='model.y.formula'
+  , model.type=survival::survreg
+  , data=df
+  , data.models=medANDtreat.split
+  , model.m = FALSE
+  , data.split = 'split'
+  ) 
+```
+
+Comparing this new dataframe (`medANDtreat.split`) with the one in which split was not applied (`medANDtreat`), we will notice that the first one doubles the dimension of the second one. This is because the fitted models have been performed independently for each condition.
+```{r generatting_models.split-2}
+dim(medANDtreat.split)
+
+dim(medANDtreat)
+```
+
+### High-throughput mediation analysis
+To perform the mediation analyses, we will add the same argument (`data.split`).
+```{r applying_htmed.split-1, message=FALSE}
+med_results.split <- hightmed(
+    data.models=medANDtreat.split
+  , column.modelm = 'model.M'
+  , column.modely = 'model.Y'
+  , treat='treatment'
+  , mediator='mediator'
+  , outcome='outcome'
+  , data.split = 'split'
+  )
+```
+
+This new object will have three levels of lists. The first will be the outcomes tested, whereas the second one will be the conditions used to split. The third will be the different mediation analyses.
+```{r applying_htmed.split-2}
+# Outcomes tested
+names(med_results.split)
+
+# Conditions
+names(med_results.split$outcome.1)
+
+# Analyses for Diabetes
+names(med_results.split$outcome.1$Diabetes)
+```
+
+### Formatting the mediation results
+When we are dealing with splitted data, we need to explicit it to the `formatting_med()` function to format the data right. This will be done by setting to TRUE the `split` argument.
+```{r formatting_data.split-1}
+format_results.split <- formatting_med(med_results.split, split = TRUE)
+```
+
+### Visualization
+```{r visualizing.split-1}
+visual_outcome1_nosig.split <- visual_htmed(
+    mediation.form = format_results.split
   , outcome = 'outcome.1'
-  , split = 'clust')
-
+  , split = 'split')
+visual_outcome1_nosig.split
 ```
 
-```{r}
-# Results for mediator.1
-graph_outcome1_split$mediator.1
+In this case, two scatterplots will be displayed, differenciating between the analyses from the two initial conditions (Diabetes and High Blood Pressure).
+```{r visualizing.split-2}
+graph_outcome1_nosig.split <- graph_htmed(
+    mediation.form = format_results.split
+  , outcome = 'outcome.1'
+  , split = 'split')
+graph_outcome1_nosig.split
 ```
 
-```{r}
-# Results for other_med
-graph_outcome1_split$other_med
-```
-
+The same occurs when applying `graph_htmed()` ; two graph are generated, depending on the condition studied.

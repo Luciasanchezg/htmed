@@ -238,7 +238,6 @@ dim(medANDtreat)
 
 ### High-throughput mediation analysis
 To perform the mediation analyses, we will add the same argument (`data.split`).
-
 ```{r applying_htmed.split-1, message=FALSE}
 med_results.split <- hightmed(
     data.models=medANDtreat.split
@@ -277,6 +276,7 @@ visual_outcome1_nosig.split <- visual_htmed(
   , split = 'split')
 visual_outcome1_nosig.split
 ```
+
 In this case, two scatterplots will be displayed, differenciating between the analyses from the two initial conditions (Diabetes and High Blood Pressure).
 ```{r visualizing.split-2}
 graph_outcome1_nosig.split <- graph_htmed(
@@ -285,4 +285,5 @@ graph_outcome1_nosig.split <- graph_htmed(
   , split = 'split')
 graph_outcome1_nosig.split
 ```
+
 The same occurs when applying `graph_htmed()` ; two graph are generated, depending on the condition studied.

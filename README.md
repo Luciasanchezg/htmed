@@ -430,6 +430,7 @@ visual_outcome1_nosig.split
 ```
 
 <img src="man/figures/README-visualizing.split-1-1.png" width="100%" />
+
 In this case, two scatterplots will be displayed, differenciating
 between the analyses from the two initial conditions (Diabetes and High
 Blood Pressure).
@@ -450,5 +451,6 @@ graph_outcome1_nosig.split
     #> $HighBloodPressure
 
 <img src="man/figures/README-visualizing.split-2-2.png" width="100%" />
+
 The same occurs when applying `graph_htmed()` ; two graph are generated,
 depending on the condition studied.
