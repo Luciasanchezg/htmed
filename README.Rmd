@@ -55,7 +55,8 @@ models <- expand.grid(outcome = outcome, treatment = treatment, mediator = media
 ## Generatting models for mediators and outcomes
 
 After generating `models`, we have all the necessary to apply the `generating_models()` function. This function will allow us to generate the fitted models for mediators and outcomes, for each combination of mediator, treatment and outcome, in an iterative manner. 
-`generating_models()` contains 6 arguments, being mandatory 4 of them: the dataframe with the values (`data`), the dataframe with the models to perform (`data.models`), the name of the column that contains the model formulas in `data.models` (`column.models`) and the statistical analysis we are interested in applying over the data (`model.type`). There are other 2 optional arguments: `model.m` indicates if we are computing the fitted models for mediators (TRUE) or for outcomes (FALSE), and `outcome` will refer to the column from the `data.models` object that contains the information of the outcomes. Although this last argument is optional and does not need to be specified if we have just one outcome, it is highly recommended if you are dealing with more than one dependent variables.
+`generating_models()` contains 6 arguments, being mandatory 4 of them: the dataframe with the values (`data`), the dataframe with the models to perform (`data.models`), the name of the column that contains the model formulas in `data.models` (`column.models`) and the statistical analysis we are interested in applying over the data (`model.type`). There are other 3 optional arguments: `model.m` indicates if we are computing the fitted models for mediators (TRUE) or for outcomes (FALSE), and `outcome` will refer to the column from the `data.models` object that contains the information of the outcomes. Although this last argument is optional and does not need to be specified if we have just one outcome, it is highly recommended if you are dealing with more than one dependent variables.
+The `data.split()` argument will be explained later.
 ```{r generatting_models, message=FALSE}
 # fitted models for the mediator
 medANDtreat <- generating_models(
@@ -76,6 +77,7 @@ medANDtreat <- generating_models(
   ) 
 ```
 The new dataframe will contain the same information than `models`, but with two additional columns:
+
 * model.M: fitted models for mediators
 * model.Y: fitted models for outcomes
 

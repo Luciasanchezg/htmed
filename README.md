@@ -74,13 +74,13 @@ the dataframe with the values (`data`), the dataframe with the models to
 perform (`data.models`), the name of the column that contains the model
 formulas in `data.models` (`column.models`) and the statistical analysis
 we are interested in applying over the data (`model.type`). There are
-other 2 optional arguments: `model.m` indicates if we are computing the
+other 3 optional arguments: `model.m` indicates if we are computing the
 fitted models for mediators (TRUE) or for outcomes (FALSE), and
 `outcome` will refer to the column from the `data.models` object that
 contains the information of the outcomes. Although this last argument is
 optional and does not need to be specified if we have just one outcome,
 it is highly recommended if you are dealing with more than one dependent
-variables.
+variables. The `data.split()` argument will be explained later.
 
 ``` r
 # fitted models for the mediator
@@ -103,8 +103,10 @@ medANDtreat <- generating_models(
 ```
 
 The new dataframe will contain the same information than `models`, but
-with two additional columns: \* model.M: fitted models for mediators \*
-model.Y: fitted models for outcomes
+with two additional columns:
+
+-   model.M: fitted models for mediators
+-   model.Y: fitted models for outcomes
 
 ## High-throughput mediation analysis
 
