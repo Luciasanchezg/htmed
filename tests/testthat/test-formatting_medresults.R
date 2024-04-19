@@ -39,14 +39,12 @@ test_that(
       formatting_med(mediation_surv$outcome.1),
       regexp = "mediation.list is not a list of lists"
     )
-
     results <- list()
     results[['outcome']] <- lapply(models_surv$model.m.formula, FUN = function(x) {lm(as.formula(x), data=df)})
     expect_error(
       formatting_med(results),
       regexp = "Some of the models introduced are not mediation models"
     )
-
     one_list <- list()
     results <- unlist(mediation_lm, recursive=FALSE)
     out <- 'results'
@@ -54,6 +52,14 @@ test_that(
     expect_error(
       formatting_med(one_list),
       regexp = "Are you introducing the same model more than one time?"
+    )
+    expect_error(
+      formatting_med(mediation_surv, split=TRUE),
+      regexp = "Using split=TRUE, the first level in the mediation.list should be the outcomes, the second, the conditions used to split and the third, the models"
+    )
+    expect_error(
+      formatting_med(mediation_surv, split='TRUE'),
+      regexp = "split argument only admits logical"
     )
   }
 )

@@ -105,7 +105,7 @@ hightmed <- function(
       if (!"character" %in% class(data.split)) {
         stop("data.split is not a character")
       }
-      if (!as.character(data.split) %in% colnames(data)) {
+      if (!as.character(data.split) %in% colnames(data.models.subs)) {
         stop("data.split argument is not in data")
       }
       tosplit <- data.models %>% dplyr::select(!!rlang::sym(data.split)) %>% pull(!!rlang::sym(data.split)) %>% unique()

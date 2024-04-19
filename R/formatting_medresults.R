@@ -39,11 +39,16 @@ formatting_med <- function(
     split = FALSE
 ) {
   ## TODO: no está contemplada la posibilidad de covariates
-
+  if (!"logical" %in% class(split)) {
+    stop("split argument only admits logical")
+  }
   if (split == FALSE) {
     filt_summary <- .formatting_med(mediation.list=mediation.list)
   }
   else {
+    if (purrr::pluck_depth(mediation.list) != 7) {
+      stop("Using split=TRUE, the first level in the mediation.list should be the outcomes, the second, the conditions used to split and the third, the models")
+    }
     filt_summary <- lapply(names(mediation.list),
                            FUN = function(subl) {
                              formatted.list <- .formatting_med(mediation.list=mediation.list[[subl]])
@@ -64,6 +69,7 @@ formatting_med <- function(
 .formatting_med <- function(
     mediation.list
     ) {
+
   if (!"list" %in% class(mediation.list)) {
     stop("mediation.list is not a list")
   }
