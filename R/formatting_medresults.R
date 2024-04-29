@@ -4,6 +4,7 @@
 #' @importFrom tidyr separate_wider_delim
 #' @importFrom stats p.adjust
 #' @importFrom tibble rownames_to_column
+#' @importFrom purrr pluck_depth
 NULL
 
 
@@ -16,7 +17,7 @@ NULL
 #' @description `formatting_med()` extracts some useful information from the
 #'   causal mediation analyses. This function also computes:
 #'
-#'   * Adjusted p-value computed for the models in the same level.
+#'   * Adjusted p-value computed for the models computed for one outcome.
 #'
 #'   * Adjusted p-value by all the analyses present object. In case there is
 #'   just one outcome, both adjusted p-values will be the same.

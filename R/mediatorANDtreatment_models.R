@@ -5,6 +5,35 @@
 #' @importFrom dplyr group_by filter n pull mutate summarise
 NULL
 
+################################################################################
+# Generation of dataframe with the models to perform
+################################################################################
+
+#' Generate the dataframe stablishing the fitted models for mediator and the
+#' fitted models for outcome that need to be perform
+#'
+#' @param outcome a vector with the outcomes
+#' @param mediator a vector with the mediators
+#' @param treatment a vector with the treatments
+#'
+#' @return It returns a dataframe with five columns. The first two columns will
+#'   include the outcomes, treatments and mediators tested, respectively. The
+#'   last two columns will indicate the fitted models for mediators and outcome
+#'   that need to be performed.
+#' @export
+#'
+data_models <- function(outcome, mediator, treatment) {
+
+  if (!is.vector(outcome)) { print('Please, provide a vector for the outcome') }
+  if (!is.vector(mediator)) { print('Please, provide a vector for the mediator') }
+  if (!is.vector(treatment)) { print('Please, provide a vector for the treatment') }
+
+  models_df <- expand.grid(outcome = outcome, treatment = treatment, mediator = mediator) %>%
+    mutate(model.m.formula = paste(mediator, '~', treatment)) %>%
+    mutate(model.y.formula = paste(outcome, '~', mediator, '+', treatment))
+  return(models_df)
+}
+
 
 ################################################################################
 # Generation of fitted models for the outcome and the mediator
@@ -127,7 +156,7 @@ generating_models <- function(
 
     results <- data.frame()
     for (split in tosplit) {
-      data.subs <- df %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)
+      data.subs <- data %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)
       # subsetting data.models
       data.models.subs <- data.models %>% dplyr::filter(!!rlang::sym(data.split) == .env$split)
 

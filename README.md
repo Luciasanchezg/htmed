@@ -56,15 +56,19 @@ analyses we want to perform and five different columns:
 -   model.y.formula (characters): similar to model.m.formula but with
     the formulas for the fitted models for outcome.
 
+As you can see, we will make use of `data_models()` to generate this
+dataframe. By default, this function makes all possible combinations of
+the supplied vectors outcome, treatment and mediator. If the user is
+interested in compute just some specific models, we recommend to build a
+dataframe following the five-column structure of `models`.
+
 ``` r
 # data("models_surv", package = "hightmed")
 outcome <- 'outcome.1'
 treatment <- paste('treatment', c(1, 2, 3, 4), sep='.')
 mediator <- paste('mediator', c(1, 2, 3, 4), sep='.')
     
-models <- expand.grid(outcome = outcome, treatment = treatment, mediator = mediator) %>%
-  mutate(model.m.formula = paste(mediator, '~', treatment)) %>%
-  mutate(model.y.formula = paste(outcome, '~', mediator, '+', treatment))
+models <- data_models(outcome = outcome, mediator = mediator, treatment = treatment)
 ```
 
 ## Simple usage
