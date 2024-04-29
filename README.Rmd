@@ -20,6 +20,7 @@ library(htmed)
 library(survival)
 library(dplyr) #
 library(ggraph) #
+
 ```
 
 In this tutorial, we will use all the functions available in `htmed` package to illustrate an example of how high-throughput mediation analysis could be performed.
@@ -279,12 +280,15 @@ visual_outcome1_nosig.split
 ```
 
 In this case, two scatterplots will be displayed, differenciating between the analyses from the two initial conditions (Diabetes and High Blood Pressure).
+
 ```{r visualizing.split-2}
 graph_outcome1_nosig.split <- graph_htmed(
     mediation.form = format_results.split
   , outcome = 'outcome.1'
+  , size_node = 0.65
   , split = 'split')
-graph_outcome1_nosig.split
-```
 
+library(patchwork)
+graph_outcome1_nosig.split$Diabetes + graph_outcome1_nosig.split$HighBloodPressure
+```
 The same occurs when applying `graph_htmed()` ; two graph are generated, depending on the condition studied.

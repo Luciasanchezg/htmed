@@ -443,18 +443,14 @@ Blood Pressure).
 graph_outcome1_nosig.split <- graph_htmed(
     mediation.form = format_results.split
   , outcome = 'outcome.1'
+  , size_node = 0.65
   , split = 'split')
 #> pval.column argument not provided. Results without filtering data will be displayed
-graph_outcome1_nosig.split
-#> $Diabetes
+
+library(patchwork)
+graph_outcome1_nosig.split$Diabetes + graph_outcome1_nosig.split$HighBloodPressure
 ```
 
 <img src="man/figures/README-visualizing.split-2-1.png" width="100%" />
-
-    #> 
-    #> $HighBloodPressure
-
-<img src="man/figures/README-visualizing.split-2-2.png" width="100%" />
-
 The same occurs when applying `graph_htmed()` ; two graph are generated,
 depending on the condition studied.
