@@ -13,14 +13,14 @@ data("df", package = "hightmed")
 ## Tests for generating the fitted models for the mediator or the outcome
 ## ----------------------------------------------------------------------------
 test_that(
-  desc = "checking if generating_models() computes models for the mediator",
+  desc = "checking if generate_models() computes models for the mediator",
   code = {
 
     # reading expected results
     file.tests <- "../testdata"
     load(file.path(file.tests, 'med_surv.RData'))
 
-    med <- generating_models(
+    med <- generate_models(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
@@ -35,7 +35,7 @@ test_that(
 
 
 test_that(
-  desc = "checking if generating_models() computes models for the outcome",
+  desc = "checking if generate_models() computes models for the outcome",
   code = {
     withr::local_package("survival")
 
@@ -44,7 +44,7 @@ test_that(
     load(file.path(file.tests, 'out_surv.RData'))
 
     # generating results
-    out <- generating_models(
+    out <- generate_models(
       column.models='model.y.formula',
       model.type=survreg,
       data=df,
@@ -61,7 +61,7 @@ test_that(
 ## Tests for generating the fitted models for the mediator and the outcome iteratively (with one or more outcomes)
 ## ----------------------------------------------------------------------------
 test_that(
-  desc = "checking if generating_models() can be called iterativelly to compute fitted models for treatment and mediator (for one outcome)",
+  desc = "checking if generate_models() can be called iterativelly to compute fitted models for treatment and mediator (for one outcome)",
   code = {
     withr::local_package("survival")
 
@@ -69,7 +69,7 @@ test_that(
     file.tests <- "../testdata"
     load(file.path(file.tests, 'medANDout_surv.RData'))
 
-    preprocess <- generating_models(
+    preprocess <- generate_models(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
@@ -78,7 +78,7 @@ test_that(
     ) %>%
       dplyr::arrange(model.m.formula)
 
-    preprocess <- generating_models(
+    preprocess <- generate_models(
       column.models='model.y.formula',
       model.type=survreg,
       data=df,
@@ -93,14 +93,14 @@ test_that(
 
 
 test_that(
-  desc = "checking if generating_models() can be called iterativelly to compute fitted models for treatment and mediator (for more than one outcome)",
+  desc = "checking if generate_models() can be called iterativelly to compute fitted models for treatment and mediator (for more than one outcome)",
   code = {
 
     # reading expected results
     file.tests <- "../testdata"
     load(file.path(file.tests, 'medANDout_lm.RData'))
 
-    preprocess <- generating_models(
+    preprocess <- generate_models(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
@@ -110,7 +110,7 @@ test_that(
     ) %>%
       dplyr::arrange(model.m.formula)
 
-    preprocess <- generating_models(
+    preprocess <- generate_models(
       column.models='model.y.formula',
       model.type=lm,
       data=df,
@@ -129,10 +129,10 @@ test_that(
 ## Checking for errors
 ## ----------------------------------------------------------------------------
 test_that(
-  desc = "Introducing arguments with the wrong class to generating_models()",
+  desc = "Introducing arguments with the wrong class to generate_models()",
   code = {
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type=lm,
         data=as.matrix(df),
@@ -142,7 +142,7 @@ test_that(
       regexp = "Your data or data.models are not stored in a DataFrame"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type=lm,
         data=models_surv,
@@ -152,7 +152,7 @@ test_that(
       regexp = "Your data or data.models are not stored in a DataFrame"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type='lm',
         data=models_surv,
@@ -162,7 +162,7 @@ test_that(
       regexp = "model.type is not a function"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models=lm,
         model.type=lm,
         data=models_surv,
@@ -172,7 +172,7 @@ test_that(
       regexp = "Please, provide the name of the corresponding column as character"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type=lm,
         data=models_surv,
@@ -186,10 +186,10 @@ test_that(
 
 
 test_that(
-  desc = "Catch errors related to wrong arguments passed to generating_models() with one outcome",
+  desc = "Catch errors related to wrong arguments passed to generate_models() with one outcome",
   code = {
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.x.formula',
         model.type=lm,
         data=df,
@@ -199,7 +199,7 @@ test_that(
       regexp = "Incorrect column name for the models"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.x.formula',
         model.type=lm,
         data=df,
@@ -210,7 +210,7 @@ test_that(
     )
     models_subset <- models_surv[1:4,]
     expect_error(
-      generating_models(
+      generate_models(
         column.models='mediators',
         model.type=lm,
         data=df,
@@ -220,7 +220,7 @@ test_that(
       regexp = "There are no right formulas in the columns selected"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
@@ -230,7 +230,7 @@ test_that(
       regexp = "Some models are duplicated"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
@@ -241,7 +241,7 @@ test_that(
       regexp = "data.split argument is not in data"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
@@ -256,10 +256,10 @@ test_that(
 
 
 test_that(
-  desc = "Catch errors related to wrong arguments passed to generating_models() with more than outcome",
+  desc = "Catch errors related to wrong arguments passed to generate_models() with more than outcome",
   code = {
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
@@ -270,7 +270,7 @@ test_that(
       regexp = "Please, provide the name of the outcome column as character"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
@@ -281,7 +281,7 @@ test_that(
       regexp = "Incorrect column name for the outcome"
     )
     expect_error(
-      generating_models(
+      generate_models(
         column.models='model.m.formula',
         model.type=lm,
         data=df,

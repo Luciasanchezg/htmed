@@ -71,7 +71,7 @@ data_models <- function(outcome, mediator, treatment) {
 #'   depending on the fitted models performed
 #' @export
 #'
-generating_models <- function(
+generate_models <- function(
     column.models,
     model.type,
     data,

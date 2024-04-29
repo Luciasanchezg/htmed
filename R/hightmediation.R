@@ -35,7 +35,7 @@ NULL
 #'
 #' @export
 #'
-hightmed <- function(
+htmed <- function(
     data.models,
     column.modelm,
     column.modely,

@@ -1,16 +1,16 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# hightmed
+# htmed
 
 ``` r
-library(hightmed)
+library(htmed)
 library(survival)
 library(dplyr) #
 library(ggraph) #
 ```
 
-In this tutorial, we will use all the functions available in `hightmed`
+In this tutorial, we will use all the functions available in `htmed`
 package to illustrate an example of how high-throughput mediation
 analysis could be performed.
 
@@ -26,7 +26,7 @@ that have died as a result of heart failure or not, 1 or 0,
 respectively.
 
 ``` r
-data("df", package = "hightmed")
+data("df", package = "htmed")
 ```
 
 With this data, we hypothesize that some treatments could be responsible
@@ -63,7 +63,7 @@ interested in compute just some specific models, we recommend to build a
 dataframe following the five-column structure of `models`.
 
 ``` r
-# data("models_surv", package = "hightmed")
+# data("models_surv", package = "htmed")
 outcome <- 'outcome.1'
 treatment <- paste('treatment', c(1, 2, 3, 4), sep='.')
 mediator <- paste('mediator', c(1, 2, 3, 4), sep='.')
@@ -76,11 +76,11 @@ models <- data_models(outcome = outcome, mediator = mediator, treatment = treatm
 ### Generatting models for mediators and outcomes
 
 After generating `models`, we have all the necessary to apply the
-`generating_models()` function. This function will allow us to generate
+`generate_models()` function. This function will allow us to generate
 the fitted models for mediators and outcomes, for each combination of
 mediator, treatment and outcome, in an iterative manner.
-`generating_models()` contains 6 arguments, being mandatory 4 of them:
-the dataframe with the values (`data`), the dataframe with the models to
+`generate_models()` contains 6 arguments, being mandatory 4 of them: the
+dataframe with the values (`data`), the dataframe with the models to
 perform (`data.models`), the name of the column that contains the model
 formulas in `data.models` (`column.models`) and the statistical analysis
 we are interested in applying over the data (`model.type`). There are
@@ -94,7 +94,7 @@ variables. The `data.split()` argument will be explained later.
 
 ``` r
 # fitted models for the mediator
-medANDtreat <- generating_models(
+medANDtreat <- generate_models(
     column.models='model.m.formula'
   , model.type=lm
   , data=df
@@ -103,7 +103,7 @@ medANDtreat <- generating_models(
   ) 
 
 # fitted models for the outcome
-medANDtreat <- generating_models(
+medANDtreat <- generate_models(
     column.models='model.y.formula'
   , model.type=survival::survreg
   , data=df
@@ -120,9 +120,9 @@ with two additional columns:
 
 ### High-throughput mediation analysis
 
-To apply high-throughput mediation, we execute the `hightmed()` function
+To apply high-throughput mediation, we execute the `htmed()` function
 over this data. From this point, we will just work with the dataframe
-generated in the previous step `medANDtreat`. hightmed() requires the
+generated in the previous step `medANDtreat`. `htmed()` requires the
 following arguments:
 
 -   data.models (dataframe): object with the fitted models for mediators
@@ -139,7 +139,7 @@ There is an additional argument `seed` that can be introduced to ensure
 reproducibility of results.
 
 ``` r
-med_results <- hightmed(
+med_results <- htmed(
     data.models=medANDtreat
   , column.modelm = 'model.M'
   , column.modely = 'model.Y'
@@ -157,8 +157,8 @@ unlist(unique(lapply(med_results$outcome.1, function(x) {class(x)})))
 #> [1] "mediate"
 ```
 
-`hightmed()` will generate a list of lists in which the first level will
-be the different outcomes tested (one in this example), and the second
+`htmed()` will generate a list of lists in which the first level will be
+the different outcomes tested (one in this example), and the second
 level, the mediation analyses performed.
 
 ``` r
@@ -189,7 +189,7 @@ difficult to understand.
 
 We need to transform this data to simplify and make it more
 user-friendly for the visualizations that will be performed later. Using
-`formatting_med()` with just `med_results` as input, we will generate a
+`format_med()` with just `med_results` as input, we will generate a
 dataframe with the essential columns needed for the visualizations.
 
 This function also computes two different kinds of adjusted p-value:
@@ -201,7 +201,7 @@ the investigator wants to answer.
 
 ``` r
 # formatting data
-format_results <- formatting_med(med_results)
+format_results <- format_med(med_results)
 ```
 
 ### Visualization
@@ -318,20 +318,20 @@ High blood pressure.
 Under the previous hypothesis, we were perfoming the analyses with the
 mices as a whole. Nevertheless, we now think that the underlying
 mechanisms that leads to heart failure could differ depending on the
-condition observed in the animals. `hightmed` package allows to take
-this into account by some additional arguments present in the functions
+condition observed in the animals. `htmed` package allows to take this
+into account by some additional arguments present in the functions
 available.
 
 ### Generating models for mediators and outcomes
 
-Therefore, we will execute `generating_models()` iteratively to generate
+Therefore, we will execute `generate_models()` iteratively to generate
 both fitted outcomes for mediator and outcome, by adding `data.split`
 argument. This will indicate the column from `df` that has the
 information to split with.
 
 ``` r
 # fitted models for the mediator
-medANDtreat.split <- generating_models(
+medANDtreat.split <- generate_models(
     column.models='model.m.formula'
   , model.type=lm
   , data=df
@@ -344,7 +344,7 @@ medANDtreat.split <- generating_models(
 #> Performing fitted models for mediator
 
 # fitted models for the outcome
-medANDtreat.split <- generating_models(
+medANDtreat.split <- generate_models(
     column.models='model.y.formula'
   , model.type=survival::survreg
   , data=df
@@ -376,7 +376,7 @@ To perform the mediation analyses, we will add the same argument
 (`data.split`).
 
 ``` r
-med_results.split <- hightmed(
+med_results.split <- htmed(
     data.models=medANDtreat.split
   , column.modelm = 'model.M'
   , column.modely = 'model.Y'
@@ -415,11 +415,11 @@ names(med_results.split$outcome.1$Diabetes)
 ### Formatting the mediation results
 
 When we are dealing with splitted data, we need to explicit it to the
-`formatting_med()` function to format the data right. This will be done
-by setting to TRUE the `split` argument.
+`format_med()` function to format the data right. This will be done by
+setting to TRUE the `split` argument.
 
 ``` r
-format_results.split <- formatting_med(med_results.split, split = TRUE)
+format_results.split <- format_med(med_results.split, split = TRUE)
 ```
 
 ### Visualization

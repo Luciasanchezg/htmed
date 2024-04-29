@@ -14,7 +14,7 @@ NULL
 
 #' Formatting results from causal mediation analysis
 #'
-#' @description `formatting_med()` extracts some useful information from the
+#' @description `format_med()` extracts some useful information from the
 #'   causal mediation analyses. This function also computes:
 #'
 #'   * Adjusted p-value computed for the models computed for one outcome.
@@ -35,7 +35,7 @@ NULL
 #' @export
 #'
 #'
-formatting_med <- function(
+format_med <- function(
     mediation.list,
     split = FALSE
 ) {
@@ -44,7 +44,7 @@ formatting_med <- function(
     stop("split argument only admits logical")
   }
   if (split == FALSE) {
-    filt_summary <- .formatting_med(mediation.list=mediation.list)
+    filt_summary <- .format_med(mediation.list=mediation.list)
   }
   else {
     if (purrr::pluck_depth(mediation.list) != 7) {
@@ -52,7 +52,7 @@ formatting_med <- function(
     }
     filt_summary <- lapply(names(mediation.list),
                            FUN = function(subl) {
-                             formatted.list <- .formatting_med(mediation.list=mediation.list[[subl]])
+                             formatted.list <- .format_med(mediation.list=mediation.list[[subl]])
                              formatted.df <- lapply(names(formatted.list),
                                                     FUN = function(subl.subl) {
                                                       formatted.list[[subl.subl]] %>% mutate(split = subl.subl)
@@ -67,7 +67,7 @@ formatting_med <- function(
 }
 
 
-.formatting_med <- function(
+.format_med <- function(
     mediation.list
     ) {
 
