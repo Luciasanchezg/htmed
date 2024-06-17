@@ -24,7 +24,7 @@ adjusted p-values.
 \code{format_med()} extracts some useful information from the
 causal mediation analyses. This function also computes:
 \itemize{
-\item Adjusted p-value computed for the models computed for one outcome.
+\item Adjusted p-value computed for the models performed for one outcome.
 \item Adjusted p-value by all the analyses present object. In case there is
 just one outcome, both adjusted p-values will be the same.
 }

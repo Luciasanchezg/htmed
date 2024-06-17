@@ -40,7 +40,7 @@ NULL
 #'   treatment information. Default: treatment
 #' @param mediator a character with the name of the column containing the
 #'   mediator information. Default: mediator.
-#' @param split a character indicating the name of the column used for the
+#' @param data.split a character indicating the name of the column used for the
 #'   split. Default: NULL
 #'
 #' @return returns a scatterplot with the treatments in the X axis and the mediators in the Y axis.
@@ -56,23 +56,23 @@ visual_htmed <- function(
     acme = 'Estimate_ACME_(average)',
     treatment = 'treatment',
     mediator = 'mediator',
-    split = NULL
+    data.split = NULL
     ) {
   checks <- .checks_visual(mediation.form=mediation.form, outcome=outcome,
                            pval.column = pval.column, pval = pval,
                            prop.med = prop.med, acme = acme,
                            treatment = treatment, mediator = mediator,
-                           split = split)
+                           data.split = data.split)
 
   if (checks) {
     mediation.form[[outcome]] <- .filtering_pval(mediation.form = mediation.form, outcome = outcome,
                             pval.column = pval.column, pval = pval,
                             prop.med = prop.med, acme = acme)
 
-    if ( !is.null(split) ) {
+    if ( !is.null(data.split) ) {
       # generating a new column called split
       mediation.form[[outcome]]  <- mediation.form[[outcome]] %>%
-        dplyr::mutate(split := !!rlang::sym(split))
+        dplyr::mutate(split := !!rlang::sym(data.split))
 
       p <- ggplot(data=mediation.form[[outcome]]) +
         geom_point(aes(x=!!rlang::sym(treatment), y = factor(!!rlang::sym(mediator)), size=!!rlang::sym(prop.med), color=!!rlang::sym(acme))) +
@@ -126,13 +126,14 @@ visual_htmed <- function(
 #'   treatment information. Default: treatment.
 #' @param mediator a character with the name of the column containing the
 #'   mediator information. Default: mediator.
-#' @param split a character indicating the name of the column used for the
+#' @param data.split a character indicating the name of the column used for the
 #'   split. Default: NULL.
 #' @param size_node a number indicating the factor to set the size of the nodes.
 #'   Default: 1.
 #' @param size_name a number indicating the factor to set the size of the node
 #'   names. Default: 1.
-#' @param end_arrow a number indicating the factor to set the arrow. Default: 1.
+#' @param end_arrow a number indicating the factor to set the width of the
+#'   arrow. Default: 1.
 #'
 #' @return returns a graph with an inner circle (treatments) and an outer circle
 #'   (mediators). The width of the edges will indicate the proportion of
@@ -148,7 +149,7 @@ graph_htmed <- function(
     acme = 'Estimate_ACME_(average)',
     treatment = 'treatment',
     mediator = 'mediator',
-    split = NULL,
+    data.split = NULL,
     size_node = 1,
     size_name = 1,
     end_arrow = 1
@@ -157,7 +158,7 @@ graph_htmed <- function(
                            pval.column = pval.column, pval = pval,
                            prop.med = prop.med, acme = acme,
                            treatment = treatment, mediator = mediator,
-                           split = split)
+                           data.split = data.split)
 
   if (checks) {
     if (!"numeric" %in% class(size_node)) {
@@ -196,13 +197,13 @@ graph_htmed <- function(
     # edges
     relations <- stats::na.omit(tabl) %>%
       rename("from" = treatment, 'to' = mediator, 'Prop.med' = prop.med, 'Est.med' = acme) %>%
-      dplyr::select(c('from', 'to', 'Prop.med', 'Est.med', split))
+      dplyr::select(c('from', 'to', 'Prop.med', 'Est.med', data.split))
 
-    if ( !is.null(split) ) {
+    if ( !is.null(data.split) ) {
       pList <- list()
 
-      for (i in levels(factor(relations[[split]]))) {
-        relations.i <- relations %>% dplyr::filter(!!rlang::sym(split) == .env$i)
+      for (i in levels(factor(relations[[data.split]]))) {
+        relations.i <- relations %>% dplyr::filter(!!rlang::sym(data.split) == .env$i)
 
         nodes.i <- nodes %>%
           dplyr::mutate(vertex.color = case_when(name %in% relations.i$from ~ '#FDA855',
@@ -257,7 +258,7 @@ graph_htmed <- function(
     acme,
     treatment,
     mediator,
-    split
+    data.split
     ) {
   if (!"list" %in% class(mediation.form)) {
     stop("mediation.form is not a list")
@@ -318,14 +319,14 @@ graph_htmed <- function(
     }
   }
 
-  if (!is.null(split)) {
+  if (!is.null(data.split)) {
 
-    if (!"character" %in% class(split)) {
-      stop("split is not a character")
+    if (!"character" %in% class(data.split)) {
+      stop("data.split is not a character")
     }
 
-    if ( !split %in% colnames(mediation.form[[outcome]]) ) {
-      stop("split is not in the dataset")
+    if ( !data.split %in% colnames(mediation.form[[outcome]]) ) {
+      stop("data.split is not in the dataset")
     }
   }
 

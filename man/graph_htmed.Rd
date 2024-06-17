@@ -13,7 +13,7 @@ graph_htmed(
   acme = "Estimate_ACME_(average)",
   treatment = "treatment",
   mediator = "mediator",
-  split = NULL,
+  data.split = NULL,
   size_node = 1,
   size_name = 1,
   end_arrow = 1
@@ -43,7 +43,7 @@ treatment information. Default: treatment.}
 \item{mediator}{a character with the name of the column containing the
 mediator information. Default: mediator.}
 
-\item{split}{a character indicating the name of the column used for the
+\item{data.split}{a character indicating the name of the column used for the
 split. Default: NULL.}
 
 \item{size_node}{a number indicating the factor to set the size of the nodes.
@@ -52,7 +52,8 @@ Default: 1.}
 \item{size_name}{a number indicating the factor to set the size of the node
 names. Default: 1.}
 
-\item{end_arrow}{a number indicating the factor to set the arrow. Default: 1.}
+\item{end_arrow}{a number indicating the factor to set the width of the
+arrow. Default: 1.}
 }
 \value{
 returns a graph with an inner circle (treatments) and an outer circle

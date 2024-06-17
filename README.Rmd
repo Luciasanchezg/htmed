@@ -275,7 +275,7 @@ format_results.split <- format_med(med_results.split, split = TRUE)
 visual_outcome1_nosig.split <- visual_htmed(
     mediation.form = format_results.split
   , outcome = 'outcome.1'
-  , split = 'split')
+  , data.split = 'split')
 visual_outcome1_nosig.split
 ```
 
@@ -286,7 +286,7 @@ graph_outcome1_nosig.split <- graph_htmed(
     mediation.form = format_results.split
   , outcome = 'outcome.1'
   , size_node = 0.65
-  , split = 'split')
+  , data.split = 'split')
 
 library(patchwork)
 graph_outcome1_nosig.split$Diabetes + graph_outcome1_nosig.split$HighBloodPressure

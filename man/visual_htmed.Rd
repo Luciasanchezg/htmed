@@ -13,7 +13,7 @@ visual_htmed(
   acme = "Estimate_ACME_(average)",
   treatment = "treatment",
   mediator = "mediator",
-  split = NULL
+  data.split = NULL
 )
 }
 \arguments{
@@ -40,7 +40,7 @@ treatment information. Default: treatment}
 \item{mediator}{a character with the name of the column containing the
 mediator information. Default: mediator.}
 
-\item{split}{a character indicating the name of the column used for the
+\item{data.split}{a character indicating the name of the column used for the
 split. Default: NULL}
 }
 \value{
