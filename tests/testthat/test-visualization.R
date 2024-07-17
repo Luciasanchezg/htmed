@@ -5,7 +5,7 @@
 #### Data
 file.tests <- "../testdata"
 load(file.path(file.tests, 'format_surv.RData'))
-# load(file.path(file.tests, 'format_lm.RData'))
+
 
 ## ----------------------------------------------------------------------------
 ## Tests for visualizing results
@@ -83,7 +83,7 @@ test_that(
       regexp = "acme is not a character"
     )
     expect_error(
-      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', split = lm),
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', data.split = lm),
       regexp = "split is not a character"
     )
   }
@@ -123,7 +123,7 @@ test_that(
       regexp = "Wrong columns for proportion of mediation and/or ACME in the outcome chosen"
     )
     expect_error(
-      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', split = 'outcome.1'),
+      visual_htmed(mediation.form = format_surv, outcome = 'outcome.1', data.split = 'outcome.1'),
       regexp = "split is not in the dataset"
     )
   }

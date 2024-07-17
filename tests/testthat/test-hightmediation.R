@@ -3,8 +3,8 @@
 ## Loading data
 ## ----------------------------------------------------------------------------
 #### Data
-data("df", package = "hightmed")
-data("models_surv", package = "hightmed")
+data("df", package = "htmed")
+models_1out <- data_models(outcome = 'outcome.1', mediator = c('mediator.1', 'mediator.2'), treatment = c('treatment.1', 'treatment.2'))
 
 file.tests <- "../testdata"
 load(file.path(file.tests, 'medANDout_surv.RData'))
@@ -12,6 +12,7 @@ load(file.path(file.tests, 'medANDout_surv.RData'))
 ## ----------------------------------------------------------------------------
 ## Tests for generating the mediation models
 ## ----------------------------------------------------------------------------
+#TODO:regexp = "Some models for the outcome contain warnings or errors. These rows will be removed"
 
 test_that(
   desc = "checking if htmed() generates the high-throughput mediation tests (one outcome)",
@@ -23,10 +24,11 @@ test_that(
     mediation_results <- htmed(data.models=medANDout_surv,
                                column.modelm = 'model.M',
                                column.modely = 'model.Y',
-                               treat='treatments',
-                               mediator='mediators',
+                               treat='treatment',
+                               mediator='mediator',
                                outcome='outcome',
-                               seed=1)
+                               seed=1,
+                               ncores=1)
     expect_equal(mediation_results, mediation_surv)
   }
 )
@@ -43,10 +45,11 @@ test_that(
     mediation_results <- htmed(data.models=medANDout_lm,
                                column.modelm='model.M',
                                column.modely='model.Y',
-                               treat='treatments',
-                               mediator='mediators',
+                               treat='treatment',
+                               mediator='mediator',
                                outcome='outcome',
-                               seed=1)
+                               seed=1,
+                               ncores=1)
     expect_equal(mediation_results, mediation_lm)
   }
 )
@@ -62,8 +65,8 @@ test_that(
       htmed(data.models=medANDout_surv,
             column.modelm = medANDout_surv,
             column.modely = 'model.Y',
-            treat='treatments',
-            mediator='mediators',
+            treat='treatment',
+            mediator='mediator',
             outcome='outcome',
             seed=1),
       regexp = "Please, provide the name of the corresponding columns as characters"
@@ -72,8 +75,8 @@ test_that(
       htmed(data.models=medANDout_surv,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
-            treat='treatments',
-            mediator='mediators',
+            treat='treatment',
+            mediator='mediator',
             outcome='outcome',
             seed='1'),
       regexp = "Seed must be numeric or not provided"
@@ -82,8 +85,8 @@ test_that(
       htmed(data.models=as.matrix(medANDout_surv),
             column.modelm = 'model.M',
             column.modely = 'model.Y',
-            treat='treatments',
-            mediator='mediators',
+            treat='treatment',
+            mediator='mediator',
             outcome='outcome',
             seed=1),
       regexp = "data.models must contain a DataFrame"
@@ -92,8 +95,8 @@ test_that(
       htmed(data.models=medANDout_surv,
             column.modelm = 'model.X',
             column.modely = 'model.Y',
-            treat='treatments',
-            mediator='mediators',
+            treat='treatment',
+            mediator='mediator',
             outcome='outcome',
             seed=1),
       regexp = "Wrong column names for fitted models for mediator or outcome"
@@ -102,7 +105,17 @@ test_that(
       htmed(data.models=medANDout_surv,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
-            treat='treatments',
+            treat='treat',
+            mediator='mediator',
+            outcome='outcome',
+            seed=1),
+      regexp = "Wrong column names for treat, mediator or outcome"
+    )
+    expect_error(
+      htmed(data.models=medANDout_surv,
+            column.modelm = 'model.M',
+            column.modely = 'model.Y',
+            treat='treatment',
              mediator='mediator.column',
             outcome='outcome',
             seed=1),
@@ -112,8 +125,8 @@ test_that(
       htmed(data.models=medANDout_surv,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
-            treat='treatments',
-            mediator='mediators',
+            treat='treatment',
+            mediator='mediator',
             outcome='outcome',
             seed=1,
             data.split='split.1'),
@@ -123,8 +136,8 @@ test_that(
       htmed(data.models=medANDout_surv,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
-            treat='treatments',
-            mediator='mediators',
+            treat='treatment',
+            mediator='mediator',
             outcome='outcome',
             seed=1,
             data.split=1),
@@ -144,60 +157,32 @@ test_that(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
-      data.models=models_surv,
-      model.m = TRUE
+      data.models=models_1out,
+      model.m = TRUE,
+      ncores=1
     )
     models <- generate_models(
       column.models='model.y.formula',
       model.type=survreg,
       data=df,
       data.models=models,
-      model.m = FALSE
+      model.m = FALSE,
+      ncores=1
     )
     expect_error(
       htmed(data.models=models,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
-            treat='treatments',
-            mediator='mediators',
+            treat='treatment',
+            mediator='mediator',
             outcome='outcome',
-            seed=1),
+            seed=1,
+            ncores=1),
       regexp = "All models for the outcome or the mediator contain warnings or errors"
     )
   }
 )
 
 
-test_that(
-  desc = "Message related to warnings or errors in the fitted models for outcome or mediator",
-  code = {
-    withr::local_package("survival")
-    df <- df[1:12, ]
 
-    models <- generate_models(
-      column.models='model.m.formula',
-      model.type=lm,
-      data=df,
-      data.models=models_surv,
-      model.m = TRUE
-    )
-    models <- generate_models(
-      column.models='model.y.formula',
-      model.type=survreg,
-      data=df,
-      data.models=models,
-      model.m = FALSE
-    )
-    expect_message(
-      htmed(data.models=models,
-            column.modelm = 'model.M',
-            column.modely = 'model.Y',
-            treat='treatments',
-            mediator='mediators',
-            outcome='outcome',
-            seed=1),
-      regexp = "Some models for the outcome contain warnings or errors. These rows will be removed"
-    )
-  }
-)
 

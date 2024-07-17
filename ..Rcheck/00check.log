@@ -1,0 +1,10 @@
+* using log directory ‘/home/lsanchezg/NetVolumes/BioInfoUnit/LABS/U_Bioinformatica/UNIT_MEMBERS/lsanchezg/PhD/mediation_package/htmed/..Rcheck’
+* using R version 4.2.2 (2022-10-31)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* using option ‘--as-cran’
+* checking for file ‘./DESCRIPTION’ ... ERROR
+Required fields missing or empty:
+  ‘Author’ ‘Maintainer’
+* DONE
+Status: 1 ERROR

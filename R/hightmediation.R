@@ -1,4 +1,5 @@
 
+utils::globalVariables(c(".env"))
 #' @importFrom dplyr %>% filter
 #' @importFrom mediation mediate
 #' @importFrom parallel mcmapply detectCores
@@ -11,7 +12,7 @@ NULL
 
 #' High-throughput causal mediation analysis
 #'
-#' @description `hightmed()` allows to perform high-throughput causal mediation
+#' @description `htmed()` allows to perform high-throughput causal mediation
 #'   analysis, using the \code{\link[mediation]{mediate}} for each model.
 #'
 #' @param data.models a dataframe with, at least, five columns: for the
@@ -25,10 +26,13 @@ NULL
 #' @param mediator a character. Name of the column that contains the mediators.
 #' @param outcome a character. Name of the column that contains the outcomes.
 #' @param seed integer to set a seed (for reproducibility). Default: NULL
-#' @param ... other arguments passed to \code{\link[mediation]{mediate}}
-#'   function.
 #' @param data.split a character indicating the column from data.models to split
 #'   the mediation analysis. Default: NULL.
+#' @param ncores numeric. It refers to the number of cores used during the
+#'   mediation analyses. In the default mode, it will detect automatically the
+#'   number of cores to choose. Default: NULL.
+#' @param ... other arguments passed to \code{\link[mediation]{mediate}}
+#'   function.
 #'
 #' @return returns a list of lists with the results of mediation for each
 #'   combination of outcome, mediator and treatment variables.
@@ -44,14 +48,11 @@ htmed <- function(
     outcome,
     seed = NULL,
     data.split = NULL,
+    ncores = NULL,
     ...
     ) {
   ## TODO:
-  ## controlar que los modelos que meto en model.m o model.y sean los soportados por mediate (esto lo hace el paquete mediate?)
   ## Posibilidad de ajuste (multiple linear regression: GENDER)
-
-  # getting the number of cores available
-  ncores <- .ncores()
 
   if (!is.character(c(treat, mediator, outcome, column.modelm, column.modely))) {
     stop("Please, provide the name of the corresponding columns as characters")
@@ -87,6 +88,20 @@ htmed <- function(
     message("Some models for the outcome contain warnings or errors. These rows will be removed")
 
     data.models <- data.models[!grepl(pattern = 'Warning', x = data.models[[column.modely]]),]
+  }
+
+  if (!is.null(ncores)) {
+    if (!"numeric" %in% class(ncores)) {
+      stop("ncores must be numeric if provided")
+    }
+    else {
+      ncores <- ncores
+      message(paste0("Number of cores provided by the user: ", ncores))
+    }
+  }
+  else {
+    # getting the number of cores available
+    ncores <- .ncores()
   }
 
   # Applying mediation

@@ -1,4 +1,5 @@
 
+utils::globalVariables(c(".env"))
 #' @importFrom ggplot2 ggplot geom_point facet_wrap scale_color_gradient2 ggtitle labs scale_x_discrete theme_light theme arrow unit guide_axis element_rect aes
 #' @importFrom ggraph ggraph geom_edge_arc circle scale_edge_width scale_edge_colour_gradient2 geom_node_point geom_node_text
 #' @importFrom igraph layout_in_circle graph_from_data_frame V vcount

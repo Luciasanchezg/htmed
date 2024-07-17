@@ -3,6 +3,8 @@
 ## Loading data
 ## ----------------------------------------------------------------------------
 #### Data
+data("df", package = "htmed")
+
 file.tests <- "../testdata"
 load(file.path(file.tests, 'mediation_surv.RData'))
 load(file.path(file.tests, 'mediation_lm.RData'))
@@ -27,9 +29,7 @@ test_that(
   desc = "Catch errors related to wrong arguments passed to format_med()",
   code = {
     # reading expected results
-    file.tests <- "../../data"
-    load(file.path(file.tests, 'df.RData'))
-    load(file.path(file.tests, 'models_surv.RData'))
+    models_1out <- data_models(outcome = 'outcome.1', mediator = c('mediator.1', 'mediator.2'), treatment = c('treatment.1', 'treatment.2'))
 
     expect_error(
       format_med('mediation_surv'),
@@ -40,7 +40,7 @@ test_that(
       regexp = "mediation.list is not a list of lists"
     )
     results <- list()
-    results[['outcome']] <- lapply(models_surv$model.m.formula, FUN = function(x) {lm(as.formula(x), data=df)})
+    results[['outcome']] <- lapply(models_1out$model.m.formula, FUN = function(x) {lm(as.formula(x), data=df)})
     expect_error(
       format_med(results),
       regexp = "Some of the models introduced are not mediation models"

@@ -13,6 +13,7 @@ htmed(
   outcome,
   seed = NULL,
   data.split = NULL,
+  ncores = NULL,
   ...
 )
 }
@@ -38,6 +39,10 @@ for outcomes.}
 \item{data.split}{a character indicating the column from data.models to split
 the mediation analysis. Default: NULL.}
 
+\item{ncores}{numeric. It refers to the number of cores used during the
+mediation analyses. In the default mode, it will detect automatically the
+number of cores to choose. Default: NULL.}
+
 \item{...}{other arguments passed to \code{\link[mediation]{mediate}}
 function.}
 }
@@ -46,6 +51,6 @@ returns a list of lists with the results of mediation for each
 combination of outcome, mediator and treatment variables.
 }
 \description{
-\code{hightmed()} allows to perform high-throughput causal mediation
+\code{htmed()} allows to perform high-throughput causal mediation
 analysis, using the \code{\link[mediation]{mediate}} for each model.
 }

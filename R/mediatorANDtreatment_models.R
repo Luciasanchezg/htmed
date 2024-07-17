@@ -1,4 +1,5 @@
 
+utils::globalVariables(c(".env"))
 #' @importFrom stats setNames as.formula
 #' @importFrom parallel mclapply
 #' @importFrom rlang is_empty sym
@@ -61,11 +62,14 @@ data_models <- function(outcome, mediator, treatment) {
 #' @param outcome a string. This will refer to the name of the column that
 #'   contains the outcome. Run in the default mode, the function understands
 #'   that all analyses share the same outcome. Default: NULL.
+#' @param data.split a character indicating the column from data to split the
+#'   statistical analysis. Default: NULL.
+#' @param ncores numeric. It refers to the number of cores used during the
+#'   mediation analyses. In the default mode, it will detect automatically the
+#'   number of cores to choose. Default: NULL.
 #' @param ... other arguments that models will need. Some functions, as
 #'   \code{\link[stats]{glm}}, requires additional arguments, such as family,
 #'   that can be specified here.
-#' @param data.split a character indicating the column from data to split the
-#'   statistical analysis. Default: NULL.
 #'
 #' @return returns a dataframe with a column, named model.M or model.Y,
 #'   depending on the fitted models performed
@@ -79,12 +83,10 @@ generate_models <- function(
     model.m = TRUE,
     outcome = NULL,
     data.split = NULL,
+    ncores = NULL,
     ...
     ) {
   ## TODO: eval(parse(text="lm(M ~ I + gender, data=df)"))
-
-  # getting the number of cores available
-  ncores <- .ncores()
 
   # checking input
   if (!"character" %in% class(column.models)) {
@@ -127,6 +129,20 @@ generate_models <- function(
 
   if ((model.m == FALSE) & ('model.Y' %in% colnames(data.models))) {
     stop("You are performing fitted models for outcome, but the column model.Y already exists")
+  }
+
+  if (!is.null(ncores)) {
+    if (!"numeric" %in% class(ncores)) {
+      stop("ncores must be numeric if provided")
+    }
+    else {
+      ncores <- ncores
+      message(paste0("Number of cores provided by the user: ", ncores))
+    }
+  }
+  else {
+    # getting the number of cores available
+    ncores <- .ncores()
   }
 
   # checking if the models can be converted in a formula

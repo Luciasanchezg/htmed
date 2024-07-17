@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(hightmed)
+library(htmed)
 
-test_check("hightmed")
+test_check("htmed")

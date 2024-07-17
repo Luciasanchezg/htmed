@@ -1,4 +1,5 @@
 
+utils::globalVariables(c("."))
 #' @importFrom dplyr %>% mutate bind_rows
 #' @importFrom reshape2 dcast melt
 #' @importFrom tidyr separate_wider_delim

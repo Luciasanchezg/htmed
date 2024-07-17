@@ -5,9 +5,9 @@
 ## Loading data
 ## ----------------------------------------------------------------------------
 #### Data
-data("models_surv", package = "hightmed")
-data("models_lm", package = "hightmed")
-data("df", package = "hightmed")
+data("df", package = "htmed")
+models_1out <- data_models(outcome = 'outcome.1', mediator = c('mediator.1', 'mediator.2'), treatment = c('treatment.1', 'treatment.2'))
+models_2out <- data_models(outcome = c('outcome.2', 'outcome.3'), mediator = c('mediator.1', 'mediator.2'), treatment = 'treatment.1')
 
 ## ----------------------------------------------------------------------------
 ## Tests for generating the fitted models for the mediator or the outcome
@@ -24,8 +24,9 @@ test_that(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
-      data.models=models_surv,
-      model.m = TRUE
+      data.models=models_1out,
+      model.m = TRUE,
+      ncores = 1
       ) %>%
       dplyr::arrange(model.m.formula)
 
@@ -48,8 +49,10 @@ test_that(
       column.models='model.y.formula',
       model.type=survreg,
       data=df,
-      data.models=models_surv,
-      model.m = FALSE) %>%
+      data.models=models_2out,
+      model.m = FALSE,
+      ncores = 1
+      ) %>%
       dplyr::arrange(model.y.formula)
 
     expect_equal(out$model.Y, out_surv$model.Y)
@@ -73,8 +76,9 @@ test_that(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
-      data.models=models_surv,
-      model.m = TRUE
+      data.models=models_1out,
+      model.m = TRUE,
+      ncores = 1
     ) %>%
       dplyr::arrange(model.m.formula)
 
@@ -83,7 +87,8 @@ test_that(
       model.type=survreg,
       data=df,
       data.models=preprocess,
-      model.m = FALSE
+      model.m = FALSE,
+      ncores = 1
     ) %>%
       dplyr::arrange(model.y.formula)
 
@@ -104,9 +109,10 @@ test_that(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
-      data.models=models_lm,
+      data.models=models_2out,
       model.m = TRUE,
-      outcome='outcome'
+      outcome='outcome',
+      ncores = 1
     ) %>%
       dplyr::arrange(model.m.formula)
 
@@ -116,7 +122,8 @@ test_that(
       data=df,
       data.models=preprocess,
       model.m = FALSE,
-      outcome='outcome'
+      outcome='outcome',
+      ncores = 1
     ) %>%
       dplyr::arrange(model.y.formula)
 
@@ -136,7 +143,7 @@ test_that(
         column.models='model.m.formula',
         model.type=lm,
         data=as.matrix(df),
-        data.models=models_surv,
+        data.models=models_1out,
         model.m = TRUE
       ),
       regexp = "Your data or data.models are not stored in a DataFrame"
@@ -145,8 +152,8 @@ test_that(
       generate_models(
         column.models='model.m.formula',
         model.type=lm,
-        data=models_surv,
-        data.models=as.matrix(models_surv),
+        data=models_1out,
+        data.models=as.matrix(models_1out),
         model.m = TRUE
       ),
       regexp = "Your data or data.models are not stored in a DataFrame"
@@ -155,8 +162,8 @@ test_that(
       generate_models(
         column.models='model.m.formula',
         model.type='lm',
-        data=models_surv,
-        data.models=models_surv,
+        data=models,
+        data.models=models_1out,
         model.m = TRUE
       ),
       regexp = "model.type is not a function"
@@ -165,8 +172,8 @@ test_that(
       generate_models(
         column.models=lm,
         model.type=lm,
-        data=models_surv,
-        data.models=models_surv,
+        data=models,
+        data.models=models_1out,
         model.m = TRUE
       ),
       regexp = "Please, provide the name of the corresponding column as character"
@@ -175,8 +182,8 @@ test_that(
       generate_models(
         column.models='model.m.formula',
         model.type=lm,
-        data=models_surv,
-        data.models=models_surv,
+        data=models_1out,
+        data.models=models_1out,
         model.m = 'TRUE'
       ),
       regexp = "model.m argument only admits logical"
@@ -193,25 +200,15 @@ test_that(
         column.models='model.x.formula',
         model.type=lm,
         data=df,
-        data.models=models_surv,
+        data.models=models_1out,
         model.m = TRUE
         ),
       regexp = "Incorrect column name for the models"
     )
+    models_subset <- models_1out[1:4,]
     expect_error(
       generate_models(
-        column.models='model.x.formula',
-        model.type=lm,
-        data=df,
-        data.models=models_surv,
-        model.m = FALSE
-        ),
-      regexp = "Incorrect column name for the models"
-    )
-    models_subset <- models_surv[1:4,]
-    expect_error(
-      generate_models(
-        column.models='mediators',
+        column.models='mediator',
         model.type=lm,
         data=df,
         data.models=models_subset,
@@ -224,7 +221,7 @@ test_that(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
-        data.models=models_lm,
+        data.models=models_2out,
         model.m = TRUE
       ),
       regexp = "Some models are duplicated"
@@ -234,7 +231,7 @@ test_that(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
-        data.models=models_lm,
+        data.models=models_2out,
         model.m = TRUE,
         data.split='split.1'
       ),
@@ -245,11 +242,23 @@ test_that(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
-        data.models=models_lm,
+        data.models=models_2out,
         model.m = TRUE,
         data.split=1,
       ),
       regexp = "data.split is not a character"
+    )
+    expect_error(
+      generate_models(
+        column.models='model.m.formula',
+        model.type=lm,
+        data=df,
+        data.models=models_2out,
+        model.m = TRUE,
+        data.split=1,
+        ncores='1'
+      ),
+      regexp = "ncores must be numeric if provided"
     )
   }
 )
@@ -263,7 +272,7 @@ test_that(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
-        data.models=models_lm,
+        data.models=models_2out,
         model.m = TRUE,
         outcome=1
       ),
@@ -274,7 +283,7 @@ test_that(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
-        data.models=models_lm,
+        data.models=models_2out,
         model.m = TRUE,
         outcome='outcomes'
       ),
@@ -285,7 +294,7 @@ test_that(
         column.models='model.m.formula',
         model.type=lm,
         data=df,
-        data.models=rbind(models_lm, models_lm),
+        data.models=rbind(models_2out, models_2out),
         model.m = TRUE,
         outcome='outcome'
       ),
