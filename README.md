@@ -16,37 +16,52 @@ analysis could be performed.
 
 ## Data
 
-To do so, we will make use of a dataframe that contains information of
-98 mice that have died between week 26 and week 138 (this information is
-stored in a column called `age_death`). The dataframe also contains
-several columns indicating the sex of the mice (`sex`), and the measures
-of different treatments and mediators collected in a continuous form.
-There is an additional column (`HF`), that differentiates between mice
-that have died as a result of heart failure or not, 1 or 0,
-respectively.
+To do so, we will simulate some data. Imagine that we have 100
+individuals for which we have measured 4 different treatments (binary),
+4 different mediators (continuous) and a single outcome (continuous).
 
 ``` r
-data("df", package = "htmed")
+set.seed(123)
+
+n <- 100
+
+# data for the treatments
+df <- data.frame(
+  treatment.1 = rbinom(n, 1, 0.5), 
+  treatment.2 = rbinom(n, 1, 0.5), 
+  treatment.3 = rbinom(n, 1, 0.5),  
+  treatment.4 = rbinom(n, 1, 0.5),
+  outcome.1 = rnorm(n)
+)
+
+# data for the mediators
+df$mediator.1 <- - 0.5 * df$treatment.1 + 0.3 * df$treatment.2 + 0.4 * df$treatment.3 + 0.6 * df$treatment.4 + rnorm(n)
+df$mediator.2 <- -0.6 * df$treatment.1 - 0.5 * df$treatment.2 - 0.4 * df$treatment.3 - 0.7 * df$treatment.4 + rnorm(n)
+df$mediator.3 <- - 0.7 * df$treatment.2 - 0.2 * df$treatment.3 - 1 * df$treatment.4 + rnorm(n)
+df$mediator.4 <- - 0.5 * df$treatment.2 - 0.3 * df$treatment.3 - 0.2 * df$treatment.4 - rnorm(n)
+
+# data for the outcome
+df$outcome.1 <- 1 + 1.2 * df$mediator.1 + 1.0 * df$treatment.1 + 0.8 * df$treatment.2 + 0.6 * df$treatment.3 + 0.9 * df$treatment.4 + rnorm(n)
 ```
 
 With this data, we hypothesize that some treatments could be responsible
-of the heart failure observed in the mice, and that some mediators could
-explain the underlying mechanism of the relationship between the
-treatment and heart failure.
+of the values for the outcome observed in the individuals, and that some
+mediators could explain the underlying mechanism of the relationship
+between the treatment and the outcome.
 
 Therefore, we are interested in testing the association between each
-treatment and heart failure, through each mediator. In order to perform
-this mediation analyses, we first need to compute the fitted models for
+treatment and outcome, through each mediator. In order to perform this
+mediation analyses, we first need to compute the fitted models for
 mediators and outcomes, respectively, something that can be done with
 `generatting_models()`. However, before applying this function, we need
-to generate a new dataframe in which we will specify what combination of
-treatment, mediator and outcome we want to test. The dataframe (called
+to generate a new DataFrame in which we will specify what combination of
+treatment, mediator and outcome we want to test. The DataFrame (called
 `models` in this example), will be composed of as many rows as different
 analyses we want to perform and five different columns:
 
 -   outcome (characters): it contains the different outcomes that we are
     interested in predict. In this example we will work with just one
-    outcome: heart failure.
+    outcome.
 -   treatment (characters): column with the different treatments to
     test.
 -   mediator (characters): column with the different mediators to test.
@@ -56,11 +71,12 @@ analyses we want to perform and five different columns:
 -   model.y.formula (characters): similar to model.m.formula but with
     the formulas for the fitted models for outcome.
 
-As you can see, we will make use of `data_models()` to generate this
-dataframe. By default, this function makes all possible combinations of
-the supplied vectors outcome, treatment and mediator. If the user is
-interested in compute just some specific models, we recommend to build a
-dataframe following the five-column structure of `models`.
+As you can see, we will use the `data_models()` function to generate
+this DataFrame. By default, this function makes all possible
+combinations of the supplied vectors for outcome, treatment and
+mediator. If the user is interested in compute just some specific
+models, we recommend to build a DataFrame following the five-column
+structure of `models`.
 
 ``` r
 # data("models_surv", package = "htmed")
@@ -76,11 +92,11 @@ models <- data_models(outcome = outcome, mediator = mediator, treatment = treatm
 ### Generatting models for mediators and outcomes
 
 After generating `models`, we have all the necessary to apply the
-`generate_models()` function. This function will allow us to generate
-the fitted models for mediators and outcomes, for each combination of
+`generate_models()` function. With this function we will generate the
+fitted models for mediators and outcomes, for each combination of
 mediator, treatment and outcome, in an iterative manner.
 `generate_models()` contains 6 arguments, being mandatory 4 of them: the
-dataframe with the values (`data`), the dataframe with the models to
+DataFrame with the values (`data`), the DataFrame with the models to
 perform (`data.models`), the name of the column that contains the model
 formulas in `data.models` (`column.models`) and the statistical analysis
 we are interested in applying over the data (`model.type`). There are
@@ -105,7 +121,7 @@ medANDtreat <- generate_models(
 # fitted models for the outcome
 medANDtreat <- generate_models(
     column.models='model.y.formula'
-  , model.type=survival::survreg
+  , model.type=lm
   , data=df
   , data.models=medANDtreat
   , model.m = FALSE
@@ -121,7 +137,7 @@ with two additional columns:
 ### High-throughput mediation analysis
 
 To apply high-throughput mediation, we execute the `htmed()` function
-over this data. From this point, we will just work with the dataframe
+over this data. From this point, we will just work with the DataFrame
 generated in the previous step `medANDtreat`. `htmed()` requires the
 following arguments:
 
@@ -190,14 +206,14 @@ difficult to understand.
 We need to transform this data to simplify and make it more
 user-friendly for the visualizations that will be performed later. Using
 `format_med()` with just `med_results` as input, we will generate a
-dataframe with the essential columns needed for the visualizations.
+DataFrame with the essential columns needed for the visualizations.
 
 This function also computes two different kinds of adjusted p-value:
-adj.p-value.by_outcome and adj.p-value.all. The different between both
-is that while the first one adjust by each of the outcomes, the second
-adjusted p-value will take into account all the analyses from all the
-outcomes. The usage of one or the other will depend on the question that
-the investigator wants to answer.
+adj.p-value.by_outcome and adj.p-value.all. The difference between both
+results is that, while the first one adjusts by each of the outcomes,
+the second adjusted p-value takes into account all the analyses from all
+the outcomes. The usage of one or the other will depend on the question
+that the investigator wants to answer.
 
 ``` r
 # formatting data
@@ -253,17 +269,17 @@ functions.
 Nevertheless, you can filter the data by specifying the level of
 significance (`pval`) and the column to apply it (`pval.column`). In the
 following chunks, we will restrict our representation to mediation
-analyses with an adjusted p-value \<= 0.05.
+analyses with an p-value \<= 0.05.
 
 ``` r
 visual_outcome1_adj0.05 <- visual_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'adj.p-value.by_outcome'
+  , pval.column = 'p-value_Prop._Mediated_(average)'
   , pval = 0.05)
-#> Results with adj.p-value.by_outcome <= 0.05 will be filtered out
+#> Results with p-value_Prop._Mediated_(average) <= 0.05 will be filtered out
 visual_outcome1_adj0.05
-#> Warning: Removed 11 rows containing missing values or values outside the scale range
+#> Warning: Removed 10 rows containing missing values or values outside the scale range
 #> (`geom_point()`).
 ```
 
@@ -273,9 +289,9 @@ visual_outcome1_adj0.05
 graph_outcome1_adj0.05 <- graph_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'adj.p-value.by_outcome'
+  , pval.column = 'p-value_Prop._Mediated_(average)'
   , pval = 0.05)
-#> Results with adj.p-value.by_outcome <= 0.05 will be filtered out
+#> Results with p-value_Prop._Mediated_(average) <= 0.05 will be filtered out
 graph_outcome1_adj0.05
 ```
 
@@ -289,37 +305,36 @@ the end of the arrows, as it will be shown in the next chunk.
 graph_htmed(
     mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'adj.p-value.by_outcome'
+  , pval.column = 'p-value_Prop._Mediated_(average)'
   , pval = 0.05
   , size_node = 1.5
   , size_name = 1.3
   , end_arrow = 4)
-#> Results with adj.p-value.by_outcome <= 0.05 will be filtered out
+#> Results with p-value_Prop._Mediated_(average) <= 0.05 will be filtered out
 ```
 
 <img src="man/figures/README-visualizing-5-1.png" width="100%" />
 
 ## Splitting the data
 
-If we explore again the original data, with the values for outcomes,
-treatments and mediators, we will see that there is an additional column
-not mentioned before (`split`).
+Now, we will include a new column to the original DataFrame, to classify
+individuals depending on their comorbidity.
 
 ``` r
+df <- df %>% 
+  mutate(split = sample(x = c('HighBP', 'Diabetes'), size = 100, replace = TRUE))
+
 df %>% dplyr::select(split) %>% table(.)
 #> split
-#>          Diabetes HighBloodPressure 
-#>                45                53
+#> Diabetes   HighBP 
+#>       45       55
 ```
 
-This column contains two values that tells if the mice had Diabetes or
-High blood pressure.
-
 Under the previous hypothesis, we were perfoming the analyses with the
-mices as a whole. Nevertheless, we now think that the underlying
-mechanisms that leads to heart failure could differ depending on the
-condition observed in the animals. `htmed` package allows to take this
-into account by some additional arguments present in the functions
+individuals as a whole. Nevertheless, we now think that the underlying
+mechanisms that leads to the outcome could differ depending on the
+condition observed in the individuals. `htmed` package allows to take
+this into account by some additional arguments present in the functions
 available.
 
 ### Generating models for mediators and outcomes
@@ -340,25 +355,23 @@ medANDtreat.split <- generate_models(
   , data.split = 'split'
   ) 
 #> Number of cores that will be used: 5
-#> Your data contains NA. These rows will not be taken into account for the models
 #> Performing fitted models for mediator
 
 # fitted models for the outcome
 medANDtreat.split <- generate_models(
     column.models='model.y.formula'
-  , model.type=survival::survreg
+  , model.type=lm
   , data=df
   , data.models=medANDtreat.split
   , model.m = FALSE
   , data.split = 'split'
   ) 
 #> Number of cores that will be used: 5
-#> Your data contains NA. These rows will not be taken into account for the models
 #> Performing fitted models for outcome
 ```
 
-Comparing this new dataframe (`medANDtreat.split`) with the one in which
-split was not applied (`medANDtreat`), we will notice that the first one
+Comparing this new DataFrame (`medANDtreat.split`) with the one in which
+split was not applied (`medANDtreat`), we will notice that the new one
 doubles the dimension of the second one. This is because the fitted
 models have been performed independently for each condition.
 
@@ -398,7 +411,7 @@ names(med_results.split)
 
 # Conditions
 names(med_results.split$outcome.1)
-#> [1] "HighBloodPressure" "Diabetes"
+#> [1] "Diabetes" "HighBP"
 
 # Analyses for Diabetes
 names(med_results.split$outcome.1$Diabetes)
@@ -428,7 +441,7 @@ format_results.split <- format_med(med_results.split, split = TRUE)
 visual_outcome1_nosig.split <- visual_htmed(
     mediation.form = format_results.split
   , outcome = 'outcome.1'
-  , split = 'split')
+  , data.split = 'split')
 #> pval.column argument not provided. Results without filtering data will be displayed
 visual_outcome1_nosig.split
 ```
@@ -444,11 +457,11 @@ graph_outcome1_nosig.split <- graph_htmed(
     mediation.form = format_results.split
   , outcome = 'outcome.1'
   , size_node = 0.65
-  , split = 'split')
+  , data.split = 'split')
 #> pval.column argument not provided. Results without filtering data will be displayed
 
 library(patchwork)
-graph_outcome1_nosig.split$Diabetes + graph_outcome1_nosig.split$HighBloodPressure
+graph_outcome1_nosig.split$Diabetes + graph_outcome1_nosig.split$HighBP
 ```
 
 <img src="man/figures/README-visualizing.split-2-1.png" width="100%" />
