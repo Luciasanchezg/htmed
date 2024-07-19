@@ -5,9 +5,12 @@
 ## Loading data
 ## ----------------------------------------------------------------------------
 #### Data
-data("df", package = "htmed")
+file.tests <- "../testdata"
+load(file.path(file.tests, 'df.RData'))
+load(file.path(file.tests, 'df2.RData'))
+
 models_1out <- data_models(outcome = 'outcome.1', mediator = c('mediator.1', 'mediator.2'), treatment = c('treatment.1', 'treatment.2'))
-models_2out <- data_models(outcome = c('outcome.2', 'outcome.3'), mediator = c('mediator.1', 'mediator.2'), treatment = 'treatment.1')
+models_2out <- data_models(outcome = c('outcome.1', 'outcome.2'), mediator = c('mediator.1', 'mediator.2'), treatment = 'treatment.1')
 
 ## ----------------------------------------------------------------------------
 ## Tests for generating the fitted models for the mediator or the outcome
@@ -18,7 +21,7 @@ test_that(
 
     # reading expected results
     file.tests <- "../testdata"
-    load(file.path(file.tests, 'med_surv.RData'))
+    load(file.path(file.tests, 'med_1out.RData'))
 
     med <- generate_models(
       column.models='model.m.formula',
@@ -30,7 +33,7 @@ test_that(
       ) %>%
       dplyr::arrange(model.m.formula)
 
-    expect_equal(med$model.M, med_surv$model.M)
+    expect_equal(med$model.M, med_1out$model.M)
   }
 )
 
@@ -38,24 +41,23 @@ test_that(
 test_that(
   desc = "checking if generate_models() computes models for the outcome",
   code = {
-    withr::local_package("survival")
 
     # reading expected results
     file.tests <- "../testdata"
-    load(file.path(file.tests, 'out_surv.RData'))
+    load(file.path(file.tests, 'out_1out.RData'))
 
     # generating results
     out <- generate_models(
       column.models='model.y.formula',
-      model.type=survreg,
+      model.type=lm,
       data=df,
-      data.models=models_2out,
+      data.models=models_1out,
       model.m = FALSE,
       ncores = 1
       ) %>%
       dplyr::arrange(model.y.formula)
 
-    expect_equal(out$model.Y, out_surv$model.Y)
+    expect_equal(out$model.Y, out_1out$model.Y)
     }
   )
 
@@ -66,11 +68,10 @@ test_that(
 test_that(
   desc = "checking if generate_models() can be called iterativelly to compute fitted models for treatment and mediator (for one outcome)",
   code = {
-    withr::local_package("survival")
 
     # reading expected results
     file.tests <- "../testdata"
-    load(file.path(file.tests, 'medANDout_surv.RData'))
+    load(file.path(file.tests, 'medANDout_1out.RData'))
 
     preprocess <- generate_models(
       column.models='model.m.formula',
@@ -84,7 +85,7 @@ test_that(
 
     preprocess <- generate_models(
       column.models='model.y.formula',
-      model.type=survreg,
+      model.type=lm,
       data=df,
       data.models=preprocess,
       model.m = FALSE,
@@ -92,7 +93,7 @@ test_that(
     ) %>%
       dplyr::arrange(model.y.formula)
 
-    expect_equal(preprocess, medANDout_surv)
+    expect_equal(preprocess, medANDout_1out)
   }
 )
 
@@ -103,12 +104,12 @@ test_that(
 
     # reading expected results
     file.tests <- "../testdata"
-    load(file.path(file.tests, 'medANDout_lm.RData'))
+    load(file.path(file.tests, 'medANDout_2out.RData'))
 
     preprocess <- generate_models(
       column.models='model.m.formula',
       model.type=lm,
-      data=df,
+      data=df2,
       data.models=models_2out,
       model.m = TRUE,
       outcome='outcome',
@@ -119,7 +120,7 @@ test_that(
     preprocess <- generate_models(
       column.models='model.y.formula',
       model.type=lm,
-      data=df,
+      data=df2,
       data.models=preprocess,
       model.m = FALSE,
       outcome='outcome',
@@ -127,7 +128,7 @@ test_that(
     ) %>%
       dplyr::arrange(model.y.formula)
 
-    expect_equal(preprocess, medANDout_lm)
+    expect_equal(preprocess, medANDout_2out)
   })
 
 

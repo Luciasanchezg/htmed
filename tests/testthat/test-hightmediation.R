@@ -3,11 +3,11 @@
 ## Loading data
 ## ----------------------------------------------------------------------------
 #### Data
-data("df", package = "htmed")
-models_1out <- data_models(outcome = 'outcome.1', mediator = c('mediator.1', 'mediator.2'), treatment = c('treatment.1', 'treatment.2'))
-
 file.tests <- "../testdata"
-load(file.path(file.tests, 'medANDout_surv.RData'))
+load(file.path(file.tests, 'df.RData'))
+load(file.path(file.tests, 'medANDout_1out.RData'))
+
+models_1out <- data_models(outcome = 'outcome.1', mediator = c('mediator.1', 'mediator.2'), treatment = c('treatment.1', 'treatment.2'))
 
 ## ----------------------------------------------------------------------------
 ## Tests for generating the mediation models
@@ -19,9 +19,9 @@ test_that(
   code = {
     # reading expected results
     file.tests <- "../testdata"
-    load(file.path(file.tests, 'mediation_surv.RData'))
+    load(file.path(file.tests, 'mediation_1out.RData'))
 
-    mediation_results <- htmed(data.models=medANDout_surv,
+    mediation_results <- htmed(data.models=medANDout_1out,
                                column.modelm = 'model.M',
                                column.modely = 'model.Y',
                                treat='treatment',
@@ -29,7 +29,7 @@ test_that(
                                outcome='outcome',
                                seed=1,
                                ncores=1)
-    expect_equal(mediation_results, mediation_surv)
+    expect_equal(mediation_results, mediation_1out)
   }
 )
 
@@ -39,10 +39,10 @@ test_that(
   code = {
     # reading expected results
     file.tests <- "../testdata"
-    load(file.path(file.tests, 'mediation_lm.RData'))
-    load(file.path(file.tests, 'medANDout_lm.RData'))
+    load(file.path(file.tests, 'medANDout_2out.RData'))
+    load(file.path(file.tests, 'mediation_2out.RData'))
 
-    mediation_results <- htmed(data.models=medANDout_lm,
+    mediation_results <- htmed(data.models=medANDout_2out,
                                column.modelm='model.M',
                                column.modely='model.Y',
                                treat='treatment',
@@ -50,7 +50,7 @@ test_that(
                                outcome='outcome',
                                seed=1,
                                ncores=1)
-    expect_equal(mediation_results, mediation_lm)
+    expect_equal(mediation_results, mediation_2out)
   }
 )
 
@@ -62,8 +62,8 @@ test_that(
   desc = "Catch errors related to wrong arguments passed to htmed()",
   code = {
     expect_error(
-      htmed(data.models=medANDout_surv,
-            column.modelm = medANDout_surv,
+      htmed(data.models=medANDout_1out,
+            column.modelm = medANDout_1out,
             column.modely = 'model.Y',
             treat='treatment',
             mediator='mediator',
@@ -72,7 +72,7 @@ test_that(
       regexp = "Please, provide the name of the corresponding columns as characters"
     )
     expect_error(
-      htmed(data.models=medANDout_surv,
+      htmed(data.models=medANDout_1out,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
             treat='treatment',
@@ -82,7 +82,7 @@ test_that(
       regexp = "Seed must be numeric or not provided"
     )
     expect_error(
-      htmed(data.models=as.matrix(medANDout_surv),
+      htmed(data.models=as.matrix(medANDout_1out),
             column.modelm = 'model.M',
             column.modely = 'model.Y',
             treat='treatment',
@@ -92,7 +92,7 @@ test_that(
       regexp = "data.models must contain a DataFrame"
     )
     expect_error(
-      htmed(data.models=medANDout_surv,
+      htmed(data.models=medANDout_1out,
             column.modelm = 'model.X',
             column.modely = 'model.Y',
             treat='treatment',
@@ -102,7 +102,7 @@ test_that(
       regexp = "Wrong column names for fitted models for mediator or outcome"
     )
     expect_error(
-      htmed(data.models=medANDout_surv,
+      htmed(data.models=medANDout_1out,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
             treat='treat',
@@ -112,7 +112,7 @@ test_that(
       regexp = "Wrong column names for treat, mediator or outcome"
     )
     expect_error(
-      htmed(data.models=medANDout_surv,
+      htmed(data.models=medANDout_1out,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
             treat='treatment',
@@ -122,7 +122,7 @@ test_that(
       regexp = "Wrong column names for treat, mediator or outcome"
     )
     expect_error(
-      htmed(data.models=medANDout_surv,
+      htmed(data.models=medANDout_1out,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
             treat='treatment',
@@ -133,7 +133,7 @@ test_that(
       regexp = "data.split argument is not in data"
     )
     expect_error(
-      htmed(data.models=medANDout_surv,
+      htmed(data.models=medANDout_1out,
             column.modelm = 'model.M',
             column.modely = 'model.Y',
             treat='treatment',
