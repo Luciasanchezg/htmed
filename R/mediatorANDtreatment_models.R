@@ -214,10 +214,12 @@ outcome_models <- function(
 
   # checking if the models can be converted in a formula
   models <- .check_formula(column.models=column.models, data.models=data.models)
-  if (is.null(models)) {
+  models[sapply(models, is.null)] <- NULL
+
+  if (length(models) == 0) {
     stop("There are no right formulas in the columns selected")
   }
-  data.models <- data.models[data.models[[column.models]] %in% as.character(models),]
+  data.models <- data.models[data.models[[column.models]] %in% names(models),]
 
   if (!is.null(data.split)) {
     if (!"character" %in% class(data.split)) {
@@ -308,25 +310,51 @@ outcome_models <- function(
 }
 
 
+# .check_formula <- function(
+#     column.models,
+#     data.models
+# ) {
+#   models <- c()
+#   for (model in data.models[[column.models]]) {
+#     tryCatch(
+#       {
+#         m <- stats::as.formula(model)
+#         models <- c(m, models)
+#       }
+#       , warning=function(w) {
+#         return(w)
+#       },
+#       error=function(e) {
+#         return(e)
+#       }
+#     )
+#   }
+#   return(models)
+# }
+
 .check_formula <- function(
     column.models,
     data.models
 ) {
-  models <- c()
-  for (model in data.models[[column.models]]) {
-    tryCatch(
-      {
-        m <- stats::as.formula(model)
-        models <- c(m, models)
-      }
-      , warning=function(w) {
-        return(w)
-      },
-      error=function(e) {
-        return(e)
-      }
-    )
-  }
+  models <- sapply(
+    data.models[[column.models]],
+    FUN = function(form) {
+      tryCatch(
+        {
+          m <- stats::as.formula(form)
+          return(m)
+        }
+        , warning=function(w) {
+          #return(w)
+        },
+        error=function(e) {
+          message(paste(form, 'is not a formula', sep=' '))
+          #return('Error: invalid formula')
+        }
+      )
+    }
+  )
+  names(models) <- data.models[[column.models]]
   return(models)
 }
 
