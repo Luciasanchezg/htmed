@@ -2,9 +2,10 @@
 
 export(data_models)
 export(format_med)
-export(generate_models)
 export(graph_htmed)
 export(htmed)
+export(mediator_models)
+export(outcome_models)
 export(visual_htmed)
 importFrom(dplyr,"%>%")
 importFrom(dplyr,bind_rows)
