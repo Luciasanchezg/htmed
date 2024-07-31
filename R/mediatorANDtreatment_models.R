@@ -263,7 +263,6 @@ outcome_models <- function(
 }
 
 
-
 .one_outcome <- function(
     column.models,
     model.type,
@@ -309,28 +308,6 @@ outcome_models <- function(
   return(results.df)
 }
 
-
-# .check_formula <- function(
-#     column.models,
-#     data.models
-# ) {
-#   models <- c()
-#   for (model in data.models[[column.models]]) {
-#     tryCatch(
-#       {
-#         m <- stats::as.formula(model)
-#         models <- c(m, models)
-#       }
-#       , warning=function(w) {
-#         return(w)
-#       },
-#       error=function(e) {
-#         return(e)
-#       }
-#     )
-#   }
-#   return(models)
-# }
 
 .check_formula <- function(
     column.models,
