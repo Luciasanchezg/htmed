@@ -14,7 +14,7 @@ In this tutorial, we will use all the functions available in `htmed`
 package to illustrate an example of how high-throughput mediation
 analysis could be performed.
 
-## Data
+## Data (prueba)
 
 To do so, we will simulate some data. Imagine that we have 100
 individuals for which we have measured 4 different treatments (binary),
@@ -53,23 +53,23 @@ Therefore, we are interested in testing the association between each
 treatment and outcome, through each mediator. In order to perform this
 mediation analyses, we first need to compute the fitted models for
 mediators and outcomes, respectively, something that can be done with
-`generatting_models()`. However, before applying this function, we need
-to generate a new DataFrame in which we will specify what combination of
-treatment, mediator and outcome we want to test. The DataFrame (called
-`models` in this example), will be composed of as many rows as different
-analyses we want to perform and five different columns:
+the functions `mediator_models()` and `outome_models()`, respectively.
+However, before applying this function, we need to generate a new
+DataFrame in which we will specify what combination of treatment,
+mediator and outcome we want to test. The DataFrame (called `models` in
+this example), will be composed of as many rows as different analyses we
+want to perform and five different columns:
 
--   outcome (characters): it contains the different outcomes that we are
+-   outcome (character): it contains the different outcomes that we are
     interested in predict. In this example we will work with just one
     outcome.
--   treatment (characters): column with the different treatments to
-    test.
--   mediator (characters): column with the different mediators to test.
--   model.m.formula (characters): this column will inform about the
+-   treatment (character): column with the different treatments to test.
+-   mediator (character): column with the different mediators to test.
+-   model.m.formula (character): this column will inform about the
     formula that needs to be apply to compute the fitted models for
     mediator.
--   model.y.formula (characters): similar to model.m.formula but with
-    the formulas for the fitted models for outcome.
+-   model.y.formula (character): similar to model.m.formula but with the
+    formulas for the fitted models for outcome.
 
 As you can see, we will use the `data_models()` function to generate
 this DataFrame. By default, this function makes all possible
@@ -92,39 +92,45 @@ models <- data_models(outcome = outcome, mediator = mediator, treatment = treatm
 ### Generatting models for mediators and outcomes
 
 After generating `models`, we have all the necessary to apply the
-`generate_models()` function. With this function we will generate the
-fitted models for mediators and outcomes, for each combination of
-mediator, treatment and outcome, in an iterative manner.
-`generate_models()` contains 6 arguments, being mandatory 4 of them: the
-DataFrame with the values (`data`), the DataFrame with the models to
-perform (`data.models`), the name of the column that contains the model
-formulas in `data.models` (`column.models`) and the statistical analysis
-we are interested in applying over the data (`model.type`). There are
-other 3 optional arguments: `model.m` indicates if we are computing the
-fitted models for mediators (TRUE) or for outcomes (FALSE), and
-`outcome` will refer to the column from the `data.models` object that
-contains the information of the outcomes. Although this last argument is
-optional and does not need to be specified if we have just one outcome,
-it is highly recommended if you are dealing with more than one dependent
-variables. The `data.split()` argument will be explained later.
+`mediator_models()` and `outome_models()` functions. By applying them,
+we will generate the fitted models for mediators and outcomes, for each
+combination of mediator, treatment and outcome, in an iterative manner.
+Both functions contain 6 arguments, being mandatory 5 of them:
+
+-   `column.models` (character): the name of the column that contains
+    the model formulas in `data.models`
+-   `model.type` (function): the statistical analysis we are interested
+    in applying over the data
+-   `data` (dataframe): the DataFrame with the values
+-   `data.models` (dataframe): the DataFrame with the models to perform
+-   `model.name` (character): the name of the new column that will
+    contain the fitted models for the mediator or outcome (depending on
+    the function we are applying)
+
+There are other 2 optional arguments: `outcome` will refer to the column
+from the `data.models` DataFrame that contains the information of the
+outcomes. Although this last argument is optional and does not need to
+be specified if we have just one outcome, it is highly recommended if
+you are dealing with more than one dependent variables. The
+`data.split()` argument will be explained later.
 
 ``` r
 # fitted models for the mediator
-medANDtreat <- generate_models(
+medANDout <- mediator_models(
     column.models='model.m.formula'
   , model.type=lm
   , data=df
   , data.models=models
-  , model.m = TRUE
+  , model.name = 'model.M'
   ) 
 
 # fitted models for the outcome
-medANDtreat <- generate_models(
+medANDout <- outcome_models(
     column.models='model.y.formula'
   , model.type=lm
   , data=df
-  , data.models=medANDtreat
-  , model.m = FALSE
+  , data.models=medANDout
+  , model.name = 'model.Y'
   ) 
 ```
 
@@ -138,25 +144,25 @@ with two additional columns:
 
 To apply high-throughput mediation, we execute the `htmed()` function
 over this data. From this point, we will just work with the DataFrame
-generated in the previous step `medANDtreat`. `htmed()` requires the
+generated in the previous step `medANDout`. `htmed()` requires the
 following arguments:
 
 -   data.models (dataframe): object with the fitted models for mediators
     and outcomes.
--   column.modelm and column.modely (characters): these arguments refer
+-   column.modelm and column.modely (character): these arguments refer
     to the columns from `data.models` that contain the fitted models for
     mediator and outcomes, respectively.
--   treat, mediator and outcome (characters): these three arguments
-    refer to the columns from `data.models` with the treatment, mediator
-    and outcome information, respectively.
--   data.split (characters): will be explained later.
+-   treat, mediator and outcome (character): these three arguments refer
+    to the columns from `data.models` with the treatment, mediator and
+    outcome information, respectively.
+-   data.split (character): will be explained later.
 
 There is an additional argument `seed` that can be introduced to ensure
 reproducibility of results.
 
 ``` r
 med_results <- htmed(
-    data.models=medANDtreat
+    data.models=medANDout
   , column.modelm = 'model.M'
   , column.modely = 'model.Y'
   , treat='treatment'
@@ -339,47 +345,47 @@ available.
 
 ### Generating models for mediators and outcomes
 
-Therefore, we will execute `generate_models()` iteratively to generate
-both fitted outcomes for mediator and outcome, by adding `data.split`
-argument. This will indicate the column from `df` that has the
-information to split with.
+Therefore, we will execute `mediator_models()` `outcome_models()` and
+iteratively to generate both fitted outcomes for mediator and outcome,
+by adding `data.split` argument. This will indicate the column from `df`
+that has the information to split with.
 
 ``` r
 # fitted models for the mediator
-medANDtreat.split <- generate_models(
+medANDout.split <- mediator_models(
     column.models='model.m.formula'
   , model.type=lm
   , data=df
   , data.models=models
-  , model.m = TRUE
+  , model.name = 'model.M'
   , data.split = 'split'
   ) 
+#> Performing fitted models for mediators
 #> Number of cores that will be used: 5
-#> Performing fitted models for mediator
 
 # fitted models for the outcome
-medANDtreat.split <- generate_models(
+medANDout.split <- outcome_models(
     column.models='model.y.formula'
   , model.type=lm
   , data=df
-  , data.models=medANDtreat.split
-  , model.m = FALSE
+  , data.models=medANDout.split
+  , model.name = 'model.Y'
   , data.split = 'split'
   ) 
+#> Performing fitted models for outcomes
 #> Number of cores that will be used: 5
-#> Performing fitted models for outcome
 ```
 
-Comparing this new DataFrame (`medANDtreat.split`) with the one in which
-split was not applied (`medANDtreat`), we will notice that the new one
+Comparing this new DataFrame (`medANDout.split`) with the one in which
+split was not applied (`medANDout`), we will notice that the new one
 doubles the dimension of the second one. This is because the fitted
 models have been performed independently for each condition.
 
 ``` r
-dim(medANDtreat.split)
+dim(medANDout.split)
 #> [1] 32  8
 
-dim(medANDtreat)
+dim(medANDout)
 #> [1] 16  7
 ```
 
@@ -390,7 +396,7 @@ To perform the mediation analyses, we will add the same argument
 
 ``` r
 med_results.split <- htmed(
-    data.models=medANDtreat.split
+    data.models=medANDout.split
   , column.modelm = 'model.M'
   , column.modely = 'model.Y'
   , treat='treatment'
