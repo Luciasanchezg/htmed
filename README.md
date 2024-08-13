@@ -14,7 +14,7 @@ In this tutorial, we will use all the functions available in `htmed`
 package to illustrate an example of how high-throughput mediation
 analysis could be performed.
 
-## Data (prueba)
+## Data
 
 To do so, we will simulate some data. Imagine that we have 100
 individuals for which we have measured 4 different treatments (binary),
