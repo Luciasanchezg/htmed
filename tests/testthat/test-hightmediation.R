@@ -153,20 +153,20 @@ test_that(
     withr::local_package("survival")
 
     df <- df[1, ]
-    models <- generate_models(
+    models <- mediator_models(
       column.models='model.m.formula',
       model.type=lm,
       data=df,
       data.models=models_1out,
-      model.m = TRUE,
+      model.name = 'model.M',
       ncores=1
     )
-    models <- generate_models(
+    models <- outcome_models(
       column.models='model.y.formula',
       model.type=survreg,
       data=df,
       data.models=models,
-      model.m = FALSE,
+      model.name = 'model.Y',
       ncores=1
     )
     expect_error(
