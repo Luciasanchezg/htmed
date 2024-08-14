@@ -17,31 +17,42 @@ analysis could be performed.
 ## Data
 
 To do so, we will simulate some data. Imagine that we have 100
-individuals for which we have measured 4 different treatments (binary),
-4 different mediators (continuous) and a single outcome (continuous).
+individuals for which we have normalised measures of 4 biochemical
+parameters: LDL, cholesterol, free cholesterol and triglycerides. We
+also have information about ventricle end-diastolic volume and
+end-systolic volume, in both right and left ventricles. In this case,
+the data is binary, with 0 for individuals with normal values, and 1 for
+individuals with ranges out of normality. Finally, we have heart oxygen
+consumption information, also normalised.
+
+Our aim is to study the association between the biochemical parameters
+(*treatments*) and the heart oxygen consumption (*outcome*). In
+addition, we want to determine is any of the ventricle measures
+(*mediators*) somehow explains the underlying mechanism of the
+relationship between the treatments and the outcome.
 
 ``` r
 set.seed(123)
 
 n <- 100
 
-# data for the treatments
+# data for the mediators
 df <- data.frame(
-  treatment.1 = rbinom(n, 1, 0.5), 
-  treatment.2 = rbinom(n, 1, 0.5), 
-  treatment.3 = rbinom(n, 1, 0.5),  
-  treatment.4 = rbinom(n, 1, 0.5),
-  outcome.1 = rnorm(n)
+  mediator.1 = rbinom(n, 1, 0.5), 
+  mediator.2 = rbinom(n, 1, 0.5), 
+  mediator.3 = rbinom(n, 1, 0.5),  
+  mediator.4 = rbinom(n, 1, 0.5)
 )
 
-# data for the mediators
-df$mediator.1 <- - 0.5 * df$treatment.1 + 0.3 * df$treatment.2 + 0.4 * df$treatment.3 + 0.6 * df$treatment.4 + rnorm(n)
-df$mediator.2 <- -0.6 * df$treatment.1 - 0.5 * df$treatment.2 - 0.4 * df$treatment.3 - 0.7 * df$treatment.4 + rnorm(n)
-df$mediator.3 <- - 0.7 * df$treatment.2 - 0.2 * df$treatment.3 - 1 * df$treatment.4 + rnorm(n)
-df$mediator.4 <- - 0.5 * df$treatment.2 - 0.3 * df$treatment.3 - 0.2 * df$treatment.4 - rnorm(n)
+# data for the treatment
+df$treatment.1 <- - 0.5 * df$mediator.1 + 0.3 * df$mediator.2 + 0.4 * df$mediator.3 + 0.6 * df$mediator.4 + rnorm(n)
+df$treatment.2 <- -0.6 * df$mediator.1 - 0.5 * df$mediator.2 - 0.4 * df$mediator.3 - 0.7 * df$mediator.4 + rnorm(n)
+df$treatment.3 <- + df$mediator.3 + rnorm(n)
+df$treatment.4 <- + 0.5 * df$mediator.2 + 0.8 * df$mediator.3 + rnorm(n)
 
 # data for the outcome
-df$outcome.1 <- 1 + 1.2 * df$mediator.1 + 1.0 * df$treatment.1 + 0.8 * df$treatment.2 + 0.6 * df$treatment.3 + 0.9 * df$treatment.4 + rnorm(n)
+df$outcome.1 <- 1 - 1.2 * df$mediator.1 + 1.0 * df$treatment.1 + 0.8 * df$treatment.2 + 0.6 * df$treatment.3 + 0.9 * df$treatment.4 + rnorm(n)
+df <- df %>% mutate(across(where(is.numeric), ~ as.numeric(scale(.))))
 ```
 
 With this data, we hypothesize that some treatments could be responsible
@@ -285,7 +296,7 @@ visual_outcome1_adj0.05 <- visual_htmed(
   , pval = 0.05)
 #> Results with p-value_Prop._Mediated_(average) <= 0.05 will be filtered out
 visual_outcome1_adj0.05
-#> Warning: Removed 10 rows containing missing values or values outside the scale range
+#> Warning: Removed 11 rows containing missing values or values outside the scale range
 #> (`geom_point()`).
 ```
 
@@ -333,7 +344,7 @@ df <- df %>%
 df %>% dplyr::select(split) %>% table(.)
 #> split
 #> Diabetes   HighBP 
-#>       45       55
+#>       47       53
 ```
 
 Under the previous hypothesis, we were perfoming the analyses with the
