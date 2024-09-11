@@ -164,8 +164,8 @@ htmed <- function(
                             tryCatch(
                               {
                                 set.seed(seed)
-                                model <- mediation::mediate(model.m = m, model.y = y,
-                                                            treat = as.character(tr), mediator = as.character(me), ...)
+                                #model <- mediation::mediate(model.m = m, model.y = y, treat = as.character(tr), mediator = as.character(me), ...)
+                                model <- mediation::mediate(model.m = m, model.y = y, treat = tr, mediator = me, ...)
                                 return(model)
                               },
                               warning=function(w) { return(paste("Warning message:", w, sep=' ')) },
