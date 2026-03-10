@@ -7,7 +7,7 @@ Description: Package for high-throughput mediation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 Imports: 
     dplyr,
