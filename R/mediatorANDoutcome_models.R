@@ -37,7 +37,8 @@ data_models <- function(outcome, mediator, treatment,
     ) %>%
     mutate(
       !!col_y := paste0("`", outcome, "` ~ `", mediator, "` + `", treatment, "`")
-    )
+    ) %>%
+    dplyr::arrange(outcome, treatment, mediator)
   return(models_df)
 }
 
@@ -353,7 +354,7 @@ outcome_models <- function(
   # parallelizing model generation
   models <- tryCatch(
     {
-      parallel::mclapply(list.models_clean, function(formula) {
+      parallel::mclapply(list.models, function(formula) {
         .modeling(model.type=model.type, formula=formula, data=data, ...)
       }, mc.cores = ncores)
     }
@@ -371,14 +372,27 @@ outcome_models <- function(
 ) {
   model <- tryCatch(
     {
-      model.type(as.formula(formula), data=data, ...)
-    },
-    warning=function(w) {
-      return(paste('Warning message: ', w$message))
+      model <- model.type(as.formula(formula), data = data, ...)
+      # capturing warnings
+      warnings <- NULL
+      model <- withCallingHandlers(
+        model.type(as.formula(formula), data = data, ...),
+        warning = function(w) {
+          warnings <<- c(warnings, w$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+      # adding warnings
+      if(length(warnings) > 0) {
+        model$warningsModel <- paste(warnings, collapse = "; ")
+      }
+      return(model)
     },
     error=function(e) {
       return(paste('Error message: ', e$message))
     }
   )
 }
+
+
 
