@@ -282,6 +282,7 @@ outcome_models <- function(
   # finding duplicate models
   dup_mods <- data.models %>% group_by(!!rlang::sym(column.models)) %>% summarise(n=n()) %>% filter(n>1) %>% pull(!!rlang::sym(column.models)) %>% unique
   if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
+
   # generating the models
   models <- .model_MY(list.models=data.models[[column.models]], model.type=model.type, data=data, ncores=ncores, ...)
 
@@ -364,7 +365,7 @@ outcome_models <- function(
 }
 
 
-.modeling <- function( ##
+.modeling <- function(
     model.type=model.type,
     formula=formula,
     data=data,
