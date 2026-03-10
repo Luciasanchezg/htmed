@@ -23,15 +23,21 @@ NULL
 #'   that need to be performed.
 #' @export
 #'
-data_models <- function(outcome, mediator, treatment) {
+data_models <- function(outcome, mediator, treatment,
+                        col_m = "model.m.formula",
+                        col_y = "model.y.formula") {
 
   if (!is.vector(outcome)) { print('Please, provide a vector for the outcome') }
   if (!is.vector(mediator)) { print('Please, provide a vector for the mediator') }
   if (!is.vector(treatment)) { print('Please, provide a vector for the treatment') }
 
   models_df <- expand.grid(outcome = outcome, treatment = treatment, mediator = mediator) %>%
-    mutate(model.m.formula = paste(mediator, '~', treatment)) %>%
-    mutate(model.y.formula = paste(outcome, '~', mediator, '+', treatment))
+    mutate(
+      !!col_m := paste0("`", mediator, "` ~ `", treatment, "`")
+    ) %>%
+    mutate(
+      !!col_y := paste0("`", outcome, "` ~ `", mediator, "` + `", treatment, "`")
+    )
   return(models_df)
 }
 
@@ -343,13 +349,6 @@ outcome_models <- function(
     ncores,
     ...
 ) {
-
-  # formatting formula
-  list.models_clean <- sapply(list.models, function(formula_str) {
-    predictor <- gsub(" ~.*", "", formula_str)
-    outcome <- gsub(".*~\\s*", "", formula_str)
-    paste0("`", predictor, "` ~ ", outcome)
-  })
 
   # parallelizing model generation
   models <- tryCatch(
