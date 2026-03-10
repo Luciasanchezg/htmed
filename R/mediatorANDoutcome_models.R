@@ -364,7 +364,7 @@ outcome_models <- function(
 }
 
 
-.modeling <- function(
+.modeling <- function( ##
     model.type=model.type,
     formula=formula,
     data=data,
