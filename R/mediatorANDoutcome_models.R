@@ -343,10 +343,18 @@ outcome_models <- function(
     ncores,
     ...
 ) {
+
+  # formatting formula
+  list.models_clean <- sapply(list.models, function(formula_str) {
+    predictor <- gsub(" ~.*", "", formula_str)
+    outcome <- gsub(".*~\\s*", "", formula_str)
+    paste0("`", predictor, "` ~ ", outcome)
+  })
+
   # parallelizing model generation
   models <- tryCatch(
     {
-      parallel::mclapply(list.models, function(formula) {
+      parallel::mclapply(list.models_clean, function(formula) {
         .modeling(model.type=model.type, formula=formula, data=data, ...)
       }, mc.cores = ncores)
     }
