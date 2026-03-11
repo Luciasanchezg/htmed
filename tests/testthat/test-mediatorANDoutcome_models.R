@@ -305,3 +305,43 @@ test_that(
 )
 
 
+## ----------------------------------------------------------------------------
+## Checking error/warning return behaviour of .modeling() via mediator_models()
+## ----------------------------------------------------------------------------
+test_that(
+  desc = "mediator_models() returns a character string in model column when model fitting fails",
+  code = {
+    bad_models <- data_models(outcome = 'outcome.1', mediator = 'nonexistent', treatment = 'treatment.1')
+    result <- mediator_models(
+      column.models = 'model.m.formula',
+      model.type = lm,
+      data = df,
+      data.models = bad_models,
+      model.name = 'model.M',
+      ncores = 1
+    )
+    expect_true(is.character(result$model.M[[1]]))
+    expect_match(result$model.M[[1]], "Error message")
+  }
+)
+
+
+test_that(
+  desc = "mediator_models() stores warnings in $warningsModel and returns a valid model object",
+  code = {
+    # 1-row data forces lm to warn about rank deficiency / perfect fit
+    result <- mediator_models(
+      column.models = 'model.m.formula',
+      model.type = lm,
+      data = df[1, ],
+      data.models = models_1out,
+      model.name = 'model.M',
+      ncores = 1
+    )
+    has_warning <- sapply(result$model.M, function(m) !is.null(m$warningsModel))
+    expect_true(any(has_warning))
+    expect_true(all(sapply(result$model.M[has_warning], function(m) inherits(m, "lm"))))
+  }
+)
+
+

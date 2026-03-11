@@ -23,15 +23,22 @@ NULL
 #'   that need to be performed.
 #' @export
 #'
-data_models <- function(outcome, mediator, treatment) {
+data_models <- function(outcome, mediator, treatment,
+                        col_m = "model.m.formula",
+                        col_y = "model.y.formula") {
 
   if (!is.vector(outcome)) { print('Please, provide a vector for the outcome') }
   if (!is.vector(mediator)) { print('Please, provide a vector for the mediator') }
   if (!is.vector(treatment)) { print('Please, provide a vector for the treatment') }
 
   models_df <- expand.grid(outcome = outcome, treatment = treatment, mediator = mediator) %>%
-    mutate(model.m.formula = paste(mediator, '~', treatment)) %>%
-    mutate(model.y.formula = paste(outcome, '~', mediator, '+', treatment))
+    mutate(
+      !!col_m := paste0("`", mediator, "` ~ `", treatment, "`")
+    ) %>%
+    mutate(
+      !!col_y := paste0("`", outcome, "` ~ `", mediator, "` + `", treatment, "`")
+    ) %>%
+    dplyr::arrange(outcome, treatment, mediator)
   return(models_df)
 }
 
@@ -86,7 +93,7 @@ mediator_models <- function(
     ...
 ) {
   message("Performing fitted models for mediators")
-  results <- .generate_models(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, outcome=outcome, data.split=data.split, ncores=ncores, ...)
+  return(.generate_models(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, outcome=outcome, data.split=data.split, ncores=ncores, ...))
 }
 
 
@@ -141,7 +148,7 @@ outcome_models <- function(
     ...
 ) {
   message("Performing fitted models for outcomes")
-  results <- .generate_models(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, outcome=outcome, data.split=data.split, ncores=ncores, ...)
+  return(.generate_models(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, outcome=outcome, data.split=data.split, ncores=ncores, ...))
 }
 
 
@@ -238,8 +245,13 @@ outcome_models <- function(
 
       # performing models
       if (!is.null(outcome)) {
-
-        results.subs <- .more_outcomes(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models.subs, model.name=model.name, ncores=ncores, outcome=outcome)
+        results.list <- list()
+        for (out in unique(data.models.subs[[outcome]])) {
+          subset.models <- data.models.subs %>% dplyr::filter(!!rlang::sym(outcome) == .env$out)
+          results.list[[out]] <- .one_outcome(column.models=column.models, model.type=model.type, data=data.subs, data.models=subset.models, model.name=model.name, ncores=ncores)
+        }
+        results.subs <- do.call(rbind, results.list)
+        rownames(results.subs) <- NULL
         results.subs[[data.split]] <- split
         results <- rbind(results, results.subs)
       }
@@ -253,7 +265,13 @@ outcome_models <- function(
   else {
     # performing models
     if (!is.null(outcome)) {
-      results <- .more_outcomes(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, ncores=ncores, outcome=outcome, ...)
+      results.list <- list()
+      for (out in unique(data.models[[outcome]])) {
+        subset.models <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == .env$out)
+        results.list[[out]] <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=subset.models, model.name=model.name, ncores=ncores, ...)
+      }
+      results <- do.call(rbind, results.list)
+      rownames(results) <- NULL
     }
     else {
       results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, ncores=ncores, ...)
@@ -275,6 +293,7 @@ outcome_models <- function(
   # finding duplicate models
   dup_mods <- data.models %>% group_by(!!rlang::sym(column.models)) %>% summarise(n=n()) %>% filter(n>1) %>% pull(!!rlang::sym(column.models)) %>% unique
   if (rlang::is_empty(dup_mods) == FALSE) { stop("Some models are duplicated") }
+
   # generating the models
   models <- .model_MY(list.models=data.models[[column.models]], model.type=model.type, data=data, ncores=ncores, ...)
 
@@ -286,27 +305,6 @@ outcome_models <- function(
   return(results)
 }
 
-
-.more_outcomes <- function(
-    column.models,
-    model.type,
-    data,
-    data.models,
-    model.name,
-    ncores,
-    outcome,
-    ...
-) {
-  results.list <- list()
-  for (out in levels(data.models[[outcome]])) {
-    subset.models <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == .env$out)
-    results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=subset.models, model.name=model.name, ncores=ncores, ...)
-    results.list[[out]] <- results
-  }
-  results.df <- do.call(rbind, results.list)
-  rownames(results.df) <- NULL
-  return(results.df)
-}
 
 
 .check_formula <- function(
@@ -343,6 +341,7 @@ outcome_models <- function(
     ncores,
     ...
 ) {
+
   # parallelizing model generation
   models <- tryCatch(
     {
@@ -364,14 +363,26 @@ outcome_models <- function(
 ) {
   model <- tryCatch(
     {
-      model.type(as.formula(formula), data=data, ...)
-    },
-    warning=function(w) {
-      return(paste('Warning message: ', w$message))
+      # capturing warnings
+      warnings <- NULL
+      model <- withCallingHandlers(
+        model.type(as.formula(formula), data = data, ...),
+        warning = function(w) {
+          warnings <<- c(warnings, w$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+      # adding warnings
+      if(length(warnings) > 0) {
+        model$warningsModel <- paste(warnings, collapse = "; ")
+      }
+      return(model)
     },
     error=function(e) {
       return(paste('Error message: ', e$message))
     }
   )
 }
+
+
 
