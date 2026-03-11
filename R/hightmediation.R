@@ -81,7 +81,7 @@ htmed <- function(
   if ( any(grepl(pattern = 'Warning|Error', x = data.models[[column.modelm]])) ) {
     message("Some models for the mediator contain warnings or errors. These rows will be removed")
 
-    data.models <- data.models[-grepl(pattern = 'Warning', x = data.models[[column.modelm]]),]
+    data.models <- data.models[!grepl(pattern = 'Warning', x = data.models[[column.modelm]]),]
   }
 
   if ( any(grepl(pattern = 'Warning|Error', x = data.models[[column.modely]])) ) {
@@ -164,14 +164,17 @@ htmed <- function(
                             tryCatch(
                               {
                                 set.seed(seed)
-                                model <- mediation::mediate(model.m = m, model.y = y, treat = as.character(tr), mediator = as.character(me), ...)
-                                #model <- mediation::mediate(model.m = m, model.y = y, treat = tr, mediator = me, ...)
-                                return(model)
-                              },
-                              warning=function(w) {
-                                set.seed(seed)
-                                model <- mediation::mediate(model.m = m, model.y = y, treat = as.character(tr), mediator = as.character(me), ...)
-                                print(paste("Warning message:", w, sep=' '))
+                                warnings_list <- NULL
+                                model <- withCallingHandlers(
+                                  mediation::mediate(model.m = m, model.y = y, treat = as.character(tr), mediator = as.character(me), ...),
+                                  warning = function(w) {
+                                    warnings_list <<- c(warnings_list, w$message)
+                                    invokeRestart("muffleWarning")
+                                  }
+                                )
+                                if (!is.null(warnings_list)) {
+                                  print(paste("Warning message:", paste(warnings_list, collapse = "; "), sep = ' '))
+                                }
                                 return(model)
                               },
                               error=function(e) { return(paste("Error message:", e, sep=' ')) }

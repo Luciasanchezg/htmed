@@ -93,7 +93,7 @@ mediator_models <- function(
     ...
 ) {
   message("Performing fitted models for mediators")
-  results <- .generate_models(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, outcome=outcome, data.split=data.split, ncores=ncores, ...)
+  return(.generate_models(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, outcome=outcome, data.split=data.split, ncores=ncores, ...))
 }
 
 
@@ -148,7 +148,7 @@ outcome_models <- function(
     ...
 ) {
   message("Performing fitted models for outcomes")
-  results <- .generate_models(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, outcome=outcome, data.split=data.split, ncores=ncores, ...)
+  return(.generate_models(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, outcome=outcome, data.split=data.split, ncores=ncores, ...))
 }
 
 
@@ -373,7 +373,6 @@ outcome_models <- function(
 ) {
   model <- tryCatch(
     {
-      model <- model.type(as.formula(formula), data = data, ...)
       # capturing warnings
       warnings <- NULL
       model <- withCallingHandlers(
