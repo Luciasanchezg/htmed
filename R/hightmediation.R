@@ -113,7 +113,7 @@ htmed <- function(
 
   # Applying mediation
   results.med <- list()
-  for (out in levels(data.models[[outcome]])) {
+  for (out in unique(data.models[[outcome]])) {
 
     data.models.subs <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == .env$out)
 
