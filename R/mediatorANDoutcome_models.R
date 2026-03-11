@@ -245,8 +245,13 @@ outcome_models <- function(
 
       # performing models
       if (!is.null(outcome)) {
-
-        results.subs <- .more_outcomes(column.models=column.models, model.type=model.type, data=data.subs, data.models=data.models.subs, model.name=model.name, ncores=ncores, outcome=outcome)
+        results.list <- list()
+        for (out in unique(data.models.subs[[outcome]])) {
+          subset.models <- data.models.subs %>% dplyr::filter(!!rlang::sym(outcome) == .env$out)
+          results.list[[out]] <- .one_outcome(column.models=column.models, model.type=model.type, data=data.subs, data.models=subset.models, model.name=model.name, ncores=ncores)
+        }
+        results.subs <- do.call(rbind, results.list)
+        rownames(results.subs) <- NULL
         results.subs[[data.split]] <- split
         results <- rbind(results, results.subs)
       }
@@ -260,7 +265,13 @@ outcome_models <- function(
   else {
     # performing models
     if (!is.null(outcome)) {
-      results <- .more_outcomes(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, ncores=ncores, outcome=outcome, ...)
+      results.list <- list()
+      for (out in unique(data.models[[outcome]])) {
+        subset.models <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == .env$out)
+        results.list[[out]] <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=subset.models, model.name=model.name, ncores=ncores, ...)
+      }
+      results <- do.call(rbind, results.list)
+      rownames(results) <- NULL
     }
     else {
       results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=data.models, model.name=model.name, ncores=ncores, ...)
@@ -294,27 +305,6 @@ outcome_models <- function(
   return(results)
 }
 
-
-.more_outcomes <- function(
-    column.models,
-    model.type,
-    data,
-    data.models,
-    model.name,
-    ncores,
-    outcome,
-    ...
-) {
-  results.list <- list()
-  for (out in levels(data.models[[outcome]])) {
-    subset.models <- data.models %>% dplyr::filter(!!rlang::sym(outcome) == .env$out)
-    results <- .one_outcome(column.models=column.models, model.type=model.type, data=data, data.models=subset.models, model.name=model.name, ncores=ncores, ...)
-    results.list[[out]] <- results
-  }
-  results.df <- do.call(rbind, results.list)
-  rownames(results.df) <- NULL
-  return(results.df)
-}
 
 
 .check_formula <- function(
