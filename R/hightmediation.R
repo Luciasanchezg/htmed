@@ -74,20 +74,27 @@ htmed <- function(
     stop("Wrong column names for fitted models for mediator or outcome")
   }
 
-  if ( all(grepl(pattern = 'Warning|Error', x = data.models[[column.modely]])) || all(grepl(pattern = 'Warning|Error', x = data.models[[column.modelm]])) ) {
-    stop("All models for the outcome or the mediator contain warnings or errors")
+  # Detect error models: .modeling() returns a character string on error
+  # Warning models are valid fitted objects (with $warningsModel set) and are kept
+  error_modelm <- sapply(data.models[[column.modelm]], is.character)
+  error_modely <- sapply(data.models[[column.modely]], is.character)
+
+  if (all(error_modelm) || all(error_modely)) {
+    stop("All models for the outcome or the mediator contain errors")
   }
 
-  if ( any(grepl(pattern = 'Warning|Error', x = data.models[[column.modelm]])) ) {
-    message("Some models for the mediator contain warnings or errors. These rows will be removed")
-
-    data.models <- data.models[!grepl(pattern = 'Warning', x = data.models[[column.modelm]]),]
+  if (any(error_modelm)) {
+    bad_trios <- data.models[error_modelm, c(outcome, treat, mediator)]
+    trio_msgs <- apply(bad_trios, 1, function(r) paste0("  outcome=", r[[outcome]], ", treat=", r[[treat]], ", mediator=", r[[mediator]]))
+    message("Some models for the mediator contain errors. The analysis including these variables will not be performed:\n", paste(trio_msgs, collapse = "\n"))
+    data.models <- data.models[!error_modelm, ]
   }
 
-  if ( any(grepl(pattern = 'Warning|Error', x = data.models[[column.modely]])) ) {
-    message("Some models for the outcome contain warnings or errors. These rows will be removed")
-
-    data.models <- data.models[!grepl(pattern = 'Warning', x = data.models[[column.modely]]),]
+  if (any(error_modely)) {
+    bad_trios <- data.models[error_modely, c(outcome, treat, mediator)]
+    trio_msgs <- apply(bad_trios, 1, function(r) paste0("  outcome=", r[[outcome]], ", treat=", r[[treat]], ", mediator=", r[[mediator]]))
+    message("Some models for the outcome contain errors. The analysis including these variables will not be performed:\n", paste(trio_msgs, collapse = "\n"))
+    data.models <- data.models[!error_modely, ]
   }
 
   if (!is.null(ncores)) {
