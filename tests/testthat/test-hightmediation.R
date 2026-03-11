@@ -178,11 +178,104 @@ test_that(
             outcome='outcome',
             seed=1,
             ncores=1),
-      regexp = "All models for the outcome or the mediator contain warnings or errors"
+      regexp = "All models for the outcome or the mediator contain errors"
     )
   }
 )
 
 
+## ----------------------------------------------------------------------------
+## Checking error/warning model filtering behaviour
+## ----------------------------------------------------------------------------
+test_that(
+  desc = "htmed() removes rows where mediator model has errors, runs on the rest, and emits a message",
+  code = {
+    load(file.path("../testdata", "medANDout_1out.RData"))
+    load(file.path("../testdata", "mediation_1out.RData"))
+
+    bad <- medANDout_1out
+    bad$model.M[[1]] <- "Error message: intentional test error"
+
+    expect_message(
+      result <- htmed(data.models = bad,
+                      column.modelm = 'model.M',
+                      column.modely = 'model.Y',
+                      treat = 'treatment',
+                      mediator = 'mediator',
+                      outcome = 'outcome',
+                      seed = 1,
+                      ncores = 1),
+      regexp = "Some models for the mediator contain errors"
+    )
+    expect_equal(length(result[[1]]), length(mediation_1out[[1]]) - 1)
+  }
+)
+
+
+test_that(
+  desc = "htmed() removes rows where outcome model has errors, runs on the rest, and emits a message",
+  code = {
+    load(file.path("../testdata", "medANDout_1out.RData"))
+    load(file.path("../testdata", "mediation_1out.RData"))
+
+    bad <- medANDout_1out
+    bad$model.Y[[1]] <- "Error message: intentional test error"
+
+    expect_message(
+      result <- htmed(data.models = bad,
+                      column.modelm = 'model.M',
+                      column.modely = 'model.Y',
+                      treat = 'treatment',
+                      mediator = 'mediator',
+                      outcome = 'outcome',
+                      seed = 1,
+                      ncores = 1),
+      regexp = "Some models for the outcome contain errors"
+    )
+    expect_equal(length(result[[1]]), length(mediation_1out[[1]]) - 1)
+  }
+)
+
+
+test_that(
+  desc = "htmed() keeps warning models and runs mediation on all rows",
+  code = {
+    load(file.path("../testdata", "medANDout_1out.RData"))
+    load(file.path("../testdata", "mediation_1out.RData"))
+
+    medANDout_1out$model.M[[1]]$warningsModel <- "simulated warning"
+
+    result <- htmed(data.models = medANDout_1out,
+                    column.modelm = 'model.M',
+                    column.modely = 'model.Y',
+                    treat = 'treatment',
+                    mediator = 'mediator',
+                    outcome = 'outcome',
+                    seed = 1,
+                    ncores = 1)
+    expect_equal(length(result[[1]]), length(mediation_1out[[1]]))
+  }
+)
+
+
+test_that(
+  desc = "htmed() works when the outcome column is a character vector, not a factor",
+  code = {
+    load(file.path("../testdata", "medANDout_1out.RData"))
+    load(file.path("../testdata", "mediation_1out.RData"))
+
+    medANDout_1out$outcome <- as.character(medANDout_1out$outcome)
+
+    result <- htmed(data.models = medANDout_1out,
+                    column.modelm = 'model.M',
+                    column.modely = 'model.Y',
+                    treat = 'treatment',
+                    mediator = 'mediator',
+                    outcome = 'outcome',
+                    seed = 1,
+                    ncores = 1)
+    expect_equal(length(result), length(mediation_1out))
+  }
+)
 
 
