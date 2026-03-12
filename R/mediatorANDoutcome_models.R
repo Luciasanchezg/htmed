@@ -16,6 +16,10 @@ NULL
 #' @param outcome a vector with the outcomes
 #' @param mediator a vector with the mediators
 #' @param treatment a vector with the treatments
+#' @param col_m a character. Name of the column that will contain the mediator
+#'   model formulas in the output dataframe. Default: "model.m.formula".
+#' @param col_y a character. Name of the column that will contain the outcome
+#'   model formulas in the output dataframe. Default: "model.y.formula".
 #'
 #' @return It returns a dataframe with five columns. The first two columns will
 #'   include the outcomes, treatments and mediators tested, respectively. The
@@ -27,9 +31,19 @@ data_models <- function(outcome, mediator, treatment,
                         col_m = "model.m.formula",
                         col_y = "model.y.formula") {
 
-  if (!is.vector(outcome)) { print('Please, provide a vector for the outcome') }
-  if (!is.vector(mediator)) { print('Please, provide a vector for the mediator') }
-  if (!is.vector(treatment)) { print('Please, provide a vector for the treatment') }
+  if (!is.vector(outcome))   { stop('Please, provide a vector for the outcome') }
+  if (!is.vector(mediator))  { stop('Please, provide a vector for the mediator') }
+  if (!is.vector(treatment)) { stop('Please, provide a vector for the treatment') }
+
+  if (!is.character(col_m) || !is.character(col_y)) {
+    stop("col_m and col_y must be character strings")
+  }
+  if (col_m == col_y) {
+    stop("col_m and col_y must be different")
+  }
+  if (any(c(col_m, col_y) %in% c("outcome", "treatment", "mediator"))) {
+    stop("col_m and col_y must not use reserved column names: 'outcome', 'treatment', 'mediator'")
+  }
 
   models_df <- expand.grid(outcome = outcome, treatment = treatment, mediator = mediator) %>%
     mutate(
