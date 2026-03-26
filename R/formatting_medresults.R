@@ -1,10 +1,8 @@
 
 utils::globalVariables(c("."))
 #' @importFrom dplyr %>% mutate bind_rows
-#' @importFrom reshape2 dcast melt
 #' @importFrom tidyr separate_wider_delim
-#' @importFrom stats p.adjust
-#' @importFrom tibble rownames_to_column
+#' @importFrom stats p.adjust setNames
 #' @importFrom purrr pluck_depth
 NULL
 
@@ -30,6 +28,10 @@ NULL
 #'   information.
 #' @param split a boolean. This argument indicate if we are dealing with
 #'   splitted data. Default: FALSE.
+#' @param estimate a character string indicating which estimate to report when
+#'   the mediation model has a control/treated split. One of `"average"`
+#'   (default), `"control"`, or `"treated"`. Ignored for models that only
+#'   report a single estimate.
 #'
 #' @return lists of lists with the summary of the mediate analyses and the
 #'   adjusted p-values.
@@ -38,14 +40,18 @@ NULL
 #'
 format_med <- function(
     mediation.list,
-    split = FALSE
+    split = FALSE,
+    estimate = "average"
 ) {
   ## TODO: no está contemplada la posibilidad de covariates
   if (!"logical" %in% class(split)) {
     stop("split argument only admits logical")
   }
+  if (!estimate %in% c("average", "control", "treated")) {
+    stop("estimate must be one of: 'average', 'control', 'treated'")
+  }
   if (split == FALSE) {
-    filt_summary <- .format_med(mediation.list=mediation.list)
+    filt_summary <- .format_med(mediation.list=mediation.list, estimate=estimate)
   }
   else {
     if (purrr::pluck_depth(mediation.list) != 7) {
@@ -53,7 +59,7 @@ format_med <- function(
     }
     filt_summary <- lapply(names(mediation.list),
                            FUN = function(subl) {
-                             formatted.list <- .format_med(mediation.list=mediation.list[[subl]])
+                             formatted.list <- .format_med(mediation.list=mediation.list[[subl]], estimate=estimate)
                              formatted.df <- lapply(names(formatted.list),
                                                     FUN = function(subl.subl) {
                                                       formatted.list[[subl.subl]] %>% mutate(split = subl.subl)
@@ -69,7 +75,8 @@ format_med <- function(
 
 
 .format_med <- function(
-    mediation.list
+    mediation.list,
+    estimate = "average"
     ) {
 
   if (!"list" %in% class(mediation.list)) {
@@ -94,14 +101,14 @@ format_med <- function(
       stop("Are you introducing the same model more than one time?")
     }
   }
-  onerow_summary <- .med_summary_list(mediation.list)
+  onerow_summary <- .med_summary_list(mediation.list, estimate=estimate)
   filt_summary <- .filt_and_adjpval(onerow_summary)
 
   return(filt_summary)
 }
 
 
-.med_summary_list <- function(mediation.list) {
+.med_summary_list <- function(mediation.list, estimate = "average") {
 
   summary.list <- list()
   for (i in names(mediation.list)) {
@@ -110,14 +117,14 @@ format_med <- function(
     for (med in names(mediation.list[[i]])) {
 
       # getting the summary for the mediation
-      model.stats <- .mediation_summary(mediation.list[[i]][[med]]) %>%
-        as.data.frame() %>%
-        # dplyr::mutate(row.names = row.names(.)) %>%
-        tibble::rownames_to_column(var = 'row.names') %>%
-        dplyr::mutate(row.names = gsub(' ', '_', row.names))
+      model.stats <- .mediation_summary(mediation.list[[i]][[med]], estimate=estimate)
+      row_names   <- gsub(' ', '', rownames(model.stats))
 
-      # reshaping summaries into one row
-      model.reshape <- reshape2::dcast(reshape2::melt(model.stats, id.var="row.names"), formula = 1~variable+row.names) %>% dplyr::select(-c('1'))
+      # reshaping summaries into one row: estimates as plain column names,
+      # p-values prefixed with "p-value_" — no "Estimate_" prefix generated
+      est_vec  <- stats::setNames(model.stats[["Estimate"]], row_names)
+      pval_vec <- stats::setNames(model.stats[["p-value"]], paste0("p-value_", row_names))
+      model.reshape <- data.frame(as.list(c(est_vec, pval_vec)), check.names = FALSE)
       rownames(model.reshape) <- med
 
       model.stats.list[[med]] <- model.reshape
@@ -129,31 +136,86 @@ format_med <- function(
 }
 
 
-.mediation_summary <- function (x) {
-  clp <- 100 * x$conf.level
+.pick_row <- function(x, primary_est, primary_ci, primary_p, fb_est, fb_ci, fb_p) {
+  if (!is.null(x[[primary_est]])) {
+    c(x[[primary_est]], x[[primary_ci]], x[[primary_p]])
+  } else if (!is.null(x[[fb_est]])) {
+    c(x[[fb_est]], x[[fb_ci]], x[[fb_p]])
+  } else {
+    c(NA_real_, NA_real_, NA_real_, NA_real_)
+  }
+}
 
-  stats_model <- c(x$d0, x$d0.ci, x$d0.p)
-  stats_model <- rbind(stats_model, c(x$d1, x$d1.ci, x$d1.p))
-  stats_model <- rbind(stats_model, c(x$n0, x$n0.ci, x$n0.p))
-  stats_model <- rbind(stats_model, c(x$n1, x$n1.ci, x$n1.p))
-  stats_model <- rbind(stats_model, c(x$d.avg, x$d.avg.ci, x$d.avg.p))
-  stats_model <- rbind(stats_model, c(x$n.avg, x$n.avg.ci, x$n.avg.p))
-  #stablishing rownames and colnames
-  rownames(stats_model) <- c("ACME (control)", "ACME (treated)",
-                             "Prop. Mediated (control)", "Prop. Mediated (treated)",
-                             "ACME (average)",
-                             "Prop. Mediated (average)")
-  colnames(stats_model) <- c("Estimate", paste(clp, "% CI Lower", sep = ""),
-                             paste(clp, "% CI Upper", sep = ""), "p-value")
+
+.mediation_summary <- function(x, estimate = "average") {
+  clp       <- 100 * x$conf.level
+  has_split <- isTRUE(x$INT)
+
+  if (!has_split) {
+    acme_label <- "ACME"
+    ade_label  <- "ADE"
+    prop_label <- "Prop. Mediated"
+    acme_row   <- .pick_row(x, "d.avg", "d.avg.ci", "d.avg.p", "d0", "d0.ci", "d0.p")
+    ade_row    <- .pick_row(x, "z.avg", "z.avg.ci", "z.avg.p", "z0", "z0.ci", "z0.p")
+    prop_row   <- .pick_row(x, "n.avg", "n.avg.ci", "n.avg.p", "n0", "n0.ci", "n0.p")
+  } else if (estimate == "control") {
+    acme_label <- "ACME (control)"
+    ade_label  <- "ADE (control)"
+    prop_label <- "Prop. Mediated (control)"
+    acme_row   <- .pick_row(x, "d0", "d0.ci", "d0.p", "d.avg", "d.avg.ci", "d.avg.p")
+    ade_row    <- .pick_row(x, "z0", "z0.ci", "z0.p", "z.avg", "z.avg.ci", "z.avg.p")
+    prop_row   <- .pick_row(x, "n0", "n0.ci", "n0.p", "n.avg", "n.avg.ci", "n.avg.p")
+  } else if (estimate == "treated") {
+    acme_label <- "ACME (treated)"
+    ade_label  <- "ADE (treated)"
+    prop_label <- "Prop. Mediated (treated)"
+    acme_row   <- .pick_row(x, "d1", "d1.ci", "d1.p", "d.avg", "d.avg.ci", "d.avg.p")
+    ade_row    <- .pick_row(x, "z1", "z1.ci", "z1.p", "z.avg", "z.avg.ci", "z.avg.p")
+    prop_row   <- .pick_row(x, "n1", "n1.ci", "n1.p", "n.avg", "n.avg.ci", "n.avg.p")
+  } else {
+    acme_label <- "ACME (average)"
+    ade_label  <- "ADE (average)"
+    prop_label <- "Prop. Mediated (average)"
+    acme_row   <- .pick_row(x, "d.avg", "d.avg.ci", "d.avg.p", "d0", "d0.ci", "d0.p")
+    ade_row    <- .pick_row(x, "z.avg", "z.avg.ci", "z.avg.p", "z0", "z0.ci", "z0.p")
+    prop_row   <- .pick_row(x, "n.avg", "n.avg.ci", "n.avg.p", "n0", "n0.ci", "n0.p")
+  }
+
+  # Total Effect is always a single estimate regardless of model type
+  tau_row <- .pick_row(x, "tau.coef", "tau.ci", "tau.p", "tau.coef", "tau.ci", "tau.p")
+
+  rows <- stats::setNames(
+    list(acme_row, ade_row, tau_row, prop_row),
+    c(acme_label, ade_label, "Total Effect", prop_label)
+  )
+  stats_model <- do.call(rbind, rows)
+  colnames(stats_model) <- c("Estimate",
+                             paste0(clp, "% CI Lower"),
+                             paste0(clp, "% CI Upper"),
+                             "p-value")
   return(as.data.frame(stats_model))
 }
 
 
 .filt_and_adjpval <- function(mediation_sum.list) {
-  # computing adjusted p-value for all analyses (Benjamini & Hochberg)
   mediation_sum.df <- dplyr::bind_rows(mediation_sum.list, .id = 'outcome') %>%
-    dplyr::mutate(outcome = as.factor(.data$outcome)) %>%
-    dplyr::mutate(`adj.p-value.all` = p.adjust(.data$`p-value_Prop._Mediated_(average)`, method='BH'))
+    dplyr::mutate(outcome = as.factor(.data$outcome))
+
+  # Detect which column name variant the models produced and use it throughout
+  col_suffix <- dplyr::case_when(
+    'p-value_Prop.Mediated(average)' %in% names(mediation_sum.df) ~ "(average)",
+    'p-value_Prop.Mediated(control)' %in% names(mediation_sum.df) ~ "(control)",
+    'p-value_Prop.Mediated(treated)' %in% names(mediation_sum.df) ~ "(treated)",
+    TRUE ~ ""
+  )
+  pval_col     <- paste0('p-value_Prop.Mediated', col_suffix)
+  est_acme_col <- paste0('ACME',                  col_suffix)
+  est_ade_col  <- paste0('ADE',                   col_suffix)
+  est_prop_col <- paste0('Prop.Mediated',          col_suffix)
+
+  # computing adjusted p-value for all analyses (Benjamini & Hochberg)
+  mediation_sum.df <- mediation_sum.df %>%
+    dplyr::mutate(`adj.p-value.all` = p.adjust(.data[[pval_col]], method='BH'))
 
   list_format <- list()
   for (i in levels(mediation_sum.df[['outcome']])) {
@@ -168,10 +230,16 @@ format_med <- function(
       mutate(names = row.names(list_format[[out]])) %>%
       tidyr::separate_wider_delim(data=., cols=names, delim=' ~ ', names=c('mediator', 'treatment')) %>%
       # computing adjusted p.value by outcome (Benjamini & Hochberg)
-      mutate(`adj.p-value.by_outcome` = p.adjust(.data$`p-value_Prop._Mediated_(average)`, method='BH')) %>%
-      dplyr::select(c('p-value_Prop._Mediated_(average)', 'adj.p-value.all', 'adj.p-value.by_outcome',
-                      'Estimate_Prop._Mediated_(average)', 'Estimate_ACME_(average)',
-                      'mediator', 'treatment'))
+      mutate(`adj.p-value.by_outcome` = p.adjust(.data[[pval_col]], method='BH')) %>%
+      mutate(outcome = out) %>%
+      dplyr::select(c('outcome', 'mediator', 'treatment',
+                      est_acme_col, est_ade_col, 'TotalEffect',
+                      est_prop_col, pval_col,
+                      'adj.p-value.all', 'adj.p-value.by_outcome')) %>%
+      dplyr::rename('ACME'          = !!est_acme_col,
+                    'ADE'           = !!est_ade_col,
+                    'Prop.Mediated' = !!est_prop_col,
+                    'p-value'       = !!pval_col)
     results.list[[out]] <- results
   }
   return(results.list)
