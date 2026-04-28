@@ -38,20 +38,20 @@ n <- 100
 
 # data for the mediators
 df <- data.frame(
-  mediator.1 = rbinom(n, 1, 0.5), 
-  mediator.2 = rbinom(n, 1, 0.5), 
-  mediator.3 = rbinom(n, 1, 0.5),  
-  mediator.4 = rbinom(n, 1, 0.5)
+  LV.EDV = rbinom(n, 1, 0.5), 
+  RV.EDV = rbinom(n, 1, 0.5), 
+  LV.ESV = rbinom(n, 1, 0.5),  
+  RV.ESV = rbinom(n, 1, 0.5)
 )
 
 # data for the treatment
-df$treatment.1 <- - 0.5 * df$mediator.1 + 0.3 * df$mediator.2 + 0.4 * df$mediator.3 + 0.6 * df$mediator.4 + rnorm(n)
-df$treatment.2 <- -0.6 * df$mediator.1 - 0.5 * df$mediator.2 - 0.4 * df$mediator.3 - 0.7 * df$mediator.4 + rnorm(n)
-df$treatment.3 <- + df$mediator.3 + rnorm(n)
-df$treatment.4 <- + 0.5 * df$mediator.2 + 0.8 * df$mediator.3 + rnorm(n)
+df$LDL <- - 0.5 * df$LV.EDV + 0.3 * df$RV.EDV + 0.4 * df$LV.ESV + 0.6 * df$RV.ESV + rnorm(n)
+df$cholesterol <- -0.6 * df$LV.EDV - 0.5 * df$RV.EDV - 0.4 * df$LV.ESV - 0.7 * df$RV.ESV + rnorm(n)
+df$free.cholesterol <- + df$LV.ESV + rnorm(n)
+df$triglycerides <- + 0.5 * df$RV.EDV + 0.8 * df$LV.ESV + rnorm(n)
 
 # data for the outcome
-df$outcome.1 <- 1 - 1.2 * df$mediator.1 + 1.0 * df$treatment.1 + 0.8 * df$treatment.2 + 0.6 * df$treatment.3 + 0.9 * df$treatment.4 + rnorm(n)
+df$outcome.1 <- 1 - 1.2 * df$LV.EDV + 1.0 * df$LDL + 0.8 * df$cholesterol + 0.6 * df$free.cholesterol + 0.9 * df$triglycerides + rnorm(n)
 df <- df %>% mutate(across(where(is.numeric), ~ as.numeric(scale(.))))
 ```
 
@@ -70,8 +70,8 @@ As you can see, we will use the `data_models()` function to generate this DataFr
 ```{r load_models}
 # data("models_surv", package = "htmed")
 outcome <- 'outcome.1'
-treatment <- paste('treatment', c(1, 2, 3, 4), sep='.')
-mediator <- paste('mediator', c(1, 2, 3, 4), sep='.')
+treatment <- c('LDL', 'cholesterol', 'free.cholesterol', 'triglycerides')
+mediator <- c('LV.EDV', 'RV.EDV', 'LV.ESV', 'RV.ESV')
     
 models <- data_models(outcome = outcome, mediator = mediator, treatment = treatment)
 
