@@ -53,8 +53,8 @@ visual_htmed <- function(
     outcome,
     pval.column = NULL,
     pval = 0.05,
-    prop.med = 'Estimate_Prop._Mediated_(average)',
-    acme = 'Estimate_ACME_(average)',
+    prop.med = 'Prop.Mediated',
+    acme = 'ACME',
     treatment = 'treatment',
     mediator = 'mediator',
     data.split = NULL
@@ -64,7 +64,6 @@ visual_htmed <- function(
                            prop.med = prop.med, acme = acme,
                            treatment = treatment, mediator = mediator,
                            data.split = data.split)
-
   if (checks) {
     mediation.form[[outcome]] <- .filtering_pval(mediation.form = mediation.form, outcome = outcome,
                             pval.column = pval.column, pval = pval,
@@ -146,8 +145,8 @@ graph_htmed <- function(
     outcome,
     pval.column = NULL,
     pval = 0.05,
-    prop.med = 'Estimate_Prop._Mediated_(average)',
-    acme = 'Estimate_ACME_(average)',
+    prop.med = 'Prop.Mediated',
+    acme = 'ACME',
     treatment = 'treatment',
     mediator = 'mediator',
     data.split = NULL,
@@ -225,14 +224,7 @@ graph_htmed <- function(
     else {
       # node color
       nodes <- nodes %>%
-        #morado_y_verde
-        # dplyr::mutate(vertex.color = case_when(name %in% relations$from ~ '#7AAF60',
-        #                                        name %in% relations$to ~ '#b272ba',
-        #                                        name %in% tabl[[treatment]] ~ '#d7edcc',
-        #                                        name %in% tabl[[mediator]] ~ '#f7e1fa')) %>%
-        # dplyr::mutate(vertex.color.label = case_when(name %in% unique(c(t(relations))) ~ '#424242',
-        #                                              name %!in% unique(c(t(relations))) ~ '#666666'))
-        #azul_y_naranja
+        #blue and orange
         dplyr::mutate(vertex.color = case_when(name %in% relations$from ~ '#FDA855',
                                                name %in% relations$to ~ '#0180AB',
                                                name %in% tabl[[treatment]] ~ '#FBC495',

@@ -162,11 +162,11 @@ If we explore the results, we will see that the output is in some way difficult 
 
 We need to transform this data to simplify and make it more user-friendly for the visualizations that will be performed later. Using `format_med()` with just `med_results` as input, we will generate a DataFrame with the essential columns needed for the visualizations. 
 
-This function also computes two different kinds of adjusted p-value: adj.p-value.by_outcome and adj.p-value.all. The difference between both results is that, while the first one adjusts by each of the outcomes, the second adjusted p-value takes into account all the analyses from all the outcomes. The usage of one or the other will depend on the question that the investigator wants to answer.
+This function also computes two different kinds of adjusted p-value: adj.pval.PropMed.by_outcome and adj.pval.PropMed.all. The difference between both results is that, while the first one adjusts by each of the outcomes, the second adjusted p-value takes into account all the analyses from all the outcomes. The usage of one or the other will depend on the question that the investigator wants to answer.
 
 ```{r formatting_data-2}
 # formatting data
-format_results <- format_med(med_results)
+format_results <- format_med(med_results, estimate = 'average')
 ```
 
 ### Visualization
@@ -197,7 +197,7 @@ Nevertheless, you can filter the data by specifying the level of significance (`
 visual_outcome1_adj0.05 <- visual_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'p-value_Prop._Mediated_(average)'
+  , pval.column = "pval.PropMed"
   , pval = 0.05)
 visual_outcome1_adj0.05
 ```
@@ -207,7 +207,7 @@ visual_outcome1_adj0.05
 graph_outcome1_adj0.05 <- graph_htmed(
   mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'p-value_Prop._Mediated_(average)'
+  , pval.column = "pval.PropMed"
   , pval = 0.05)
 graph_outcome1_adj0.05
 ```
@@ -217,7 +217,7 @@ Additionally, `grapg_htmed()` allows you to custom some visualization parameters
 graph_htmed(
     mediation.form = format_results
   , outcome = 'outcome.1'
-  , pval.column = 'p-value_Prop._Mediated_(average)'
+  , pval.column = "pval.PropMed"
   , pval = 0.05
   , size_node = 1.5
   , size_name = 1.3
