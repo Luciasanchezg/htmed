@@ -223,7 +223,7 @@ format_med <- function(
 
   # computing adjusted p-value for all analyses (Benjamini & Hochberg)
   mediation_sum.df <- mediation_sum.df %>%
-    dplyr::mutate(`adj.p-value.all` = p.adjust(.data[[pval_col]], method='BH'))
+    dplyr::mutate(`adj.pval.PropMed.all` = p.adjust(.data[[pval_col]], method='BH'))
 
   list_format <- list()
   for (i in levels(mediation_sum.df[['outcome']])) {
@@ -238,16 +238,16 @@ format_med <- function(
       mutate(names = row.names(list_format[[out]])) %>%
       tidyr::separate_wider_delim(data=., cols=names, delim=' ~ ', names=c('mediator', 'treatment')) %>%
       # computing adjusted p.value by outcome (Benjamini & Hochberg)
-      mutate(`adj.p-value.by_outcome` = p.adjust(.data[[pval_col]], method='BH')) %>%
+      mutate(`adj.pval.PropMed.by_outcome` = p.adjust(.data[[pval_col]], method='BH')) %>%
       mutate(outcome = out) %>%
       dplyr::select(dplyr::all_of(c('outcome', 'mediator', 'treatment',
                                     est_acme_col, est_ade_col, 'TotalEffect',
                                     est_prop_col, pval_col,
-                                    'adj.p-value.all', 'adj.p-value.by_outcome'))) %>%
+                                    'adj.pval.PropMed.all', 'adj.pval.PropMed.by_outcome'))) %>%
       dplyr::rename(dplyr::all_of(c('ACME'          = est_acme_col,
                                     'ADE'           = est_ade_col,
                                     'Prop.Mediated' = est_prop_col,
-                                    'p-value'       = pval_col)))
+                                    'pval.PropMed' = pval_col)))
     results.list[[out]] <- results
   }
   return(results.list)

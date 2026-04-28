@@ -179,7 +179,7 @@ outcome_models <- function(
     ...
 ) {
   ## TODO: eval(parse(text="lm(M ~ I + gender, data=df)"))
-
+  
   # checking input
   if (!"character" %in% class(column.models)) {
     stop("Please, provide the name of the corresponding column as character")
@@ -355,7 +355,7 @@ outcome_models <- function(
     ncores,
     ...
 ) {
-
+  
   # parallelizing model generation
   models <- tryCatch(
     {
