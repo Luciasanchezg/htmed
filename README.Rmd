@@ -17,10 +17,9 @@ knitr::opts_chunk$set(
 
 ```{r setup, message=FALSE}
 library(htmed)
-library(survival)
+#library(survival)
 library(dplyr) #
-library(ggraph) #
-
+#library(ggraph) #
 ```
 
 In this tutorial, we will use all the functions available in `htmed` package to illustrate an example of how high-throughput mediation analysis could be performed.
@@ -59,11 +58,11 @@ With this data, we hypothesize that some treatments could be responsible of the 
 
 Therefore, we are interested in testing the association between each treatment and outcome, through each mediator. In order to perform this mediation analyses, we first need to compute the fitted models for mediators and outcomes, respectively, something that can be done with the functions `mediator_models()` and `outome_models()`, respectively. However, before applying this function, we need to generate a new DataFrame in which we will specify what combination of treatment, mediator and outcome we want to test. The DataFrame (called `models` in this example), will be composed of as many rows as different analyses we want to perform and five different columns:
 
-* outcome (character): it contains the different outcomes that we are interested in predict. In this example we will work with just one outcome.
-* treatment (character): column with the different treatments to test. 
-* mediator (character): column with the different mediators to test.
-* model.m.formula (character): this column will inform about the formula that needs to be apply to compute the fitted models for mediator.
-* model.y.formula (character): similar to model.m.formula but with the formulas for the fitted models for outcome.
+* outcome (character): the different outcomes that we are interested in predict. In this example we will work with just one outcome.
+* treatment (character): the different treatments to test. 
+* mediator (character): the different mediators to test.
+* model.m.formula (character): it will inform about the formula that needs to be applied to compute the fitted models for mediator.
+* model.y.formula (character): analog to model.m.formula but with the formulas for the fitted models for outcome.
 
 As you can see, we will use the `data_models()` function to generate this DataFrame. By default, this function makes all possible combinations of the supplied vectors for outcome, treatment and mediator. If the user is interested in compute just some specific models, we recommend to build a DataFrame following the five-column structure of `models`.
 
@@ -91,6 +90,8 @@ Both functions contain 6 arguments, being mandatory 5 of them:
 
 There are other 2 optional arguments: `outcome` will refer to the column from the `data.models` DataFrame that contains the information of the outcomes. Although this last argument is optional and does not need to be specified if we have just one outcome, it is highly recommended if you are dealing with more than one dependent variables.
 The `data.split()` argument will be explained later.
+
+Both functions also accept additional arguments (`...`) that are passed directly to the model function specified in `model.type`. This is useful when the chosen model requires extra parameters — for example, passing `family = binomial()` when using `glm` for logistic regression.
 ```{r generatting_models-1, message=FALSE}
 # fitted models for the mediator
 medANDout <- mediator_models(
@@ -110,6 +111,7 @@ medANDout <- outcome_models(
   , model.name = 'model.Y'
   ) 
 ```
+
 The new dataframe will contain the same information than `models`, but with two additional columns:
 
 * model.M: fitted models for mediators
@@ -121,11 +123,13 @@ To apply high-throughput mediation, we execute the `htmed()` function over this 
 `htmed()` requires the following arguments:
 
 * data.models (dataframe): object with the fitted models for mediators and outcomes.
-* column.modelm and column.modely (character): these arguments refer to the columns from `data.models` that contain the fitted models for mediator and outcomes, respectively.
-* treat, mediator and outcome (character): these three arguments refer to the columns from `data.models` with the treatment, mediator and outcome information, respectively.
+* column.modelm and column.modely (characters): these arguments refer to the columns from `data.models` that contain the fitted models for mediator and outcomes, respectively.
+* treat, mediator and outcome (characters): these three arguments refer to the columns from `data.models` with the treatment, mediator and outcome information, respectively.
 * data.split (character): will be explained later.
 
 There is an additional argument `seed` that can be introduced to ensure reproducibility of results.
+
+`htmed()` also accepts additional arguments (`...`) that are passed directly to `mediation::mediate()`. This is useful when the mediation model requires specific control options — for example, `control.value` and `treat.value` to define the reference levels of a non-binary treatment.
 ```{r applying_htmed-1, message=FALSE}
 med_results <- htmed(
     data.models=medANDout
@@ -143,6 +147,7 @@ med_results <- htmed(
 # Class of the mediation analysis results:
 unlist(unique(lapply(med_results$oxyg_consump, function(x) {class(x)})))
 ```
+
 `htmed()` will generate a list of lists in which the first level will be the different outcomes tested (one in this example), and the second level, the mediation analyses performed.
 
 ```{r applying_htmed-3}
@@ -157,16 +162,18 @@ names(med_results$oxyg_consump)
 
 If we explore the results, we will see that the output is in some way difficult to understand.
 ```{r formatting_data-1}
-# med_results$oxyg_consump$`mediator.1 ~ treatment.1` %>% View(.)
+# med_results$oxyg_consump['`LV.EDV` ~ `cholesterol`'] 
 ```
 
-We need to transform this data to simplify and make it more user-friendly for the visualizations that will be performed later. Using `format_med()` with just `med_results` as input, we will generate a DataFrame with the essential columns needed for the visualizations. 
+We need to transform this data to simplify and make it more user-friendly for the visualizations that will be performed later. Using `format_med()` with just `med_results` as input, we will generate a DataFrame with the essential columns needed for the visualizations.
+
+`format_med()` has an `estimate` argument that controls which estimate is reported when the mediation model has a control/treated split. It accepts `"average"` (default), `"control"`, or `"treated"`. For models without a split, this argument is ignored.
 
 This function also computes two different kinds of adjusted p-value: adj.pval.PropMed.by_outcome and adj.pval.PropMed.all. The difference between both results is that, while the first one adjusts by each of the outcomes, the second adjusted p-value takes into account all the analyses from all the outcomes. The usage of one or the other will depend on the question that the investigator wants to answer.
 
 ```{r formatting_data-2}
 # formatting data
-format_results <- format_med(med_results, estimate = 'average')
+format_results <- format_med(mediation.list = med_results)
 ```
 
 ### Visualization

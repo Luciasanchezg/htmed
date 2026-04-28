@@ -129,7 +129,7 @@ format_med <- function(
 
       model.stats.list[[med]] <- model.reshape
     }
-    model.stats.df <- do.call(rbind, model.stats.list)
+    model.stats.df <- model.stats.list %>% bind_rows
     summary.list[[subl]] <- model.stats.df
   }
   return(summary.list)
@@ -149,7 +149,7 @@ format_med <- function(
 
 .mediation_summary <- function(x, estimate = "average") {
   clp       <- 100 * x$conf.level
-  has_split <- isTRUE(x$d0 != x$d1)
+  has_split <- isTRUE(all.equal(x$d0, x$d1))
 
   if (!has_split && estimate %in% c("control", "treated")) {
     warning("estimate='", estimate, "' has no effect: this model only reports a single ",
