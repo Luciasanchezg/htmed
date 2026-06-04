@@ -79,7 +79,7 @@ visual_htmed <- function(
         facet_wrap(~factor(split), nrow=1) +
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
         ggtitle(paste("Results for outcome:", outcome)) +
-        labs(x = "Treatment", y = "Mediator", size="Prop.med", col="Est.med") +
+        labs(x = "Treatment", y = "Mediator") +
         scale_x_discrete(guide = guide_axis(angle = 45)) +
         theme_light()
     }
@@ -88,7 +88,7 @@ visual_htmed <- function(
         geom_point(aes(x=!!rlang::sym(treatment), y = factor(!!rlang::sym(mediator)), size=!!rlang::sym(prop.med), color=!!rlang::sym(acme))) +
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
         ggtitle(paste("Results for outcome:", outcome)) +
-        labs(x = "Treatment", y = "Mediator", size="Prop.med", col="Est.med") +
+        labs(x = "Treatment", y = "Mediator") +
         scale_x_discrete(guide = guide_axis(angle = 45)) +
         theme_light()
     }
