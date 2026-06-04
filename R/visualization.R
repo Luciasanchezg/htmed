@@ -405,7 +405,7 @@ graph_htmed <- function(
       mid = "white",
       midpoint = 0,
       na.value = "transparent",
-      guide = "colorbar"
+      guide = "none"
     ) +
     #nodes
     ggraph::geom_node_point(
