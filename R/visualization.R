@@ -1,6 +1,8 @@
 
 utils::globalVariables(c(".env"))
-#' @importFrom ggplot2 ggplot geom_point facet_wrap scale_color_gradient2 ggtitle labs scale_x_discrete theme_light theme arrow unit guide_axis element_rect aes scale_size guide_bins
+#' @importFrom ggplot2 ggplot geom_point facet_wrap scale_color_gradient2 ggtitle
+#' @importFrom ggplot2 labs scale_x_discrete theme_light theme arrow unit
+#' @importFrom ggplot2 guide_axis element_rect element_text aes scale_size
 #' @importFrom ggraph ggraph geom_edge_arc circle scale_edge_width scale_edge_colour_gradient2 geom_node_point geom_node_text
 #' @importFrom igraph layout_in_circle graph_from_data_frame V vcount
 #' @importFrom stats na.omit
@@ -81,7 +83,7 @@ scatter_htmed <- function(
         geom_point(aes(x=!!rlang::sym(treatment), y = factor(!!rlang::sym(mediator)), size=!!rlang::sym(prop.med), color=!!rlang::sym(acme))) +
         facet_wrap(~factor(split), nrow=1) +
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
-        scale_size(range = c(1 * size_dot, 6 * size_dot), guide = guide_bins()) +
+        scale_size(range = c(1 * size_dot, 6 * size_dot)) +
         ggtitle(paste("Results for outcome:", outcome)) +
         labs(x = "Treatment", y = "Mediator") +
         scale_x_discrete(guide = guide_axis(angle = 45)) +
@@ -91,7 +93,7 @@ scatter_htmed <- function(
       p <- ggplot(data=mediation.form[[outcome]]) +
         geom_point(aes(x=!!rlang::sym(treatment), y = factor(!!rlang::sym(mediator)), size=!!rlang::sym(prop.med), color=!!rlang::sym(acme))) +
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
-        scale_size(range = c(1 * size_dot, 6 * size_dot), guide = guide_bins()) +
+        scale_size(range = c(1 * size_dot, 6 * size_dot)) +
         ggtitle(paste("Results for outcome:", outcome)) +
         labs(x = "Treatment", y = "Mediator") +
         scale_x_discrete(guide = guide_axis(angle = 45)) +
