@@ -15,7 +15,7 @@ NULL
 
 #' Scatterplot with high-throughput causal mediation analyses
 #'
-#' @description `visual_htmed()` enables to visualize the results of the causal
+#' @description `scatter_htmed()` enables to visualize the results of the causal
 #'   mediation analyses for a specific outcome in a single scatterplot.
 #'
 #'   This function also allows to filter results by p-value, giving the column
@@ -50,7 +50,7 @@ NULL
 #' The size of the dots will indicate the proportion of mediation. The color of the dots refers to the estimator of mediation.
 #' @export
 #'
-visual_htmed <- function(
+scatter_htmed <- function(
     mediation.form,
     outcome,
     pval.column = NULL,

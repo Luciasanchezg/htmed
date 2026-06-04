@@ -180,28 +180,28 @@ format_results <- format_med(mediation.list = med_results)
 
 Finally, we will be interested in visualise our results. The package has two available functions for this purposse.
 
-We can create a scatterplot for each outcome with the `visual_htmed()` function. Run in the default model, just with the mandatory arguments, we will need to specify:
+We can create a scatterplot for each outcome with the `scatter_htmed()` function. Run in the default model, just with the mandatory arguments, we will need to specify:
 
 * mediation_form (lists of lists): the object that contain the results.
 * outcome (characters): the outcome the user is interested in visualising.
 
 ```{r visualizing-1}
-visual_outcome1_nosig <- visual_htmed(mediation.form = format_results, outcome = 'MOV')
+visual_outcome1_nosig <- scatter_htmed(mediation.form = format_results, outcome = 'MOV')
 visual_outcome1_nosig
 ```
 This scatterplot will represents, for MOV, the relationship between the treatments and mediators, being the size of the dot proportional to the proportion of mediation, and the color, the estimation of mediation.
 
-Another visualization can be done with `graph_htmed()` function. In the default mode of this function, the graph will display the treatments as the internal nodes, and the mediator as the external ones. Similar to what `visual_htmed()` does, the width of the edges is proportional to the proportion of mediation, and the color, to the estimation of mediation.
+Another visualization can be done with `graph_htmed()` function. In the default mode of this function, the graph will display the treatments as the internal nodes, and the mediator as the external ones. Similar to what `scatter_htmed()` does, the width of the edges is proportional to the proportion of mediation, and the color, to the estimation of mediation.
 ```{r visualizing-2}
 graph_outcome1_nosig <- graph_htmed(mediation.form = format_results, outcome = 'MOV')
 graph_outcome1_nosig
 ```
 
-You might have notice that we have not filtered out any mediation analyses in the representation, which means that all results, independently of the level of significance, are visualized. This is what occurs by default in both `visual_htmed()` and `graph_htmed()` functions.
+You might have notice that we have not filtered out any mediation analyses in the representation, which means that all results, independently of the level of significance, are visualized. This is what occurs by default in both `scatter_htmed()` and `graph_htmed()` functions.
 
 Nevertheless, you can filter the data by specifying the level of significance (`pval`) and the column to apply it (`pval.column`). In the following chunks, we will restrict our representation to mediation analyses with an p-value <= 0.05.
 ```{r visualizing-3}
-visual_outcome1_adj0.05 <- visual_htmed(
+visual_outcome1_adj0.05 <- scatter_htmed(
   mediation.form = format_results
   , outcome = 'MOV'
   , pval.column = "pval.PropMed"
@@ -310,7 +310,7 @@ format_results.split <- format_med(med_results.split, split = TRUE)
 
 ### Visualization
 ```{r visualizing.split-1}
-visual_outcome1_nosig.split <- visual_htmed(
+visual_outcome1_nosig.split <- scatter_htmed(
     mediation.form = format_results.split
   , outcome = 'MOV'
   , data.split = 'split')
