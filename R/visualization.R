@@ -196,8 +196,7 @@ graph_htmed <- function(
 
     # edges
     relations <- stats::na.omit(tabl) %>%
-      rename("from" = treatment, 'to' = mediator, 'Prop.med' = prop.med, 'Est.med' = acme) %>%
-      dplyr::select(c('from', 'to', 'Prop.med', 'Est.med', data.split))
+      dplyr::select(c(treatment, mediator, prop.med, acme, data.split))
 
     if ( !is.null(data.split) ) {
       pList <- list()
@@ -206,8 +205,8 @@ graph_htmed <- function(
         relations.i <- relations %>% dplyr::filter(!!rlang::sym(data.split) == .env$i)
 
         nodes.i <- nodes %>%
-          dplyr::mutate(vertex.color = case_when(name %in% relations.i$from ~ '#FDA855',
-                                                 name %in% relations.i$to ~ '#0180AB',
+          dplyr::mutate(vertex.color = case_when(name %in% relations.i[[treatment]] ~ '#FDA855',
+                                                 name %in% relations.i[[mediator]] ~ '#0180AB',
                                                  name %in% tabl[[treatment]] ~ '#FBC495',
                                                  name %in% tabl[[mediator]] ~ '#BDD6D0')) %>%
           dplyr::mutate(vertex.color.label = case_when(name %in% unique(c(t(relations.i))) ~ '#000000',
@@ -217,7 +216,7 @@ graph_htmed <- function(
         coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
         lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
-        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=i, size_node=size_node, size_name=size_name, end_arrow=end_arrow)
+        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=i, prop.med=prop.med, acme=acme, size_node=size_node, size_name=size_name, end_arrow=end_arrow)
       }
       return(pList)
     }
@@ -225,8 +224,8 @@ graph_htmed <- function(
       # node color
       nodes <- nodes %>%
         #blue and orange
-        dplyr::mutate(vertex.color = case_when(name %in% relations$from ~ '#FDA855',
-                                               name %in% relations$to ~ '#0180AB',
+        dplyr::mutate(vertex.color = case_when(name %in% relations[[treatment]] ~ '#FDA855',
+                                               name %in% relations[[mediator]] ~ '#0180AB',
                                                name %in% tabl[[treatment]] ~ '#FBC495',
                                                name %in% tabl[[mediator]] ~ '#BDD6D0')) %>%
         dplyr::mutate(vertex.color.label = case_when(name %in% unique(c(t(relations))) ~ '#000000',
@@ -236,7 +235,7 @@ graph_htmed <- function(
       coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
       lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
-      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=outcome, size_node=size_node, size_name=size_name, end_arrow=end_arrow))
+      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=outcome, prop.med=prop.med, acme=acme, size_node=size_node, size_name=size_name, end_arrow=end_arrow))
     }
   }
 }
@@ -381,6 +380,8 @@ graph_htmed <- function(
     layout_graph,
     n.nodes,
     text,
+    prop.med,
+    acme,
     size_node = 1,
     size_name = 1,
     end_arrow = 1
@@ -389,8 +390,8 @@ graph_htmed <- function(
     # edges
     ggraph::geom_edge_arc(
       aes(
-        col = .data$Est.med,
-        width = .data$Prop.med
+        col = .data[[acme]],
+        width = .data[[prop.med]]
       ),
       # curvature=0.1,
       strength=0.1,
@@ -398,15 +399,15 @@ graph_htmed <- function(
       start_cap = ggraph::circle(1, 'mm'),
       end_cap = (ggraph::circle(ifelse(n.nodes < 30, 5+n.nodes/10 * end_arrow, 6+n.nodes/50 * end_arrow), 'mm'))
     ) +
-    ggraph::scale_edge_width(range = c(.5, 2), guide = "legend") +
     ggraph::scale_edge_colour_gradient2(
       low = "blue",
       high = "red",
       mid = "white",
       midpoint = 0,
       na.value = "transparent",
-      guide = "none"
+      guide = "legend"
     ) +
+    ggraph::scale_edge_width(range = c(.5, 2), guide = "legend") +
     #nodes
     ggraph::geom_node_point(
       # size = ifelse(n.nodes < 30, 30, 20+300/n.nodes),
