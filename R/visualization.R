@@ -241,7 +241,6 @@ graph_htmed <- function(
   }
 }
 
-
 .checks_visual <- function(
     mediation.form,
     outcome,
@@ -399,13 +398,14 @@ graph_htmed <- function(
       start_cap = ggraph::circle(1, 'mm'),
       end_cap = (ggraph::circle(ifelse(n.nodes < 30, 5+n.nodes/10 * end_arrow, 6+n.nodes/50 * end_arrow), 'mm'))
     ) +
-    ggraph::scale_edge_width(range = c(.5, 2)) +
+    ggraph::scale_edge_width(range = c(.5, 2), guide = "legend") +
     ggraph::scale_edge_colour_gradient2(
       low = "blue",
       high = "red",
       mid = "white",
       midpoint = 0,
-      na.value = "transparent"
+      na.value = "transparent",
+      guide = "colorbar"
     ) +
     #nodes
     ggraph::geom_node_point(
