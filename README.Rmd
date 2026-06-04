@@ -186,7 +186,7 @@ We can create a scatterplot for each outcome with the `visual_htmed()` function.
 * outcome (characters): the outcome the user is interested in visualising.
 
 ```{r visualizing-1}
-visual_outcome1_nosig <- visual_htmed(mediation.form = format_results, outcome = 'MOV')
+visual_outcome1_nosig <- visual_htmed(mediation.form = format_results, outcome = 'MOV', size_dot = 3)
 visual_outcome1_nosig
 ```
 This scatterplot will represents, for MOV, the relationship between the treatments and mediators, being the size of the dot proportional to the proportion of mediation, and the color, the estimation of mediation.

@@ -1,6 +1,6 @@
 
 utils::globalVariables(c(".env"))
-#' @importFrom ggplot2 ggplot geom_point facet_wrap scale_color_gradient2 ggtitle labs scale_x_discrete theme_light theme arrow unit guide_axis element_rect aes
+#' @importFrom ggplot2 ggplot geom_point facet_wrap scale_color_gradient2 ggtitle labs scale_x_discrete theme_light theme arrow unit guide_axis element_rect aes scale_size guide_bins
 #' @importFrom ggraph ggraph geom_edge_arc circle scale_edge_width scale_edge_colour_gradient2 geom_node_point geom_node_text
 #' @importFrom igraph layout_in_circle graph_from_data_frame V vcount
 #' @importFrom stats na.omit
@@ -43,6 +43,8 @@ NULL
 #'   mediator information. Default: mediator.
 #' @param data.split a character indicating the name of the column used for the
 #'   split. Default: NULL
+#' @param size_dot a number indicating the factor to set the size of the dots.
+#'   Default: 1.
 #'
 #' @return returns a scatterplot with the treatments in the X axis and the mediators in the Y axis.
 #' The size of the dots will indicate the proportion of mediation. The color of the dots refers to the estimator of mediation.
@@ -57,7 +59,8 @@ visual_htmed <- function(
     acme = 'ACME',
     treatment = 'treatment',
     mediator = 'mediator',
-    data.split = NULL
+    data.split = NULL,
+    size_dot = 1
     ) {
   checks <- .checks_visual(mediation.form=mediation.form, outcome=outcome,
                            pval.column = pval.column, pval = pval,
@@ -78,6 +81,7 @@ visual_htmed <- function(
         geom_point(aes(x=!!rlang::sym(treatment), y = factor(!!rlang::sym(mediator)), size=!!rlang::sym(prop.med), color=!!rlang::sym(acme))) +
         facet_wrap(~factor(split), nrow=1) +
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
+        scale_size(range = c(1 * size_dot, 6 * size_dot), guide = guide_bins()) +
         ggtitle(paste("Results for outcome:", outcome)) +
         labs(x = "Treatment", y = "Mediator") +
         scale_x_discrete(guide = guide_axis(angle = 45)) +
@@ -87,6 +91,7 @@ visual_htmed <- function(
       p <- ggplot(data=mediation.form[[outcome]]) +
         geom_point(aes(x=!!rlang::sym(treatment), y = factor(!!rlang::sym(mediator)), size=!!rlang::sym(prop.med), color=!!rlang::sym(acme))) +
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
+        scale_size(range = c(1 * size_dot, 6 * size_dot), guide = guide_bins()) +
         ggtitle(paste("Results for outcome:", outcome)) +
         labs(x = "Treatment", y = "Mediator") +
         scale_x_discrete(guide = guide_axis(angle = 45)) +
