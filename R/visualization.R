@@ -432,6 +432,7 @@ graph_htmed <- function(
       size = (ifelse(n.nodes < 30, 2 * size_name, 1.5+30/n.nodes * size_name)),
     ) +
     ggplot2::theme(panel.background = element_rect(fill = 'white', colour = 'transparent')) +
+    guides(colour = guide_colourbar(order = 1), edge_width = guide_legend(order = 2)) +
     ggtitle(paste("Results for:", text)) +
     labs(subtitle = subtitle)
 }
