@@ -413,10 +413,9 @@ graph_htmed <- function(
       high = "red",
       mid = "white",
       midpoint = 0,
-      na.value = "transparent",
-      guide = "legend"
+      na.value = "transparent"
     ) +
-    ggraph::scale_edge_width(range = c(.5, 2), guide = "legend") +
+    ggraph::scale_edge_width(range = c(.5, 2), breaks = function(x) pretty(x, n = 3)) +
     #nodes
     ggraph::geom_node_point(
       # size = ifelse(n.nodes < 30, 30, 20+300/n.nodes),
@@ -432,6 +431,5 @@ graph_htmed <- function(
       size = (ifelse(n.nodes < 30, 2 * size_name, 1.5+30/n.nodes * size_name)),
     ) +
     ggplot2::theme(panel.background = element_rect(fill = 'white', colour = 'transparent')) +
-    guides(edge_colour = guide_legend(order = 1), edge_width = guide_legend(order = 2)) +
     ggtitle(paste("Results for:", text))
 }
