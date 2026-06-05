@@ -50,7 +50,7 @@ df$FC <- + df$LV.ESV + rnorm(n)
 df$TG <- + 0.5 * df$RV.EDV + 0.8 * df$LV.ESV + rnorm(n)
 
 # data for the outcome
-df$MOV <- 1 - 1.2 * df$LV.EDV + 1.0 * df$LDL + 0.8 * df$Chol + 0.6 * df$FC + 0.9 * df$TG + rnorm(n)
+df$MVO <- 1 - 1.2 * df$LV.EDV + 1.0 * df$LDL + 0.8 * df$Chol + 0.6 * df$FC + 0.9 * df$TG + rnorm(n)
 df <- df %>% mutate(across(where(is.numeric), ~ as.numeric(scale(.))))
 ```
 
@@ -68,7 +68,7 @@ As you can see, we will use the `data_models()` function to generate this DataFr
 
 ```{r load_models}
 # data("models_surv", package = "htmed")
-outcome <- 'MOV'
+outcome <- 'MVO'
 treatment <- c('LDL', 'Chol', 'FC', 'TG')
 mediator <- c('LV.EDV', 'RV.EDV', 'LV.ESV', 'RV.ESV')
     
@@ -145,7 +145,7 @@ med_results <- htmed(
 # med_results %>% View(.)
 
 # Class of the mediation analysis results:
-unlist(unique(lapply(med_results$MOV, function(x) {class(x)})))
+unlist(unique(lapply(med_results$MVO, function(x) {class(x)})))
 ```
 
 `htmed()` will generate a list of lists in which the first level will be the different outcomes tested (one in this example), and the second level, the mediation analyses performed.
@@ -154,15 +154,15 @@ unlist(unique(lapply(med_results$MOV, function(x) {class(x)})))
 # Outcomes tested
 names(med_results)
 
-# Analyses performed for MOV
-names(med_results$MOV)
+# Analyses performed for MVO
+names(med_results$MVO)
 ```
 
 ### Formatting the mediation results
 
 If we explore the results, we will see that the output is in some way difficult to understand.
 ```{r formatting_data-1}
-# med_results$MOV['`LV.EDV` ~ `Chol`'] 
+# med_results$MVO['`LV.EDV` ~ `Chol`'] 
 ```
 
 We need to transform this data to simplify and make it more user-friendly for the visualizations that will be performed later. Using `format_med()` with just `med_results` as input, we will generate a DataFrame with the essential columns needed for the visualizations.
@@ -186,14 +186,14 @@ We can create a scatterplot for each outcome with the `scatter_htmed()` function
 * outcome (characters): the outcome the user is interested in visualising.
 
 ```{r visualizing-1}
-visual_outcome1_nosig <- scatter_htmed(mediation.form = format_results, outcome = 'MOV')
+visual_outcome1_nosig <- scatter_htmed(mediation.form = format_results, outcome = 'MVO')
 visual_outcome1_nosig
 ```
-This scatterplot will represents, for MOV, the relationship between the treatments and mediators, being the size of the dot proportional to the proportion of mediation, and the color, the estimation of mediation.
+This scatterplot will represents, for MVO, the relationship between the treatments and mediators, being the size of the dot proportional to the proportion of mediation, and the color, the estimation of mediation.
 
 Another visualization can be done with `graph_htmed()` function. In the default mode of this function, the graph will display the treatments as the internal nodes, and the mediator as the external ones. Similar to what `scatter_htmed()` does, the width of the edges is proportional to the proportion of mediation, and the color, to the estimation of mediation.
 ```{r visualizing-2}
-graph_outcome1_nosig <- graph_htmed(mediation.form = format_results, outcome = 'MOV')
+graph_outcome1_nosig <- graph_htmed(mediation.form = format_results, outcome = 'MVO')
 graph_outcome1_nosig
 ```
 
@@ -203,7 +203,7 @@ Nevertheless, you can filter the data by specifying the level of significance (`
 ```{r visualizing-3}
 visual_outcome1_adj0.05 <- scatter_htmed(
   mediation.form = format_results
-  , outcome = 'MOV'
+  , outcome = 'MVO'
   , pval.column = "pval.PropMed"
   , pval = 0.05)
 visual_outcome1_adj0.05
@@ -213,7 +213,7 @@ visual_outcome1_adj0.05
 ```{r visualizing-4}
 graph_outcome1_adj0.05 <- graph_htmed(
   mediation.form = format_results
-  , outcome = 'MOV'
+  , outcome = 'MVO'
   , pval.column = "pval.PropMed"
   , pval = 0.05)
 graph_outcome1_adj0.05
@@ -223,7 +223,7 @@ Additionally, `grapg_htmed()` allows you to custom some visualization parameters
 ```{r visualizing-5}
 graph_htmed(
     mediation.form = format_results
-  , outcome = 'MOV'
+  , outcome = 'MVO'
   , pval.column = "pval.PropMed"
   , pval = 0.05
   , size_node = 1.5
@@ -296,10 +296,10 @@ This new object will have three levels of lists. The first will be the outcomes 
 names(med_results.split)
 
 # Conditions
-names(med_results.split$MOV)
+names(med_results.split$MVO)
 
 # Analyses for Diabetes
-names(med_results.split$MOV$Diabetes)
+names(med_results.split$MVO$Diabetes)
 ```
 
 ### Formatting the mediation results
@@ -312,7 +312,7 @@ format_results.split <- format_med(med_results.split, split = TRUE)
 ```{r visualizing.split-1}
 visual_outcome1_nosig.split <- scatter_htmed(
     mediation.form = format_results.split
-  , outcome = 'MOV'
+  , outcome = 'MVO'
   , data.split = 'split')
 visual_outcome1_nosig.split
 ```
@@ -322,7 +322,7 @@ In this case, two scatterplots will be displayed, differenciating between the an
 ```{r visualizing.split-2}
 graph_outcome1_nosig.split <- graph_htmed(
     mediation.form = format_results.split
-  , outcome = 'MOV'
+  , outcome = 'MVO'
   , size_node = 0.65
   , data.split = 'split')
 
