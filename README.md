@@ -26,7 +26,7 @@ In this tutorial, we will use all the functions available in `htmed` package to 
 
 ## Data
 
-To do so, we will simulate some data. Imagine that we have 100 individuals for which we have normalised measures of 4 biochemical parameters: LDL, cholesterol, free cholesterol and triglycerides. We also have information about ventricle end-diastolic volume and end-systolic volume, in both right and left ventricles. In this case, the data is binary, with 0 for individuals with normal values, and 1 for individuals with ranges out of normality. Finally, we have heart oxygen consumption information, also normalised.
+To do so, we will simulate some data. Imagine that we have 100 individuals for which we have normalised measures of 4 biochemical parameters: LDL, Chol, FC and TG. We also have information about ventricle end-diastolic volume and end-systolic volume, in both right and left ventricles. In this case, the data is binary, with 0 for individuals with normal values, and 1 for individuals with ranges out of normality. Finally, we have heart oxygen consumption information, also normalised.
 
 Our aim is to study the association between the biochemical parameters (_treatments_) and the heart oxygen consumption (_outcome_). In addition, we want to determine is any of the ventricle measures (_mediators_) somehow explains the underlying mechanism of the relationship between the treatments and the outcome.
 
@@ -45,12 +45,12 @@ df <- data.frame(
 
 # data for the treatment
 df$LDL <- - 0.5 * df$LV.EDV + 0.3 * df$RV.EDV + 0.4 * df$LV.ESV + 0.6 * df$RV.ESV + rnorm(n)
-df$cholesterol <- -0.6 * df$LV.EDV - 0.5 * df$RV.EDV - 0.4 * df$LV.ESV - 0.7 * df$RV.ESV + rnorm(n)
-df$free.cholesterol <- + df$LV.ESV + rnorm(n)
-df$triglycerides <- + 0.5 * df$RV.EDV + 0.8 * df$LV.ESV + rnorm(n)
+df$Chol <- -0.6 * df$LV.EDV - 0.5 * df$RV.EDV - 0.4 * df$LV.ESV - 0.7 * df$RV.ESV + rnorm(n)
+df$FC <- + df$LV.ESV + rnorm(n)
+df$TG <- + 0.5 * df$RV.EDV + 0.8 * df$LV.ESV + rnorm(n)
 
 # data for the outcome
-df$oxyg_consump <- 1 - 1.2 * df$LV.EDV + 1.0 * df$LDL + 0.8 * df$cholesterol + 0.6 * df$free.cholesterol + 0.9 * df$triglycerides + rnorm(n)
+df$MVO <- 1 - 1.2 * df$LV.EDV + 1.0 * df$LDL + 0.8 * df$Chol + 0.6 * df$FC + 0.9 * df$TG + rnorm(n)
 df <- df %>% mutate(across(where(is.numeric), ~ as.numeric(scale(.))))
 ```
 
@@ -68,8 +68,8 @@ As you can see, we will use the `data_models()` function to generate this DataFr
 
 ```{r load_models}
 # data("models_surv", package = "htmed")
-outcome <- 'oxyg_consump'
-treatment <- c('LDL', 'cholesterol', 'free.cholesterol', 'triglycerides')
+outcome <- 'MVO'
+treatment <- c('LDL', 'Chol', 'FC', 'TG')
 mediator <- c('LV.EDV', 'RV.EDV', 'LV.ESV', 'RV.ESV')
     
 models <- data_models(outcome = outcome, mediator = mediator, treatment = treatment)
@@ -145,7 +145,7 @@ med_results <- htmed(
 # med_results %>% View(.)
 
 # Class of the mediation analysis results:
-unlist(unique(lapply(med_results$oxyg_consump, function(x) {class(x)})))
+unlist(unique(lapply(med_results$MVO, function(x) {class(x)})))
 ```
 
 `htmed()` will generate a list of lists in which the first level will be the different outcomes tested (one in this example), and the second level, the mediation analyses performed.
@@ -154,15 +154,15 @@ unlist(unique(lapply(med_results$oxyg_consump, function(x) {class(x)})))
 # Outcomes tested
 names(med_results)
 
-# Analyses performed for oxyg_consump
-names(med_results$oxyg_consump)
+# Analyses performed for MVO
+names(med_results$MVO)
 ```
 
 ### Formatting the mediation results
 
 If we explore the results, we will see that the output is in some way difficult to understand.
 ```{r formatting_data-1}
-# med_results$oxyg_consump['`LV.EDV` ~ `cholesterol`'] 
+# med_results$MVO['`LV.EDV` ~ `Chol`'] 
 ```
 
 We need to transform this data to simplify and make it more user-friendly for the visualizations that will be performed later. Using `format_med()` with just `med_results` as input, we will generate a DataFrame with the essential columns needed for the visualizations.
@@ -180,30 +180,30 @@ format_results <- format_med(mediation.list = med_results)
 
 Finally, we will be interested in visualise our results. The package has two available functions for this purposse.
 
-We can create a scatterplot for each outcome with the `visual_htmed()` function. Run in the default model, just with the mandatory arguments, we will need to specify:
+We can create a scatterplot for each outcome with the `scatter_htmed()` function. Run in the default model, just with the mandatory arguments, we will need to specify:
 
 * mediation_form (lists of lists): the object that contain the results.
 * outcome (characters): the outcome the user is interested in visualising.
 
 ```{r visualizing-1}
-visual_outcome1_nosig <- visual_htmed(mediation.form = format_results, outcome = 'oxyg_consump')
+visual_outcome1_nosig <- scatter_htmed(mediation.form = format_results, outcome = 'MVO')
 visual_outcome1_nosig
 ```
-This scatterplot will represents, for oxyg_consump, the relationship between the treatments and mediators, being the size of the dot proportional to the proportion of mediation, and the color, the estimation of mediation.
+This scatterplot will represents, for MVO, the relationship between the treatments and mediators, being the size of the dot proportional to the proportion of mediation, and the color, the estimation of mediation.
 
-Another visualization can be done with `graph_htmed()` function. In the default mode of this function, the graph will display the treatments as the internal nodes, and the mediator as the external ones. Similar to what `visual_htmed()` does, the width of the edges is proportional to the proportion of mediation, and the color, to the estimation of mediation.
+Another visualization can be done with `graph_htmed()` function. In the default mode of this function, the graph will display the treatments as the internal nodes, and the mediator as the external ones. Similar to what `scatter_htmed()` does, the width of the edges is proportional to the proportion of mediation, and the color, to the estimation of mediation.
 ```{r visualizing-2}
-graph_outcome1_nosig <- graph_htmed(mediation.form = format_results, outcome = 'oxyg_consump')
+graph_outcome1_nosig <- graph_htmed(mediation.form = format_results, outcome = 'MVO')
 graph_outcome1_nosig
 ```
 
-You might have notice that we have not filtered out any mediation analyses in the representation, which means that all results, independently of the level of significance, are visualized. This is what occurs by default in both `visual_htmed()` and `graph_htmed()` functions.
+You might have notice that we have not filtered out any mediation analyses in the representation, which means that all results, independently of the level of significance, are visualized. This is what occurs by default in both `scatter_htmed()` and `graph_htmed()` functions.
 
 Nevertheless, you can filter the data by specifying the level of significance (`pval`) and the column to apply it (`pval.column`). In the following chunks, we will restrict our representation to mediation analyses with an p-value <= 0.05.
 ```{r visualizing-3}
-visual_outcome1_adj0.05 <- visual_htmed(
+visual_outcome1_adj0.05 <- scatter_htmed(
   mediation.form = format_results
-  , outcome = 'oxyg_consump'
+  , outcome = 'MVO'
   , pval.column = "pval.PropMed"
   , pval = 0.05)
 visual_outcome1_adj0.05
@@ -213,7 +213,7 @@ visual_outcome1_adj0.05
 ```{r visualizing-4}
 graph_outcome1_adj0.05 <- graph_htmed(
   mediation.form = format_results
-  , outcome = 'oxyg_consump'
+  , outcome = 'MVO'
   , pval.column = "pval.PropMed"
   , pval = 0.05)
 graph_outcome1_adj0.05
@@ -223,7 +223,7 @@ Additionally, `grapg_htmed()` allows you to custom some visualization parameters
 ```{r visualizing-5}
 graph_htmed(
     mediation.form = format_results
-  , outcome = 'oxyg_consump'
+  , outcome = 'MVO'
   , pval.column = "pval.PropMed"
   , pval = 0.05
   , size_node = 1.5
@@ -296,10 +296,10 @@ This new object will have three levels of lists. The first will be the outcomes 
 names(med_results.split)
 
 # Conditions
-names(med_results.split$oxyg_consump)
+names(med_results.split$MVO)
 
 # Analyses for Diabetes
-names(med_results.split$oxyg_consump$Diabetes)
+names(med_results.split$MVO$Diabetes)
 ```
 
 ### Formatting the mediation results
@@ -310,9 +310,9 @@ format_results.split <- format_med(med_results.split, split = TRUE)
 
 ### Visualization
 ```{r visualizing.split-1}
-visual_outcome1_nosig.split <- visual_htmed(
+visual_outcome1_nosig.split <- scatter_htmed(
     mediation.form = format_results.split
-  , outcome = 'oxyg_consump'
+  , outcome = 'MVO'
   , data.split = 'split')
 visual_outcome1_nosig.split
 ```
@@ -322,7 +322,7 @@ In this case, two scatterplots will be displayed, differenciating between the an
 ```{r visualizing.split-2}
 graph_outcome1_nosig.split <- graph_htmed(
     mediation.form = format_results.split
-  , outcome = 'oxyg_consump'
+  , outcome = 'MVO'
   , size_node = 0.65
   , data.split = 'split')
 

@@ -1,6 +1,8 @@
 
 utils::globalVariables(c(".env"))
-#' @importFrom ggplot2 ggplot geom_point facet_wrap scale_color_gradient2 ggtitle labs scale_x_discrete theme_light theme arrow unit guide_axis element_rect aes
+#' @importFrom ggplot2 ggplot geom_point facet_wrap scale_color_gradient2 ggtitle
+#' @importFrom ggplot2 labs scale_x_discrete theme_light theme arrow unit
+#' @importFrom ggplot2 guide_axis element_rect element_text aes scale_size
 #' @importFrom ggraph ggraph geom_edge_arc circle scale_edge_width scale_edge_colour_gradient2 geom_node_point geom_node_text
 #' @importFrom igraph layout_in_circle graph_from_data_frame V vcount
 #' @importFrom stats na.omit
@@ -15,7 +17,7 @@ NULL
 
 #' Scatterplot with high-throughput causal mediation analyses
 #'
-#' @description `visual_htmed()` enables to visualize the results of the causal
+#' @description `scatter_htmed()` enables to visualize the results of the causal
 #'   mediation analyses for a specific outcome in a single scatterplot.
 #'
 #'   This function also allows to filter results by p-value, giving the column
@@ -43,12 +45,14 @@ NULL
 #'   mediator information. Default: mediator.
 #' @param data.split a character indicating the name of the column used for the
 #'   split. Default: NULL
+#' @param size_dot a number indicating the factor to set the size of the dots.
+#'   Default: 1.
 #'
 #' @return returns a scatterplot with the treatments in the X axis and the mediators in the Y axis.
 #' The size of the dots will indicate the proportion of mediation. The color of the dots refers to the estimator of mediation.
 #' @export
 #'
-visual_htmed <- function(
+scatter_htmed <- function(
     mediation.form,
     outcome,
     pval.column = NULL,
@@ -57,7 +61,8 @@ visual_htmed <- function(
     acme = 'ACME',
     treatment = 'treatment',
     mediator = 'mediator',
-    data.split = NULL
+    data.split = NULL,
+    size_dot = 1
     ) {
   checks <- .checks_visual(mediation.form=mediation.form, outcome=outcome,
                            pval.column = pval.column, pval = pval,
@@ -78,8 +83,9 @@ visual_htmed <- function(
         geom_point(aes(x=!!rlang::sym(treatment), y = factor(!!rlang::sym(mediator)), size=!!rlang::sym(prop.med), color=!!rlang::sym(acme))) +
         facet_wrap(~factor(split), nrow=1) +
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
+        scale_size(range = c(1 * size_dot, 6 * size_dot)) +
         ggtitle(paste("Results for outcome:", outcome)) +
-        labs(x = "Treatment", y = "Mediator", size="Prop.med", col="Est.med") +
+        labs(x = "Treatment", y = "Mediator") +
         scale_x_discrete(guide = guide_axis(angle = 45)) +
         theme_light()
     }
@@ -87,8 +93,9 @@ visual_htmed <- function(
       p <- ggplot(data=mediation.form[[outcome]]) +
         geom_point(aes(x=!!rlang::sym(treatment), y = factor(!!rlang::sym(mediator)), size=!!rlang::sym(prop.med), color=!!rlang::sym(acme))) +
         scale_color_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "transparent") +
+        scale_size(range = c(1 * size_dot, 6 * size_dot)) +
         ggtitle(paste("Results for outcome:", outcome)) +
-        labs(x = "Treatment", y = "Mediator", size="Prop.med", col="Est.med") +
+        labs(x = "Treatment", y = "Mediator") +
         scale_x_discrete(guide = guide_axis(angle = 45)) +
         theme_light()
     }
@@ -196,8 +203,7 @@ graph_htmed <- function(
 
     # edges
     relations <- stats::na.omit(tabl) %>%
-      rename("from" = treatment, 'to' = mediator, 'Prop.med' = prop.med, 'Est.med' = acme) %>%
-      dplyr::select(c('from', 'to', 'Prop.med', 'Est.med', data.split))
+      dplyr::select(c(treatment, mediator, prop.med, acme, data.split))
 
     if ( !is.null(data.split) ) {
       pList <- list()
@@ -206,8 +212,8 @@ graph_htmed <- function(
         relations.i <- relations %>% dplyr::filter(!!rlang::sym(data.split) == .env$i)
 
         nodes.i <- nodes %>%
-          dplyr::mutate(vertex.color = case_when(name %in% relations.i$from ~ '#FDA855',
-                                                 name %in% relations.i$to ~ '#0180AB',
+          dplyr::mutate(vertex.color = case_when(name %in% relations.i[[treatment]] ~ '#FDA855',
+                                                 name %in% relations.i[[mediator]] ~ '#0180AB',
                                                  name %in% tabl[[treatment]] ~ '#FBC495',
                                                  name %in% tabl[[mediator]] ~ '#BDD6D0')) %>%
           dplyr::mutate(vertex.color.label = case_when(name %in% unique(c(t(relations.i))) ~ '#000000',
@@ -217,7 +223,7 @@ graph_htmed <- function(
         coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
         lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
-        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=i, size_node=size_node, size_name=size_name, end_arrow=end_arrow)
+        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=i, prop.med=prop.med, acme=acme, size_node=size_node, size_name=size_name, end_arrow=end_arrow)
       }
       return(pList)
     }
@@ -225,8 +231,8 @@ graph_htmed <- function(
       # node color
       nodes <- nodes %>%
         #blue and orange
-        dplyr::mutate(vertex.color = case_when(name %in% relations$from ~ '#FDA855',
-                                               name %in% relations$to ~ '#0180AB',
+        dplyr::mutate(vertex.color = case_when(name %in% relations[[treatment]] ~ '#FDA855',
+                                               name %in% relations[[mediator]] ~ '#0180AB',
                                                name %in% tabl[[treatment]] ~ '#FBC495',
                                                name %in% tabl[[mediator]] ~ '#BDD6D0')) %>%
         dplyr::mutate(vertex.color.label = case_when(name %in% unique(c(t(relations))) ~ '#000000',
@@ -236,11 +242,10 @@ graph_htmed <- function(
       coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
       lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
-      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=outcome, size_node=size_node, size_name=size_name, end_arrow=end_arrow))
+      return(.graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=outcome, prop.med=prop.med, acme=acme, size_node=size_node, size_name=size_name, end_arrow=end_arrow))
     }
   }
 }
-
 
 .checks_visual <- function(
     mediation.form,
@@ -382,6 +387,8 @@ graph_htmed <- function(
     layout_graph,
     n.nodes,
     text,
+    prop.med,
+    acme,
     size_node = 1,
     size_name = 1,
     end_arrow = 1
@@ -390,8 +397,8 @@ graph_htmed <- function(
     # edges
     ggraph::geom_edge_arc(
       aes(
-        col = .data$Est.med,
-        width = .data$Prop.med
+        col = .data[[acme]],
+        width = .data[[prop.med]]
       ),
       # curvature=0.1,
       strength=0.1,
@@ -399,14 +406,15 @@ graph_htmed <- function(
       start_cap = ggraph::circle(1, 'mm'),
       end_cap = (ggraph::circle(ifelse(n.nodes < 30, 5+n.nodes/10 * end_arrow, 6+n.nodes/50 * end_arrow), 'mm'))
     ) +
-    ggraph::scale_edge_width(range = c(.5, 2)) +
     ggraph::scale_edge_colour_gradient2(
       low = "blue",
       high = "red",
       mid = "white",
       midpoint = 0,
-      na.value = "transparent"
+      na.value = "transparent",
+      guide = "legend"
     ) +
+    ggraph::scale_edge_width(range = c(.5, 2), guide = "legend") +
     #nodes
     ggraph::geom_node_point(
       # size = ifelse(n.nodes < 30, 30, 20+300/n.nodes),
