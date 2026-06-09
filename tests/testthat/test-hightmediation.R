@@ -7,7 +7,7 @@ file.tests <- "../testdata"
 load(file.path(file.tests, 'df.RData'))
 load(file.path(file.tests, 'medANDout_1out.RData'))
 
-models_1out <- data_models(outcome = 'outcome.1', mediator = c('mediator.1', 'mediator.2'), treatment = c('treatment.1', 'treatment.2'))
+models_1out <- data_models(outcome = 'MVO', mediator = c('LV.EDV', 'RV.EDV'), treatment = c('LDL', 'Chol'))
 
 ## ----------------------------------------------------------------------------
 ## Tests for generating the mediation models

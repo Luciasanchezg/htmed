@@ -5,7 +5,13 @@
 \title{Generate the dataframe stablishing the fitted models for mediator and the
 fitted models for outcome that need to be perform}
 \usage{
-data_models(outcome, mediator, treatment)
+data_models(
+  outcome,
+  mediator,
+  treatment,
+  col_m = "model.m.formula",
+  col_y = "model.y.formula"
+)
 }
 \arguments{
 \item{outcome}{a vector with the outcomes}
@@ -13,6 +19,12 @@ data_models(outcome, mediator, treatment)
 \item{mediator}{a vector with the mediators}
 
 \item{treatment}{a vector with the treatments}
+
+\item{col_m}{a character. Name of the column that will contain the mediator
+model formulas in the output dataframe. Default: "model.m.formula".}
+
+\item{col_y}{a character. Name of the column that will contain the outcome
+model formulas in the output dataframe. Default: "model.y.formula".}
 }
 \value{
 It returns a dataframe with five columns. The first two columns will

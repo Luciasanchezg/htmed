@@ -34,7 +34,7 @@ test_that(
       regexp = "mediation.list is not a list"
     )
     expect_error(
-      format_med(mediation_1out$outcome.1),
+      format_med(mediation_1out$MVO),
       regexp = "mediation.list is not a list of lists"
     )
     load(file.path(file.tests, 'med_1out.RData'))

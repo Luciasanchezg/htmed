@@ -9,11 +9,12 @@ scatter_htmed(
   outcome,
   pval.column = NULL,
   pval = 0.05,
-  prop.med = "Estimate_Prop._Mediated_(average)",
-  acme = "Estimate_ACME_(average)",
+  prop.med = "Prop.Mediated",
+  acme = "ACME",
   treatment = "treatment",
   mediator = "mediator",
-  data.split = NULL
+  data.split = NULL,
+  size_dot = 1
 )
 }
 \arguments{
@@ -42,6 +43,9 @@ mediator information. Default: mediator.}
 
 \item{data.split}{a character indicating the name of the column used for the
 split. Default: NULL}
+
+\item{size_dot}{a number indicating the factor to set the size of the dots.
+Default: 1.}
 }
 \value{
 returns a scatterplot with the treatments in the X axis and the mediators in the Y axis.

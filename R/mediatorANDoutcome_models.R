@@ -386,6 +386,16 @@ outcome_models <- function(
           invokeRestart("muffleWarning")
         }
       )
+      # detect silently NA coefficients (e.g. rank-deficient fit with few rows)
+      # fold directly into warnings via local() so no extra binding enters the
+      # formula's .Environment (which is this function's local frame)
+      warnings <- c(warnings, local({
+        cf <- tryCatch(stats::coef(model), error = function(e) NULL)
+        if (is.null(cf)) return(character(0))
+        bad <- names(cf)[is.na(cf)]
+        if (length(bad) == 0) return(character(0))
+        paste("Rank-deficient fit: NA coefficients for", paste(bad, collapse = ", "))
+      }))
       # adding warnings
       if(length(warnings) > 0) {
         model$warningsModel <- paste(warnings, collapse = "; ")
