@@ -4,7 +4,7 @@
 \alias{format_med}
 \title{Formatting results from causal mediation analysis}
 \usage{
-format_med(mediation.list, split = FALSE)
+format_med(mediation.list, split = FALSE, estimate = "average")
 }
 \arguments{
 \item{mediation.list}{list of lists with as many sublists as different
@@ -15,6 +15,11 @@ information.}
 
 \item{split}{a boolean. This argument indicate if we are dealing with
 splitted data. Default: FALSE.}
+
+\item{estimate}{a character string indicating which estimate to report when
+the mediation model has a control/treated split. One of \code{"average"}
+(default), \code{"control"}, or \code{"treated"}. Ignored for models that only
+report a single estimate.}
 }
 \value{
 lists of lists with the summary of the mediate analyses and the

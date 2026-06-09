@@ -7,25 +7,20 @@ Description: Package for high-throughput mediation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Config/testthat/edition: 3
-Imports: 
+Imports:
     dplyr,
     ggplot2,
     ggraph,
     parallel,
     stats,
-    reshape2,
     tidyr,
     mediation,
     igraph,
-    tibble,
     rlang,
     purrr
-Suggests: 
+Suggests:
     testthat (>= 3.0.0),
     survival,
-    withr,
-    knitr,
-    rmarkdown
-VignetteBuilder: knitr
+    withr
+Config/roxygen2/version: 8.0.0
