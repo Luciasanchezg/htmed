@@ -225,7 +225,7 @@ graph_htmed <- function(
         coords <-.layout_in_circles(g, group=igraph::V(g)$name %!in% tabl[[treatment]]) %>% as.data.frame()
         lay <- ggraph::create_layout(graph = g, layout = 'manual', x = coords$V1, y = coords$V2)
 
-        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=i, prop.med=prop.med, acme=acme, size_node=size_node, size_name=size_name, end_arrow=end_arrow)
+        pList[[i]] <- .graph_ggraph(layout_graph=lay, n.nodes=n.nodes, text=outcome, subtitle=i, prop.med=prop.med, acme=acme, size_node=size_node, size_name=size_name, end_arrow=end_arrow)
       }
       return(pList)
     }
@@ -391,6 +391,7 @@ graph_htmed <- function(
     text,
     prop.med,
     acme,
+    subtitle = NULL,
     size_node = 1,
     size_name = 1,
     end_arrow = 1
@@ -413,10 +414,9 @@ graph_htmed <- function(
       high = "red",
       mid = "white",
       midpoint = 0,
-      na.value = "transparent",
-      guide = "legend"
+      na.value = "transparent"
     ) +
-    ggraph::scale_edge_width(range = c(.5, 2), guide = "legend") +
+    ggraph::scale_edge_width(range = c(.5, 2), breaks = function(x) pretty(x, n = 3)) +
     #nodes
     ggraph::geom_node_point(
       # size = ifelse(n.nodes < 30, 30, 20+300/n.nodes),
@@ -432,6 +432,7 @@ graph_htmed <- function(
       size = (ifelse(n.nodes < 30, 2 * size_name, 1.5+30/n.nodes * size_name)),
     ) +
     ggplot2::theme(panel.background = element_rect(fill = 'white', colour = 'transparent')) +
-    guides(edge_colour = guide_legend(order = 1), edge_width = guide_legend(order = 2)) +
-    ggtitle(paste("Results for:", text))
+    guides(colour = guide_colourbar(order = 1), edge_width = guide_legend(order = 2)) +
+    ggtitle(paste("Results for:", text)) +
+    labs(subtitle = subtitle)
 }

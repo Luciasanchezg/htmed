@@ -354,12 +354,12 @@ individuals depending on their comorbidity.
 
 ``` r
 df <- df %>% 
-  mutate(split = sample(x = c('HighBP', 'Diabetes'), size = 100, replace = TRUE))
+  mutate(split = sample(x = c('HighBP', 'NormalBP'), size = 100, replace = TRUE))
 
 df %>% dplyr::select(split) %>% table(.)
 #> split
-#> Diabetes   HighBP 
-#>       47       53
+#>   HighBP NormalBP 
+#>       53       47
 ```
 
 Under the previous hypothesis, we were perfoming the analyses with the
@@ -443,10 +443,10 @@ names(med_results.split)
 
 # Conditions
 names(med_results.split$MVO)
-#> [1] "Diabetes" "HighBP"
+#> [1] "NormalBP" "HighBP"
 
-# Analyses for Diabetes
-names(med_results.split$MVO$Diabetes)
+# Analyses for NormalBP
+names(med_results.split$MVO$NormalBP)
 #>  [1] "`LV.EDV` ~ `Chol`" "`LV.EDV` ~ `FC`"   "`LV.EDV` ~ `LDL`" 
 #>  [4] "`LV.EDV` ~ `TG`"   "`LV.ESV` ~ `Chol`" "`LV.ESV` ~ `FC`"  
 #>  [7] "`LV.ESV` ~ `LDL`"  "`LV.ESV` ~ `TG`"   "`RV.EDV` ~ `Chol`"
@@ -479,8 +479,8 @@ visual_outcome1_nosig.split
 <img src="man/figures/README-visualizing.split-1-1.png" alt="" width="100%" />
 
 In this case, two scatterplots will be displayed, differenciating
-between the analyses from the two initial conditions (Diabetes and High
-Blood Pressure).
+between the analyses from the two initial conditions (NormalBP and
+HighBP).
 
 ``` r
 graph_outcome1_nosig.split <- graph_htmed(
@@ -491,7 +491,7 @@ graph_outcome1_nosig.split <- graph_htmed(
 #> pval.column argument not provided. Results without filtering data will be displayed
 
 library(patchwork)
-graph_outcome1_nosig.split$Diabetes + graph_outcome1_nosig.split$HighBP
+graph_outcome1_nosig.split$NormalBP | graph_outcome1_nosig.split$HighBP
 ```
 
 <img src="man/figures/README-visualizing.split-2-1.png" alt="" width="100%" />

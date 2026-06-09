@@ -9,7 +9,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  dpi = 300
 )
 ```
 
@@ -238,7 +239,7 @@ graph_htmed(
 Now, we will include a new column to the original DataFrame, to classify individuals depending on their comorbidity. 
 ```{r split}
 df <- df %>% 
-  mutate(split = sample(x = c('HighBP', 'Diabetes'), size = 100, replace = TRUE))
+  mutate(split = sample(x = c('HighBP', 'NormalBP'), size = 100, replace = TRUE))
 
 df %>% dplyr::select(split) %>% table(.)
 ```
@@ -299,8 +300,8 @@ names(med_results.split)
 # Conditions
 names(med_results.split$MVO)
 
-# Analyses for Diabetes
-names(med_results.split$MVO$Diabetes)
+# Analyses for NormalBP
+names(med_results.split$MVO$NormalBP)
 ```
 
 ### Formatting the mediation results
@@ -318,7 +319,7 @@ visual_outcome1_nosig.split <- scatter_htmed(
 visual_outcome1_nosig.split
 ```
 
-In this case, two scatterplots will be displayed, differenciating between the analyses from the two initial conditions (Diabetes and High Blood Pressure).
+In this case, two scatterplots will be displayed, differenciating between the analyses from the two initial conditions (NormalBP and HighBP).
 
 ```{r visualizing.split-2}
 graph_outcome1_nosig.split <- graph_htmed(
@@ -328,6 +329,6 @@ graph_outcome1_nosig.split <- graph_htmed(
   , data.split = 'split')
 
 library(patchwork)
-graph_outcome1_nosig.split$Diabetes + graph_outcome1_nosig.split$HighBP
+graph_outcome1_nosig.split$NormalBP | graph_outcome1_nosig.split$HighBP
 ```
 The same occurs when applying `graph_htmed()` ; two graph are generated, depending on the condition studied.
