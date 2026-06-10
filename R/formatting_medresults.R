@@ -151,9 +151,11 @@ format_med <- function(
   clp       <- 100 * x$conf.level
   has_split <- isTRUE(all.equal(x$d0, x$d1))
 
-  if (!estimate %in% c("control", "treated")) {
+  if (has_split) {
     warning("estimate='", estimate, "' has no effect: this model only reports a single ",
             "estimate (no control/treated split). Ignoring the estimate argument.")
+  } else if (!estimate %in% c("control", "treated", "average")) {
+    stop("estimate must be one of: 'average', 'control', 'treated'")
   }
 
   if (!has_split) {
