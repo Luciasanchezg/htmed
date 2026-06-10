@@ -151,36 +151,38 @@ format_med <- function(
   clp       <- 100 * x$conf.level
   has_split <- isTRUE(all.equal(x$d0, x$d1))
 
-  if (!has_split && estimate %in% c("control", "treated")) {
+  if (!estimate %in% c("control", "treated")) {
     warning("estimate='", estimate, "' has no effect: this model only reports a single ",
             "estimate (no control/treated split). Ignoring the estimate argument.")
   }
 
   if (!has_split) {
+    if (estimate == "control") {
+      acme_label <- "ACME (control)"
+      ade_label  <- "ADE (control)"
+      prop_label <- "Prop. Mediated (control)"
+      acme_row   <- .pick_row(x, "d0", "d0.ci", "d0.p", "d.avg", "d.avg.ci", "d.avg.p")
+      ade_row    <- .pick_row(x, "z0", "z0.ci", "z0.p", "z.avg", "z.avg.ci", "z.avg.p")
+      prop_row   <- .pick_row(x, "n0", "n0.ci", "n0.p", "n.avg", "n.avg.ci", "n.avg.p")
+    } else if (estimate == "treated") {
+      acme_label <- "ACME (treated)"
+      ade_label  <- "ADE (treated)"
+      prop_label <- "Prop. Mediated (treated)"
+      acme_row   <- .pick_row(x, "d1", "d1.ci", "d1.p", "d.avg", "d.avg.ci", "d.avg.p")
+      ade_row    <- .pick_row(x, "z1", "z1.ci", "z1.p", "z.avg", "z.avg.ci", "z.avg.p")
+      prop_row   <- .pick_row(x, "n1", "n1.ci", "n1.p", "n.avg", "n.avg.ci", "n.avg.p")
+    } else if (estimate == "treated") {
+      acme_label <- "ACME (average)"
+      ade_label  <- "ADE (average)"
+      prop_label <- "Prop. Mediated (average)"
+      acme_row   <- .pick_row(x, "d.avg", "d.avg.ci", "d.avg.p", "d0", "d0.ci", "d0.p")
+      ade_row    <- .pick_row(x, "z.avg", "z.avg.ci", "z.avg.p", "z0", "z0.ci", "z0.p")
+      prop_row   <- .pick_row(x, "n.avg", "n.avg.ci", "n.avg.p", "n0", "n0.ci", "n0.p")
+    }
+  } else {
     acme_label <- "ACME"
     ade_label  <- "ADE"
     prop_label <- "Prop. Mediated"
-    acme_row   <- .pick_row(x, "d.avg", "d.avg.ci", "d.avg.p", "d0", "d0.ci", "d0.p")
-    ade_row    <- .pick_row(x, "z.avg", "z.avg.ci", "z.avg.p", "z0", "z0.ci", "z0.p")
-    prop_row   <- .pick_row(x, "n.avg", "n.avg.ci", "n.avg.p", "n0", "n0.ci", "n0.p")
-  } else if (estimate == "control") {
-    acme_label <- "ACME (control)"
-    ade_label  <- "ADE (control)"
-    prop_label <- "Prop. Mediated (control)"
-    acme_row   <- .pick_row(x, "d0", "d0.ci", "d0.p", "d.avg", "d.avg.ci", "d.avg.p")
-    ade_row    <- .pick_row(x, "z0", "z0.ci", "z0.p", "z.avg", "z.avg.ci", "z.avg.p")
-    prop_row   <- .pick_row(x, "n0", "n0.ci", "n0.p", "n.avg", "n.avg.ci", "n.avg.p")
-  } else if (estimate == "treated") {
-    acme_label <- "ACME (treated)"
-    ade_label  <- "ADE (treated)"
-    prop_label <- "Prop. Mediated (treated)"
-    acme_row   <- .pick_row(x, "d1", "d1.ci", "d1.p", "d.avg", "d.avg.ci", "d.avg.p")
-    ade_row    <- .pick_row(x, "z1", "z1.ci", "z1.p", "z.avg", "z.avg.ci", "z.avg.p")
-    prop_row   <- .pick_row(x, "n1", "n1.ci", "n1.p", "n.avg", "n.avg.ci", "n.avg.p")
-  } else {
-    acme_label <- "ACME (average)"
-    ade_label  <- "ADE (average)"
-    prop_label <- "Prop. Mediated (average)"
     acme_row   <- .pick_row(x, "d.avg", "d.avg.ci", "d.avg.p", "d0", "d0.ci", "d0.p")
     ade_row    <- .pick_row(x, "z.avg", "z.avg.ci", "z.avg.p", "z0", "z0.ci", "z0.p")
     prop_row   <- .pick_row(x, "n.avg", "n.avg.ci", "n.avg.p", "n0", "n0.ci", "n0.p")
