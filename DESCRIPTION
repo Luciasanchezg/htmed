@@ -2,7 +2,7 @@ Package: htmed
 Title: High-throughput mediation
 Version: 0.0.0.9000
 Authors@R: 
-    person("Lucía", "Sánchez-García", , "lucia.sanchezg@outlook.com", role = c("aut", "cre"), comment = c(ORCID = "YOUR-ORCID-ID"))
+    person("Lucia", "Sanchez-Garcia", , "lucia.sanchezg@outlook.com", role = c("aut", "cre"), comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: Package for high-throughput mediation.
 License: MIT + file LICENSE
 Encoding: UTF-8

@@ -13,13 +13,9 @@ NULL
 
 #' Formatting results from causal mediation analysis
 #'
-#' @description `format_med()` extracts some useful information from the
-#'   causal mediation analyses. This function also computes:
-#'
-#'   * Adjusted p-value computed for the models performed for one outcome.
-#'
-#'   * Adjusted p-value by all the analyses present object. In case there is
-#'   just one outcome, both adjusted p-values will be the same.
+#' @description `format_med()` extracts the per-model summary tables from a
+#'   list of causal mediation analyses. The output mirrors what
+#'   `summary()` prints for a single `mediate` object.
 #'
 #' @param mediation.list list of lists with as many sublists as different
 #'   outcomes has been tested in the causal mediation analysis. The first level
@@ -28,30 +24,24 @@ NULL
 #'   information.
 #' @param split a boolean. This argument indicate if we are dealing with
 #'   splitted data. Default: FALSE.
-#' @param estimate a character string indicating which estimate to report when
-#'   the mediation model has a control/treated split. One of `"average"`
-#'   (default), `"control"`, or `"treated"`. Ignored for models that only
-#'   report a single estimate.
 #'
-#' @return lists of lists with the summary of the mediate analyses and the
-#'   adjusted p-values.
+#' @return A nested list. For `split = FALSE`: `list[outcome][model]` where
+#'   each element is a data frame with columns Estimate, CI Lower, CI Upper,
+#'   and p-value — one row per effect (ACME, ADE, Total Effect, Prop. Mediated).
+#'   For `split = TRUE`: `list[outcome][split_condition][model]`.
 #' @export
 #'
 #'
 format_med <- function(
     mediation.list,
-    split = FALSE,
-    estimate = "average"
+    split = FALSE
 ) {
   ## TODO: no está contemplada la posibilidad de covariates
   if (!"logical" %in% class(split)) {
     stop("split argument only admits logical")
   }
-  if (!estimate %in% c("average", "control", "treated")) {
-    stop("estimate must be one of: 'average', 'control', 'treated'")
-  }
   if (split == FALSE) {
-    filt_summary <- .format_med(mediation.list=mediation.list, estimate=estimate)
+    filt_summary <- .format_med(mediation.list=mediation.list)
   }
   else {
     if (purrr::pluck_depth(mediation.list) != 7) {
@@ -59,25 +49,15 @@ format_med <- function(
     }
     filt_summary <- lapply(names(mediation.list),
                            FUN = function(subl) {
-                             formatted.list <- .format_med(mediation.list=mediation.list[[subl]], estimate=estimate)
-                             formatted.df <- lapply(names(formatted.list),
-                                                    FUN = function(subl.subl) {
-                                                      formatted.list[[subl.subl]] %>% mutate(split = subl.subl)
-                                                      }
-                                                    )
-                             do.call(rbind, formatted.df)
-                             }
-                           )
+                             .format_med(mediation.list=mediation.list[[subl]])
+                           })
     names(filt_summary) <- names(mediation.list)
   }
   return(filt_summary)
 }
 
 
-.format_med <- function(
-    mediation.list,
-    estimate = "average"
-    ) {
+.format_med <- function(mediation.list) {
 
   if (!"list" %in% class(mediation.list)) {
     stop("mediation.list is not a list")
@@ -101,38 +81,14 @@ format_med <- function(
       stop("Are you introducing the same model more than one time?")
     }
   }
-  onerow_summary <- .med_summary_list(mediation.list, estimate=estimate)
-  filt_summary <- .filt_and_adjpval(onerow_summary)
-
-  return(filt_summary)
+  return(.med_summary_list(mediation.list))
 }
 
 
-.med_summary_list <- function(mediation.list, estimate = "average") {
-
-  summary.list <- list()
-  for (subl in names(mediation.list)) {
-
-    model.stats.list <- list()
-    for (med in names(mediation.list[[subl]])) {
-
-      # getting the summary for the mediation
-      model.stats <- .mediation_summary(mediation.list[[subl]][[med]], estimate=estimate)
-      row_names   <- gsub(' ', '', rownames(model.stats))
-
-      # reshaping summaries into one row: estimates as plain column names,
-      # p-values prefixed with "p-value_" — no "Estimate_" prefix generated
-      est_vec  <- stats::setNames(model.stats[["Estimate"]], row_names)
-      pval_vec <- stats::setNames(model.stats[["p-value"]], paste0("p-value_", row_names))
-      model.reshape <- data.frame(as.list(c(est_vec, pval_vec)), check.names = FALSE)
-      rownames(model.reshape) <- med
-
-      model.stats.list[[med]] <- model.reshape
-    }
-    model.stats.df <- model.stats.list %>% bind_rows
-    summary.list[[subl]] <- model.stats.df
-  }
-  return(summary.list)
+.med_summary_list <- function(mediation.list) {
+  lapply(mediation.list, function(outcome_models) {
+    lapply(outcome_models, .mediation_summary)
+  })
 }
 
 
@@ -147,52 +103,42 @@ format_med <- function(
 }
 
 
-.mediation_summary <- function(x, estimate = "average") {
+.mediation_summary <- function(x) {
   clp       <- 100 * x$conf.level
-  has_split <- isTRUE(all.equal(x$d0, x$d1))
+  has_split <- !isTRUE(all.equal(x$d0, x$d1))
 
-  if (!has_split && estimate %in% c("control", "treated")) {
-    warning("estimate='", estimate, "' has no effect: this model only reports a single ",
-            "estimate (no control/treated split). Ignoring the estimate argument.")
-  }
-
-  if (!has_split) {
-    acme_label <- "ACME"
-    ade_label  <- "ADE"
-    prop_label <- "Prop. Mediated"
-    acme_row   <- .pick_row(x, "d.avg", "d.avg.ci", "d.avg.p", "d0", "d0.ci", "d0.p")
-    ade_row    <- .pick_row(x, "z.avg", "z.avg.ci", "z.avg.p", "z0", "z0.ci", "z0.p")
-    prop_row   <- .pick_row(x, "n.avg", "n.avg.ci", "n.avg.p", "n0", "n0.ci", "n0.p")
-  } else if (estimate == "control") {
-    acme_label <- "ACME (control)"
-    ade_label  <- "ADE (control)"
-    prop_label <- "Prop. Mediated (control)"
-    acme_row   <- .pick_row(x, "d0", "d0.ci", "d0.p", "d.avg", "d.avg.ci", "d.avg.p")
-    ade_row    <- .pick_row(x, "z0", "z0.ci", "z0.p", "z.avg", "z.avg.ci", "z.avg.p")
-    prop_row   <- .pick_row(x, "n0", "n0.ci", "n0.p", "n.avg", "n.avg.ci", "n.avg.p")
-  } else if (estimate == "treated") {
-    acme_label <- "ACME (treated)"
-    ade_label  <- "ADE (treated)"
-    prop_label <- "Prop. Mediated (treated)"
-    acme_row   <- .pick_row(x, "d1", "d1.ci", "d1.p", "d.avg", "d.avg.ci", "d.avg.p")
-    ade_row    <- .pick_row(x, "z1", "z1.ci", "z1.p", "z.avg", "z.avg.ci", "z.avg.p")
-    prop_row   <- .pick_row(x, "n1", "n1.ci", "n1.p", "n.avg", "n.avg.ci", "n.avg.p")
+  if (has_split) {
+    rows <- stats::setNames(
+      list(
+        .pick_row(x, "d0",       "d0.ci",    "d0.p",    "d.avg",    "d.avg.ci", "d.avg.p"),
+        .pick_row(x, "d1",       "d1.ci",    "d1.p",    "d.avg",    "d.avg.ci", "d.avg.p"),
+        .pick_row(x, "z0",       "z0.ci",    "z0.p",    "z.avg",    "z.avg.ci", "z.avg.p"),
+        .pick_row(x, "z1",       "z1.ci",    "z1.p",    "z.avg",    "z.avg.ci", "z.avg.p"),
+        .pick_row(x, "tau.coef", "tau.ci",   "tau.p",   "tau.coef", "tau.ci",   "tau.p"),
+        .pick_row(x, "n0",       "n0.ci",    "n0.p",    "n.avg",    "n.avg.ci", "n.avg.p"),
+        .pick_row(x, "n1",       "n1.ci",    "n1.p",    "n.avg",    "n.avg.ci", "n.avg.p"),
+        .pick_row(x, "d.avg",    "d.avg.ci", "d.avg.p", "d0",       "d0.ci",    "d0.p"),
+        .pick_row(x, "z.avg",    "z.avg.ci", "z.avg.p", "z0",       "z0.ci",    "z0.p"),
+        .pick_row(x, "n.avg",    "n.avg.ci", "n.avg.p", "n0",       "n0.ci",    "n0.p")
+      ),
+      c("ACME (control)", "ACME (treated)",
+        "ADE (control)",  "ADE (treated)",
+        "Total Effect",
+        "Prop. Mediated (control)", "Prop. Mediated (treated)",
+        "ACME (average)", "ADE (average)", "Prop. Mediated (average)")
+    )
   } else {
-    acme_label <- "ACME (average)"
-    ade_label  <- "ADE (average)"
-    prop_label <- "Prop. Mediated (average)"
-    acme_row   <- .pick_row(x, "d.avg", "d.avg.ci", "d.avg.p", "d0", "d0.ci", "d0.p")
-    ade_row    <- .pick_row(x, "z.avg", "z.avg.ci", "z.avg.p", "z0", "z0.ci", "z0.p")
-    prop_row   <- .pick_row(x, "n.avg", "n.avg.ci", "n.avg.p", "n0", "n0.ci", "n0.p")
+    rows <- stats::setNames(
+      list(
+        .pick_row(x, "d.avg",   "d.avg.ci", "d.avg.p", "d0",       "d0.ci",  "d0.p"),
+        .pick_row(x, "z.avg",   "z.avg.ci", "z.avg.p", "z0",       "z0.ci",  "z0.p"),
+        .pick_row(x, "tau.coef","tau.ci",   "tau.p",   "tau.coef", "tau.ci", "tau.p"),
+        .pick_row(x, "n.avg",   "n.avg.ci", "n.avg.p", "n0",       "n0.ci",  "n0.p")
+      ),
+      c("ACME", "ADE", "Total Effect", "Prop. Mediated")
+    )
   }
 
-  # Total Effect is always a single estimate regardless of model type
-  tau_row <- .pick_row(x, "tau.coef", "tau.ci", "tau.p", "tau.coef", "tau.ci", "tau.p")
-
-  rows <- stats::setNames(
-    list(acme_row, ade_row, tau_row, prop_row),
-    c(acme_label, ade_label, "Total Effect", prop_label)
-  )
   stats_model <- do.call(rbind, rows)
   colnames(stats_model) <- c("Estimate",
                              paste0(clp, "% CI Lower"),
