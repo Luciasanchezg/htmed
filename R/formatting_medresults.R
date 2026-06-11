@@ -110,21 +110,22 @@ format_med <- function(
   if (has_split) {
     rows <- stats::setNames(
       list(
-        .pick_row(x, "d0",       "d0.ci",  "d0.p",  "d.avg", "d.avg.ci", "d.avg.p"),
-        .pick_row(x, "d1",       "d1.ci",  "d1.p",  "d.avg", "d.avg.ci", "d.avg.p"),
-        .pick_row(x, "d.avg",    "d.avg.ci", "d.avg.p", "d0", "d0.ci",   "d0.p"),
-        .pick_row(x, "z0",       "z0.ci",  "z0.p",  "z.avg", "z.avg.ci", "z.avg.p"),
-        .pick_row(x, "z1",       "z1.ci",  "z1.p",  "z.avg", "z.avg.ci", "z.avg.p"),
-        .pick_row(x, "z.avg",    "z.avg.ci", "z.avg.p", "z0", "z0.ci",   "z0.p"),
-        .pick_row(x, "tau.coef", "tau.ci", "tau.p", "tau.coef", "tau.ci", "tau.p"),
-        .pick_row(x, "n0",       "n0.ci",  "n0.p",  "n.avg", "n.avg.ci", "n.avg.p"),
-        .pick_row(x, "n1",       "n1.ci",  "n1.p",  "n.avg", "n.avg.ci", "n.avg.p"),
-        .pick_row(x, "n.avg",    "n.avg.ci", "n.avg.p", "n0", "n0.ci",   "n0.p")
+        .pick_row(x, "d0",       "d0.ci",    "d0.p",    "d.avg",    "d.avg.ci", "d.avg.p"),
+        .pick_row(x, "d1",       "d1.ci",    "d1.p",    "d.avg",    "d.avg.ci", "d.avg.p"),
+        .pick_row(x, "z0",       "z0.ci",    "z0.p",    "z.avg",    "z.avg.ci", "z.avg.p"),
+        .pick_row(x, "z1",       "z1.ci",    "z1.p",    "z.avg",    "z.avg.ci", "z.avg.p"),
+        .pick_row(x, "tau.coef", "tau.ci",   "tau.p",   "tau.coef", "tau.ci",   "tau.p"),
+        .pick_row(x, "n0",       "n0.ci",    "n0.p",    "n.avg",    "n.avg.ci", "n.avg.p"),
+        .pick_row(x, "n1",       "n1.ci",    "n1.p",    "n.avg",    "n.avg.ci", "n.avg.p"),
+        .pick_row(x, "d.avg",    "d.avg.ci", "d.avg.p", "d0",       "d0.ci",    "d0.p"),
+        .pick_row(x, "z.avg",    "z.avg.ci", "z.avg.p", "z0",       "z0.ci",    "z0.p"),
+        .pick_row(x, "n.avg",    "n.avg.ci", "n.avg.p", "n0",       "n0.ci",    "n0.p")
       ),
-      c("ACME (control)", "ACME (treated)",    "ACME (average)",
-        "ADE (control)",  "ADE (treated)",     "ADE (average)",
+      c("ACME (control)", "ACME (treated)",
+        "ADE (control)",  "ADE (treated)",
         "Total Effect",
-        "Prop. Mediated (control)", "Prop. Mediated (treated)", "Prop. Mediated (average)")
+        "Prop. Mediated (control)", "Prop. Mediated (treated)",
+        "ACME (average)", "ADE (average)", "Prop. Mediated (average)")
     )
   } else {
     rows <- stats::setNames(
