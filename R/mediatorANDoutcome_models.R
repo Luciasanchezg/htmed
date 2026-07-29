@@ -370,17 +370,27 @@ outcome_models <- function(
 
 
 .modeling <- function(
-    model.type=model.type,
-    formula=formula,
-    data=data,
+    model.type,
+    formula,
+    data,
     ...
 ) {
   model <- tryCatch(
     {
       # capturing warnings
       warnings <- NULL
+      # Build the call with the actual function object as its head (not the
+      # symbol "model.type"). This ensures model$call[[1]] is the real function
+      # so that mediation::mediate() can refit the model during bootstrap via
+      # update() without a "could not find function 'model.type'" error.
+      cl <- as.call(c(
+        list(model.type),
+        list(as.formula(formula)),
+        list(data = data),
+        list(...)
+      ))
       model <- withCallingHandlers(
-        model.type(as.formula(formula), data = data, ...),
+        eval(cl),
         warning = function(w) {
           warnings <<- c(warnings, w$message)
           invokeRestart("muffleWarning")
