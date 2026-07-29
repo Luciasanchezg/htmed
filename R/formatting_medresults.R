@@ -103,8 +103,47 @@ format_med <- function(
 }
 
 
+.mediation_summary_ordinal <- function(x, clp) {
+  labels <- x$model.y$lev
+
+  groups <- list(
+    "ACME (control)" = list(est = "d0",       ci = "d0.ci",     p = "d0.p"),
+    "ACME (treated)" = list(est = "d1",       ci = "d1.ci",     p = "d1.p"),
+    "ADE (control)"  = list(est = "z0",       ci = "z0.ci",     p = "z0.p"),
+    "ADE (treated)"  = list(est = "z1",       ci = "z1.ci",     p = "z1.p"),
+    "Total Effect"   = list(est = "tau.coef", ci = "tau.ci",    p = "tau.p")
+  )
+
+  rows      <- list()
+  row_names <- character(0)
+  for (group_name in names(groups)) {
+    g   <- groups[[group_name]]
+    est <- x[[g$est]]
+    ci  <- x[[g$ci]]
+    p   <- x[[g$p]]
+    for (i in seq_along(est)) {
+      rows[[length(rows) + 1]] <- c(est[i], ci[1, i], ci[2, i], p[i])
+      row_names <- c(row_names, paste0(group_name, " (Pr(Y=", labels[i], "))"))
+    }
+  }
+
+  stats_model <- do.call(rbind, rows)
+  rownames(stats_model) <- row_names
+  colnames(stats_model) <- c("Estimate",
+                             paste0(clp, "% CI Lower"),
+                             paste0(clp, "% CI Upper"),
+                             "p-value")
+  return(as.data.frame(stats_model))
+}
+
+
 .mediation_summary <- function(x) {
-  clp       <- 100 * x$conf.level
+  clp <- 100 * x$conf.level
+
+  if (inherits(x, "mediate.order")) {
+    return(.mediation_summary_ordinal(x, clp))
+  }
+
   has_split <- !isTRUE(all.equal(x$d0, x$d1))
 
   if (has_split) {
