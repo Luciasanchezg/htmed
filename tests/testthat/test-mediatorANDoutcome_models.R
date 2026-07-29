@@ -629,3 +629,50 @@ test_that(
 )
 
 
+## ----------------------------------------------------------------------------
+## Regression test: .modeling() must embed the real function in $call[[1]]
+## so that mediation::mediate() can refit the model during bootstrap
+## ----------------------------------------------------------------------------
+test_that(
+  desc = paste(
+    "outcome_models() with MASS::polr embeds the real function in",
+    "$call[[1]], not the symbol 'model.type'"
+  ),
+  code = {
+    skip_if_not_installed("MASS")
+
+    df_ord <- df
+    df_ord$MVO_ord <- cut(
+      df$MVO, breaks = 3,
+      labels = c("low", "mid", "high"), ordered = TRUE
+    )
+    models_ord <- data_models(
+      outcome = 'MVO_ord', mediator = 'LV.EDV', treatment = 'LDL'
+    )
+
+    result <- outcome_models(
+      column.models = 'model.y.formula',
+      model.type = MASS::polr,
+      data = df_ord,
+      data.models = models_ord,
+      model.name = 'model.Y',
+      ncores = 1
+    )
+
+    fitted_model <- result$model.Y[[1]]
+    expect_false(is.character(fitted_model),
+                 info = "polr model fitting should not fail")
+    # The critical invariant: $call[[1]] must be the actual function object,
+    # not the local parameter symbol "model.type". If it were "model.type",
+    # mediation::mediate() would fail with "could not find function model.type"
+    # when it tries to refit via update() during bootstrap.
+    expect_false(
+      identical(fitted_model$call[[1]], as.name("model.type")),
+      info = "$call[[1]] must not be the symbol 'model.type'"
+    )
+    expect_true(
+      is.function(fitted_model$call[[1]]),
+      info = "$call[[1]] should be the actual polr function object"
+    )
+  }
+)

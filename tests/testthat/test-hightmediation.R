@@ -279,3 +279,61 @@ test_that(
 )
 
 
+## ----------------------------------------------------------------------------
+## Regression: polr outcome + nonparametric bootstrap must not fail with
+## "could not find function 'model.type'"
+## ----------------------------------------------------------------------------
+test_that(
+  desc = paste(
+    "htmed() with MASS::polr outcome runs nonparametric bootstrap",
+    "without 'could not find function model.type' error"
+  ),
+  code = {
+    skip_if_not_installed("MASS")
+
+    df_ord <- df
+    df_ord$MVO_ord <- cut(
+      df$MVO, breaks = 3,
+      labels = c("low", "mid", "high"), ordered = TRUE
+    )
+    models_ord <- data_models(
+      outcome = 'MVO_ord', mediator = 'LV.EDV', treatment = 'LDL'
+    )
+
+    preprocess <- mediator_models(
+      column.models = 'model.m.formula',
+      model.type = lm,
+      data = df_ord,
+      data.models = models_ord,
+      model.name = 'model.M',
+      ncores = 1
+    )
+    preprocess <- outcome_models(
+      column.models = 'model.y.formula',
+      model.type = MASS::polr,
+      data = df_ord,
+      data.models = preprocess,
+      model.name = 'model.Y',
+      ncores = 1
+    )
+
+    # boot = TRUE triggers the nonparametric bootstrap refit path in
+    # mediation::mediate(). Before the fix, this would fail with
+    # "could not find function 'model.type'" because model$call[[1]]
+    # held the local symbol rather than the actual function object.
+    expect_no_error(
+      htmed(
+        data.models = preprocess,
+        column.modelm = 'model.M',
+        column.modely = 'model.Y',
+        treat = 'treatment',
+        mediator = 'mediator',
+        outcome = 'outcome',
+        seed = 1,
+        ncores = 1,
+        boot = TRUE,
+        sims = 10
+      )
+    )
+  }
+)
