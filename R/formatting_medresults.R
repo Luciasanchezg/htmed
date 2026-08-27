@@ -104,7 +104,11 @@ format_med <- function(
 
 
 .mediation_summary_ordinal <- function(x, clp) {
-  labels <- x$model.y$lev
+  # mediation::print.summary.mediate.order() labels the Pr(Y=...) columns
+  # using the alphabetically sorted unique outcome levels, not the outcome
+  # factor's original fitted-model level order. We must match that ordering
+  # here so format_med()'s labels line up with summary()'s printed output.
+  labels <- sort(unique(x$model.y$lev))
 
   groups <- list(
     "ACME (control)" = list(est = "d0",       ci = "d0.ci",     p = "d0.p"),

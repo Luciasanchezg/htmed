@@ -85,9 +85,14 @@ test_that(
     treat    <- rnorm(n)
     mediator <- 0.5 * treat + rnorm(n)
     latent   <- 0.4 * mediator + 0.3 * treat + rnorm(n)
+    # Labels are deliberately *not* alphabetical in fit order (Charlie < Alpha
+    # < Delta < Bravo, from lowest to highest latent quantile), so a test that
+    # naively reused the fitted level order would not catch a regression
+    # where format_med() mislabels the Pr(Y=...) columns.
+    fit_labels <- c("Charlie", "Alpha", "Delta", "Bravo")
     outcome  <- cut(latent,
                     breaks = quantile(latent, probs = seq(0, 1, 0.25)),
-                    include.lowest = TRUE, labels = c("Q0", "Q1", "Q2", "Q3"))
+                    include.lowest = TRUE, labels = fit_labels)
     df_ord <- data.frame(treat = treat, mediator = mediator, outcome = outcome)
 
     model.m <- lm(mediator ~ treat, data = df_ord)
@@ -105,15 +110,35 @@ test_that(
     expect_equal(nrow(ordinal_summary), 20)
     expect_equal(colnames(ordinal_summary),
                 c("Estimate", "95% CI Lower", "95% CI Upper", "p-value"))
+
+    # Row labels must follow the alphabetically sorted outcome levels
+    # (Alpha, Bravo, Charlie, Delta), matching how mediation's own
+    # summary()/print() label the Pr(Y=...) columns -- NOT the fitted
+    # level order (Charlie, Alpha, Delta, Bravo).
+    sorted_labels <- sort(fit_labels)
     expect_equal(
       rownames(ordinal_summary),
-      c(paste0("ACME (control) (Pr(Y=", c("Q0", "Q1", "Q2", "Q3"), "))"),
-        paste0("ACME (treated) (Pr(Y=", c("Q0", "Q1", "Q2", "Q3"), "))"),
-        paste0("ADE (control) (Pr(Y=",  c("Q0", "Q1", "Q2", "Q3"), "))"),
-        paste0("ADE (treated) (Pr(Y=",  c("Q0", "Q1", "Q2", "Q3"), "))"),
-        paste0("Total Effect (Pr(Y=",   c("Q0", "Q1", "Q2", "Q3"), "))"))
+      c(paste0("ACME (control) (Pr(Y=", sorted_labels, "))"),
+        paste0("ACME (treated) (Pr(Y=", sorted_labels, "))"),
+        paste0("ADE (control) (Pr(Y=",  sorted_labels, "))"),
+        paste0("ADE (treated) (Pr(Y=",  sorted_labels, "))"),
+        paste0("Total Effect (Pr(Y=",   sorted_labels, "))"))
     )
     expect_true(!any(grepl("Prop. Mediated|average", rownames(ordinal_summary))))
+
+    # Regression guard: values must be aligned to the sorted labels, not the
+    # fitted level order. mediate_ord$d0 columns are ordered per
+    # sort(unique(levels)), same as mediation:::print.summary.mediate.order.
+    for (i in seq_along(sorted_labels)) {
+      expect_equal(
+        ordinal_summary[paste0("ACME (control) (Pr(Y=", sorted_labels[i], "))"), "Estimate"],
+        unname(mediate_ord$d0[i])
+      )
+      expect_equal(
+        ordinal_summary[paste0("ADE (control) (Pr(Y=", sorted_labels[i], "))"), "Estimate"],
+        unname(mediate_ord$z0[i])
+      )
+    }
   }
 )
 
